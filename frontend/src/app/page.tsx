@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
     <main className="container">
@@ -7,6 +9,9 @@ export default function HomePage() {
         <p>
           Menghubungkan ex-narapidana dengan UMKM melalui proses rekrutmen terstruktur,
           monitoring check-in, dan mitigasi risiko berbasis AI.
+        </p>
+        <p>
+          <Link href="/umkm/dashboard">Buka Dashboard UMKM Prototype</Link>
         </p>
       </section>
 
