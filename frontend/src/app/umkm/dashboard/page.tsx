@@ -1,158 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import styles from "./page.module.css";
-
-type RiskLevel = "green" | "yellow" | "red";
-type TimeRange = "7d" | "30d";
-type WorkerChartRange = "1w" | "1m" | "6m" | "1y";
-
-type KpiSnapshot = {
-  activeWorkers: number;
-  openJobs: number;
-  avgCheckinRate: number;
-  riskAlerts: number;
-};
-
-type JobRow = {
-  id: string;
-  title: string;
-  applicants: number;
-  filled: number;
-  target: number;
-  status: "Open" | "Closing Soon";
-};
-
-type RiskAlert = {
-  id: string;
-  workerName: string;
-  role: string;
-  level: RiskLevel;
-  message: string;
-  createdAt: string;
-};
-
-type CandidateFunnel = {
-  label: string;
-  count: number;
-  color: string;
-};
-
-type WorkerConditionPoint = {
-  day: string;
-  green: number;
-  yellow: number;
-  red: number;
-};
-
-const kpiByRange: Record<TimeRange, KpiSnapshot> = {
-  "7d": {
-    activeWorkers: 24,
-    openJobs: 6,
-    avgCheckinRate: 91,
-    riskAlerts: 5
-  },
-  "30d": {
-    activeWorkers: 31,
-    openJobs: 9,
-    avgCheckinRate: 88,
-    riskAlerts: 14
-  }
-};
-
-const jobs: JobRow[] = [
-  { id: "J-201", title: "Staff Operasional Toko", applicants: 18, filled: 3, target: 4, status: "Open" },
-  { id: "J-204", title: "Admin Gudang", applicants: 11, filled: 2, target: 2, status: "Open" },
-  { id: "J-207", title: "Kasir Shift Sore", applicants: 9, filled: 1, target: 2, status: "Closing Soon" },
-  { id: "J-210", title: "Kurir UMKM Area Kota", applicants: 22, filled: 4, target: 6, status: "Open" }
-];
-
-const alerts: RiskAlert[] = [
-  {
-    id: "A-7841",
-    workerName: "Rizky Pratama",
-    role: "Staff Operasional",
-    level: "yellow",
-    message: "Check-in menunjukkan kecemasan ringan selama 2 hari berturut-turut.",
-    createdAt: "14 menit lalu"
-  },
-  {
-    id: "A-7840",
-    workerName: "Andri Saputra",
-    role: "Kurir",
-    level: "red",
-    message: "Tidak melakukan check-in 2 hari dan performa menurun di shift terakhir.",
-    createdAt: "35 menit lalu"
-  },
-  {
-    id: "A-7839",
-    workerName: "Siti Rahma",
-    role: "Kasir",
-    level: "green",
-    message: "Kondisi stabil, rekomendasi monitoring rutin mingguan.",
-    createdAt: "1 jam lalu"
-  },
-  {
-    id: "A-7838",
-    workerName: "Dimas Arya",
-    role: "Admin Gudang",
-    level: "yellow",
-    message: "Nada komunikasi check-in menandakan tekanan kerja meningkat.",
-    createdAt: "2 jam lalu"
-  }
-];
-
-const funnel: CandidateFunnel[] = [
-  { label: "Applied", count: 63, color: "#1d4ed8" },
-  { label: "Screening", count: 34, color: "#0f766e" },
-  { label: "Interview", count: 17, color: "#7c3aed" },
-  { label: "Placed", count: 10, color: "#15803d" }
-];
-
-const activities = [
-  "Lowongan Kurir UMKM mendapat 6 pelamar baru.",
-  "2 kandidat lolos screening untuk posisi Kasir Shift Sore.",
-  "Sistem mengirim 1 alert risiko merah ke supervisor.",
-  "Tingkat check-in harian naik dari 86% ke 91%."
-];
-
-const workerConditionTrendByRange: Record<WorkerChartRange, WorkerConditionPoint[]> = {
-  "1w": [
-    { day: "Sen", green: 17, yellow: 5, red: 2 },
-    { day: "Sel", green: 18, yellow: 4, red: 2 },
-    { day: "Rab", green: 18, yellow: 5, red: 1 },
-    { day: "Kam", green: 19, yellow: 4, red: 1 },
-    { day: "Jum", green: 20, yellow: 3, red: 1 },
-    { day: "Sab", green: 19, yellow: 3, red: 1 },
-    { day: "Min", green: 20, yellow: 2, red: 1 }
-  ],
-  "1m": [
-    { day: "W1", green: 18, yellow: 6, red: 2 },
-    { day: "W2", green: 19, yellow: 5, red: 2 },
-    { day: "W3", green: 20, yellow: 5, red: 1 },
-    { day: "W4", green: 21, yellow: 4, red: 1 }
-  ],
-  "6m": [
-    { day: "Okt", green: 17, yellow: 7, red: 4 },
-    { day: "Nov", green: 18, yellow: 7, red: 3 },
-    { day: "Des", green: 19, yellow: 6, red: 3 },
-    { day: "Jan", green: 20, yellow: 6, red: 3 },
-    { day: "Feb", green: 21, yellow: 5, red: 2 },
-    { day: "Mar", green: 22, yellow: 4, red: 2 }
-  ],
-  "1y": [
-    { day: "Q1", green: 58, yellow: 17, red: 8 },
-    { day: "Q2", green: 61, yellow: 16, red: 7 },
-    { day: "Q3", green: 64, yellow: 14, red: 6 },
-    { day: "Q4", green: 67, yellow: 13, red: 5 }
-  ]
-};
-
-function riskLabel(level: RiskLevel) {
-  if (level === "red") return "Risiko Tinggi";
-  if (level === "yellow") return "Perlu Atensi";
-  return "Stabil";
-}
+import {
+  activities,
+  alerts,
+  kpiByRange,
+  riskLabel,
+  workers,
+  workerConditionTrendByRange,
+  type TimeRange,
+  type WorkerChartRange
+} from "@/features/umkm/workers-data";
 
 function checkinRateClass(rate: number) {
   if (rate >= 90) return styles.checkinHigh;
@@ -161,12 +21,37 @@ function checkinRateClass(rate: number) {
 }
 
 export default function UmkmDashboardPage() {
+  const defaultWorker = workers[0];
+
+  if (!defaultWorker) {
+    return null;
+  }
+
   const [range, setRange] = useState<TimeRange>("7d");
-  const [filter, setFilter] = useState<RiskLevel | "all">("all");
+  const [filter, setFilter] = useState<"all" | "green" | "yellow" | "red">("all");
   const [workerChartRange, setWorkerChartRange] = useState<WorkerChartRange>("1m");
 
   const kpi = kpiByRange[range];
-  const workerConditionTrend = workerConditionTrendByRange[workerChartRange];
+  const workerConditionTrend = useMemo(() => {
+    const labels = workerConditionTrendByRange[defaultWorker.id]?.[workerChartRange] ?? [];
+
+    return labels.map((basePoint, index) => {
+      return workers.reduce(
+        (acc, worker) => {
+          const point = workerConditionTrendByRange[worker.id]?.[workerChartRange]?.[index];
+          if (!point) {
+            return acc;
+          }
+          acc.green += point.green;
+          acc.yellow += point.yellow;
+          acc.red += point.red;
+          return acc;
+        },
+        { day: basePoint.day, green: 0, yellow: 0, red: 0 }
+      );
+    });
+  }, [defaultWorker.id, workerChartRange]);
+
   const filteredAlerts = useMemo(() => {
     if (filter === "all") return alerts;
     return alerts.filter((item) => item.level === filter);
@@ -197,9 +82,9 @@ export default function UmkmDashboardPage() {
       <section className={styles.headerCard}>
         <div>
           <p className={styles.eyebrow}>UMKM Dashboard</p>
-          <h1>Monitoring Pekerja & Rekrutmen BinaHub</h1>
+          <h1>Monitoring Pekerja Aktif UMKM</h1>
           <p className={styles.subtext}>
-            Pantau progres lowongan, kesehatan operasional tim, dan notifikasi risiko secara terpusat.
+            Flow awal menampilkan ringkasan keseluruhan. Klik pekerja untuk membuka halaman detail individu yang lebih personal.
           </p>
         </div>
         <div className={styles.rangeSwitch}>
@@ -222,56 +107,60 @@ export default function UmkmDashboardPage() {
         <article className={styles.kpiCard}>
           <p>Pekerja Aktif</p>
           <h3>{kpi.activeWorkers}</h3>
-          <span>+4 dari periode sebelumnya</span>
+          <span>Seluruh pekerja sudah aktif bekerja</span>
         </article>
         <article className={styles.kpiCard}>
-          <p>Lowongan Aktif</p>
-          <h3>{kpi.openJobs}</h3>
-          <span>2 posisi hampir terpenuhi</span>
+          <p>Perlu Atensi</p>
+          <h3>{kpi.needAttention}</h3>
+          <span>Pekerja kondisi kuning/merah</span>
         </article>
         <article className={styles.kpiCard}>
           <p>Check-in Rate</p>
           <h3 className={checkinRateClass(kpi.avgCheckinRate)}>{kpi.avgCheckinRate}%</h3>
-          <span>Kepatuhan check-in harian</span>
+          <span>Konsistensi check-in pekerja aktif</span>
         </article>
         <article className={styles.kpiCard}>
-          <p>Alert Risiko</p>
-          <h3>{kpi.riskAlerts}</h3>
-          <span>Butuh tindak lanjut supervisor</span>
+          <p>Sesi Pendampingan</p>
+          <h3>{kpi.mentoringSessions}</h3>
+          <span>Total sesi dalam periode ini</span>
         </article>
       </section>
 
-      <section className={styles.contentGrid}>
+      <section className={`${styles.contentGrid} ${styles.singlePaneGrid}`}>
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <h2>Lowongan Aktif</h2>
-            <button className={styles.linkButton}>+ Tambah Lowongan</button>
+            <h2>Daftar Pekerja Aktif</h2>
+            <span className={styles.profileBadge}>Klik untuk detail</span>
           </div>
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead>
                 <tr>
+                  <th>Nama</th>
                   <th>Posisi</th>
-                  <th>Pelamar</th>
-                  <th>Terisi</th>
-                  <th>Status</th>
+                  <th>Kehadiran</th>
+                  <th>Kondisi</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
-                {jobs.map((job) => (
-                  <tr key={job.id}>
+                {workers.map((worker) => (
+                  <tr key={worker.id}>
                     <td>
-                      <strong>{job.title}</strong>
-                      <small>{job.id}</small>
+                      <strong>{worker.name}</strong>
+                      <small>{worker.latestCheckin}</small>
                     </td>
-                    <td>{job.applicants}</td>
+                    <td>{worker.role}</td>
+                    <td>{worker.attendanceRate}%</td>
                     <td>
-                      {job.filled}/{job.target}
-                    </td>
-                    <td>
-                      <span className={job.status === "Open" ? styles.badgeOpen : styles.badgeWarn}>
-                        {job.status}
+                      <span className={styles[`risk${worker.latestCondition}`]}>
+                        {riskLabel(worker.latestCondition)}
                       </span>
+                    </td>
+                    <td>
+                      <Link className={styles.tableActionLink} href={`/umkm/workers/${worker.id}`}>
+                        Lihat Detail
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -279,10 +168,12 @@ export default function UmkmDashboardPage() {
             </table>
           </div>
         </article>
+      </section>
 
-        <article className={`${styles.panel} ${styles.equalHeightPanel}`}>
+      <section className={`${styles.contentGrid} ${styles.singlePaneGrid}`}>
+        <article className={styles.panel}>
           <div className={styles.panelHeader}>
-            <h2>Alert Risiko</h2>
+            <h2>Alert Risiko Seluruh Pekerja</h2>
             <div className={styles.filterRow}>
               {(["all", "green", "yellow", "red"] as const).map((item) => (
                 <button
@@ -308,6 +199,7 @@ export default function UmkmDashboardPage() {
                 </small>
               </li>
             ))}
+            {filteredAlerts.length === 0 && <li className={styles.emptyState}>Tidak ada alert untuk filter ini.</li>}
           </ul>
         </article>
       </section>
@@ -398,19 +290,35 @@ export default function UmkmDashboardPage() {
 
       <section className={styles.bottomGrid}>
         <article className={styles.panel}>
-          <h2>Funnel Rekrutmen</h2>
+          <h2>Rencana Tindak Lanjut Individu</h2>
           <div className={styles.funnelList}>
-            {funnel.map((step) => (
-              <div key={step.label} className={styles.funnelItem}>
-                <div className={styles.funnelHead}>
-                  <span>{step.label}</span>
-                  <strong>{step.count}</strong>
-                </div>
-                <div className={styles.progressTrack}>
-                  <div className={styles.progressBar} style={{ width: `${(step.count / 63) * 100}%`, background: step.color }} />
-                </div>
+            <div className={styles.funnelItem}>
+              <div className={styles.funnelHead}>
+                <span>Coaching Mingguan</span>
+                <strong>75%</strong>
               </div>
-            ))}
+              <div className={styles.progressTrack}>
+                <div className={styles.progressBar} style={{ width: "75%", background: "#0f766e" }} />
+              </div>
+            </div>
+            <div className={styles.funnelItem}>
+              <div className={styles.funnelHead}>
+                <span>Stabilisasi Check-in</span>
+                <strong>68%</strong>
+              </div>
+              <div className={styles.progressTrack}>
+                <div className={styles.progressBar} style={{ width: "68%", background: "#1d4ed8" }} />
+              </div>
+            </div>
+            <div className={styles.funnelItem}>
+              <div className={styles.funnelHead}>
+                <span>Kemandirian Kerja</span>
+                <strong>81%</strong>
+              </div>
+              <div className={styles.progressTrack}>
+                <div className={styles.progressBar} style={{ width: "81%", background: "#15803d" }} />
+              </div>
+            </div>
           </div>
         </article>
 

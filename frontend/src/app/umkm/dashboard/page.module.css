@@ -117,6 +117,10 @@
   gap: 14px;
 }
 
+.singlePaneGrid {
+  grid-template-columns: 1fr;
+}
+
 .workerChartGrid {
   margin-top: 14px;
   display: grid;
@@ -148,6 +152,109 @@
   margin-bottom: 14px;
 }
 
+.profileBadge {
+  font-size: 11px;
+  color: #0f6e99;
+  background: #e7f3fc;
+  border: 1px solid #cfe5f6;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-weight: 700;
+}
+
+.profileCardBody h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.profileRole {
+  margin: 4px 0;
+  color: #4b6576;
+  font-size: 13px;
+}
+
+.profileMeta {
+  margin: 0;
+  color: #728594;
+  font-size: 12px;
+}
+
+.profileStats {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profileStats div {
+  border: 1px solid #e4edf5;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fbfdff;
+}
+
+.profileStats span {
+  display: block;
+  font-size: 11px;
+  color: #6d8291;
+}
+
+.profileStats strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1rem;
+  color: #284556;
+}
+
+.mentorNote {
+  margin: 12px 0 0;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f2f8fd;
+  color: #395868;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.checkinList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.checkinList li {
+  border: 1px solid #e7eff6;
+  border-radius: 10px;
+  padding: 10px;
+  background: #fcfeff;
+}
+
+.checkinList p {
+  margin: 0;
+  color: #405b6d;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.checkinList small {
+  display: block;
+  margin-top: 6px;
+  color: #6f8392;
+  font-size: 11px;
+}
+
+.emptyState {
+  border: 1px dashed #d7e5f1;
+  background: #f8fcff;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  color: #6d8291;
+  font-size: 12px;
+}
+
 .linkButton {
   border: 0;
   background: #e9f5ff;
@@ -174,6 +281,29 @@
   border-bottom: 1px solid #ebf1f5;
   padding: 10px 6px;
   font-size: 13px;
+}
+
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.tableActionLink {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f6e99;
+  background: #e8f4fc;
+  text-decoration: none;
+}
+
+.tableActionLink:hover {
+  background: #d8ebf8;
 }
 
 .table th {
@@ -584,6 +714,10 @@
   .contentGrid,
   .workerChartGrid,
   .bottomGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .profileStats {
     grid-template-columns: 1fr;
   }
 
