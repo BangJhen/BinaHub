@@ -15,9 +15,15 @@ const roles: { key: Role; label: string }[] = [
 export default function LoginPage() {
   const router = useRouter();
 
+  const roleRedirect: Record<Role, string> = {
+    umkm: "/umkm/dashboard",
+    worker: "/worker/dashboard",
+    admin: "/umkm/dashboard",
+  };
+
   function handleLogin(role: Role) {
     window.localStorage.setItem("binahub-auth-role", role);
-    router.push("/umkm/dashboard");
+    router.push(roleRedirect[role]);
   }
 
   return (
@@ -37,7 +43,7 @@ export default function LoginPage() {
 
         <div className={styles.linksRow}>
           <Link href="/auth/register">Belum punya akun? Register</Link>
-          <Link href="/umkm/dashboard">Kembali ke Dashboard</Link>
+          <Link href="/">Kembali ke Beranda</Link>
         </div>
       </section>
     </main>

@@ -1,0 +1,33 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import styles from "./worker-nav.module.css";
+import AuthRoleControl from "./AuthRoleControl";
+
+const navItems = [
+  { href: "/worker/dashboard", label: "Dashboard" },
+  { href: "/worker/check-in", label: "Daily Check" },
+  { href: "/worker/performance", label: "Performa" },
+];
+
+export default function WorkerNav() {
+  const pathname = usePathname();
+
+  return (
+    <nav className={styles.navRoot} aria-label="Navigasi Pekerja">
+      <div className={styles.brand}>BinaHub Worker</div>
+      <div className={styles.links}>
+        {navItems.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          return (
+            <Link key={item.href} href={item.href} className={isActive ? styles.linkActive : styles.link}>
+              {item.label}
+            </Link>
+          );
+        })}
+      </div>
+      <AuthRoleControl />
+    </nav>
+  );
+}
