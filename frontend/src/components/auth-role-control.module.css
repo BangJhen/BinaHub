@@ -12,16 +12,16 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  padding: 6px 10px;
-  font-size: 11px;
+  padding: 6px 12px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
 }
 
 .authBtn {
-  background: #e9f3fb;
-  color: #4f6c7e;
+  background: #edf5fb;
+  color: #567284;
 }
 
 .authBtnPrimary {
@@ -29,69 +29,126 @@
   color: #ffffff;
 }
 
-.profilePanel {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 220px;
-  background: #ffffff;
-  border: 1px solid #d5e6f2;
-  border-radius: 12px;
-  padding: 10px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-}
-
-.profileRole {
-  margin: 0 0 8px;
-  font-size: 12px;
-  color: #587082;
-}
-
-.roleGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.roleBtn,
-.roleBtnActive {
-  border: 1px solid #dbe8f3;
-  border-radius: 8px;
-  background: #f5fafe;
-  padding: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  color: #4f6878;
-}
-
-.roleBtnActive {
-  background: #0f6e99;
-  border-color: #0f6e99;
-  color: #ffffff;
-}
-
+/* ── Avatar button ──────────────────── */
 .profileBtn {
   width: 34px;
   height: 34px;
-  border: 0;
+  border: 2px solid rgba(15, 110, 153, 0.3);
   border-radius: 999px;
-  background: #0f6e99;
+  background: linear-gradient(135deg, #0d6f9a, #0b5278);
   color: #ffffff;
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.profileBtn:hover {
+  border-color: #0f6e99;
+  box-shadow: 0 0 0 3px rgba(15, 110, 153, 0.14);
+}
+
+/* ── Dropdown panel ─────────────────── */
+.profilePanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 230px;
+  background: #ffffff;
+  border: 1px solid #d5e6f2;
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+  z-index: 100;
+}
+
+/* ── Profile head ───────────────────── */
+.profileHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.profileAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #0d6f9a, #0b5278);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.profileName {
+  margin: 0 0 3px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1a3344;
+}
+
+.profileRoleBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #e7f3fc;
+  color: #0f6e99;
+  border: 1px solid #cfe5f6;
+}
+
+/* ── Divider ────────────────────────── */
+.menuDivider {
+  height: 1px;
+  background: #e8f0f7;
+  margin: 8px 0;
+}
+
+/* ── Menu list ──────────────────────── */
+.menuList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #324555;
+  text-decoration: none;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.menuItem:hover {
+  background: #f0f8ff;
+  color: #0f6e99;
+}
+
+/* ── Logout ─────────────────────────── */
 .logoutBtn {
   border: 0;
-  margin-top: 8px;
   width: 100%;
-  border-radius: 8px;
-  background: #fee4e2;
+  border-radius: 9px;
+  background: #fff1f0;
   color: #b42318;
-  padding: 7px;
-  font-size: 11px;
+  padding: 8px 10px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  transition: background-color 0.18s ease;
+}
+
+.logoutBtn:hover {
+  background: #fee4e2;
 }
