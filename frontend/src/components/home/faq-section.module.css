@@ -1,0 +1,117 @@
+.sectionBand {
+  width: 100%;
+  padding: clamp(42px, 6vw, 82px) clamp(16px, 6vw, 76px);
+  position: relative;
+  scroll-margin-top: 96px;
+}
+
+.sectionBand::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(188, 214, 230, 0.95) 25%, rgba(188, 214, 230, 0.95) 75%, transparent 100%);
+}
+
+.faqBand {
+  background: linear-gradient(180deg, rgba(244, 250, 255, 0.4), rgba(244, 250, 255, 0.16));
+}
+
+.bandHeader {
+  margin-bottom: 18px;
+}
+
+.bandHeader h2 {
+  margin: 8px 0;
+  font-size: clamp(1.42rem, 3.3vw, 2.4rem);
+}
+
+.bandHeader p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 74ch;
+  line-height: 1.65;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.faqList {
+  display: grid;
+  gap: 12px;
+}
+
+.faqItem {
+  border: 1px solid #c8ddef;
+  border-radius: 18px;
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.92), rgba(246, 251, 255, 0.72)),
+    radial-gradient(circle at 100% 0%, rgba(221, 240, 250, 0.55), transparent 42%);
+  padding: 0;
+  box-shadow: 0 10px 20px rgba(15, 36, 51, 0.04);
+  overflow: hidden;
+}
+
+.faqItem summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #23495f;
+  padding: 14px 16px;
+  transition: background-color 0.28s ease;
+}
+
+.faqItem summary:hover {
+  background: rgba(208, 230, 244, 0.25);
+}
+
+.faqItem summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqItem summary::after {
+  content: "+";
+  font-size: 18px;
+  line-height: 1;
+  color: #4d6f85;
+  transition: transform 0.28s ease, color 0.28s ease;
+}
+
+.faqItem[open] summary::after {
+  content: "+";
+  transform: rotate(45deg);
+  color: #0d6f9a;
+}
+
+.faqAnswer {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 1.5s ease, opacity 1s ease;
+}
+
+.faqItem[open] .faqAnswer {
+  max-height: 220px;
+  opacity: 1;
+}
+
+.faqAnswer p {
+  margin: 0;
+  padding: 0 16px 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 13px;
+}

@@ -1,0 +1,98 @@
+.sectionBand {
+  width: 100%;
+  padding: clamp(42px, 6vw, 82px) clamp(16px, 6vw, 76px);
+  position: relative;
+  scroll-margin-top: 96px;
+}
+
+.sectionBand::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(188, 214, 230, 0.95) 25%, rgba(188, 214, 230, 0.95) 75%, transparent 100%);
+}
+
+.metricBand {
+  padding-top: 20px;
+  padding-bottom: 26px;
+}
+
+.metricBand::before {
+  display: none;
+}
+
+.metricRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metricCard {
+  border: 1px solid #cfe2f0;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 12px;
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.metricHeader p {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #49657a;
+}
+
+.metricIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #0b4f6e;
+  background: rgba(208, 230, 244, 0.95);
+}
+
+.metricIcon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.metricCard strong {
+  display: block;
+  font-size: 1.35rem;
+}
+
+.metricCard small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1080px) {
+  .metricRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .metricRow {
+    grid-template-columns: 1fr;
+  }
+}

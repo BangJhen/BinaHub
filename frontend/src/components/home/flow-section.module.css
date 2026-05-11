@@ -1,0 +1,104 @@
+.sectionBand {
+  width: 100%;
+  padding: clamp(42px, 6vw, 82px) clamp(16px, 6vw, 76px);
+  position: relative;
+  scroll-margin-top: 96px;
+}
+
+.sectionBand::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(188, 214, 230, 0.95) 25%, rgba(188, 214, 230, 0.95) 75%, transparent 100%);
+}
+
+.flowBand {
+  background: linear-gradient(180deg, rgba(230, 245, 253, 0.3), rgba(230, 245, 253, 0));
+}
+
+.bandHeader {
+  margin-bottom: 18px;
+}
+
+.bandHeader h2 {
+  margin: 8px 0;
+  font-size: clamp(1.42rem, 3.3vw, 2.4rem);
+}
+
+.bandHeader p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 74ch;
+  line-height: 1.65;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.flowTrack {
+  list-style: none;
+  margin: 0;
+  padding: 8px 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.flowStep {
+  padding: 12px 0 0;
+  border-top: 2px solid rgba(170, 205, 224, 0.75);
+}
+
+.stepDot {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary-deep);
+  background: rgba(205, 230, 243, 0.9);
+  margin-bottom: 10px;
+}
+
+.flowStep h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.flowStep p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.flowMeta {
+  display: inline-block;
+  margin-top: 9px;
+  font-size: 11px;
+  color: #4d6678;
+  font-weight: 600;
+}
+
+@media (max-width: 1080px) {
+  .flowTrack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .flowTrack {
+    grid-template-columns: 1fr;
+  }
+}

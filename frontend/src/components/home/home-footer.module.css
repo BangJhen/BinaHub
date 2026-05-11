@@ -1,0 +1,16 @@
+.footerBand {
+  width: 100%;
+  padding: 20px clamp(16px, 6vw, 76px) 34px;
+  border-top: 1px solid rgba(192, 216, 230, 0.85);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: #5f788a;
+}
+
+@media (max-width: 760px) {
+  .footerBand {
+    flex-direction: column;
+  }
+}

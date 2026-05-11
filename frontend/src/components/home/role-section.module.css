@@ -1,0 +1,122 @@
+.sectionBand {
+  width: 100%;
+  padding: clamp(42px, 6vw, 82px) clamp(16px, 6vw, 76px);
+  position: relative;
+  scroll-margin-top: 96px;
+}
+
+.sectionBand::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(188, 214, 230, 0.95) 25%, rgba(188, 214, 230, 0.95) 75%, transparent 100%);
+}
+
+.roleBand {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(205, 243, 231, 0.38), transparent 44%),
+    radial-gradient(circle at 0% 95%, rgba(213, 229, 247, 0.4), transparent 44%);
+}
+
+.bandHeader {
+  margin-bottom: 18px;
+}
+
+.bandHeader h2 {
+  margin: 8px 0;
+  font-size: clamp(1.42rem, 3.3vw, 2.4rem);
+}
+
+.bandHeader p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 74ch;
+  line-height: 1.65;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.roleColumns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.rolePanel {
+  padding: 14px 0 10px;
+  border-top: 2px solid rgba(158, 199, 220, 0.75);
+}
+
+.roleHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.roleIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b4f6e;
+  background: rgba(205, 230, 243, 0.9);
+}
+
+.roleIcon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.roleTitle {
+  margin: 0;
+  font-size: 1.12rem;
+}
+
+.roleMeta {
+  margin: 8px 0 10px;
+  font-size: 12px;
+  color: #4c6778;
+  font-weight: 600;
+}
+
+.rolePanel ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.rolePanel li {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (max-width: 1080px) {
+  .roleColumns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .roleColumns {
+    grid-template-columns: 1fr;
+  }
+}

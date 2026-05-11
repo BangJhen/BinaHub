@@ -1,0 +1,128 @@
+.sectionBand {
+  width: 100%;
+  padding: clamp(42px, 6vw, 82px) clamp(16px, 6vw, 76px);
+  position: relative;
+  scroll-margin-top: 96px;
+}
+
+.sectionBand::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(188, 214, 230, 0.95) 25%, rgba(188, 214, 230, 0.95) 75%, transparent 100%);
+}
+
+.valueBand {
+  background:
+    linear-gradient(180deg, rgba(244, 250, 255, 0.5), rgba(244, 250, 255, 0.24)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.1));
+}
+
+.bandHeader {
+  margin-bottom: 18px;
+}
+
+.bandHeader h2 {
+  margin: 8px 0;
+  font-size: clamp(1.42rem, 3.3vw, 2.4rem);
+}
+
+.bandHeader p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 74ch;
+  line-height: 1.65;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.valueRows {
+  display: grid;
+  gap: 14px;
+}
+
+.valueRow {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.7fr) 1fr;
+  gap: 18px;
+  align-items: start;
+  padding: 12px 0;
+  border-top: 1px solid rgba(191, 218, 232, 0.7);
+}
+
+.valueHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.valueHead h3 {
+  margin: 0;
+}
+
+.valueIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b4f6e;
+  background: rgba(203, 228, 243, 0.85);
+}
+
+.valueIcon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.valueRow h3 {
+  margin: 0 0 6px;
+  font-size: clamp(1.05rem, 2vw, 1.4rem);
+}
+
+.valueRow p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.66;
+}
+
+.propertyList {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.propertyChip {
+  border: 1px solid #cfe2f0;
+  background: rgba(255, 255, 255, 0.84);
+  color: #4b6678;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .valueRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
