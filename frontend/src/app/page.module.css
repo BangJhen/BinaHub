@@ -71,6 +71,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .ghostBtn {
@@ -87,6 +88,17 @@
   color: var(--primary-deep);
   border: 1px solid #a8ccdf;
   background: rgba(255, 255, 255, 0.58);
+}
+
+.primaryBtn:hover,
+.outlineBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(13, 111, 154, 0.16);
+}
+
+.outlineBtn:hover {
+  border-color: #8fbdd8;
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .sectionBand {
@@ -111,13 +123,7 @@
 }
 
 .heroBand::after {
-  content: "";
-  position: absolute;
-  left: -12%;
-  right: -12%;
-  bottom: -46px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, #cfe2ef 18%, #cfe2ef 82%, transparent 100%);
+  display: none;
 }
 
 .heroContent {
@@ -132,6 +138,27 @@
   font-size: clamp(2rem, 5.1vw, 4.15rem);
   line-height: 1.05;
   max-width: 15ch;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: heroTitleReveal 0.7s ease-out 0.12s forwards;
+}
+
+.heroTitleLoop {
+  display: inline-block;
+  background: linear-gradient(
+    110deg,
+    #0f2433 0%,
+    #0f2433 42%,
+    #2e6f95 50%,
+    #0f2433 58%,
+    #0f2433 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: heroTitleShimmer 4.8s linear 1s infinite;
+  will-change: background-position;
 }
 
 .heroCopy p {
@@ -160,20 +187,30 @@
 .heroMeta {
   list-style: none;
   padding: 0;
-  margin: 20px 0 0;
+  margin: 18px 0 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px 18px;
 }
 
 .heroMeta li {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 12px;
-  font-weight: 700;
-  color: #3f5e71;
-  padding: 7px 10px;
+  font-weight: 600;
+  color: #456275;
+  padding: 0;
+}
+
+.heroMeta li::before {
+  content: "";
+  width: 9px;
+  height: 9px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
-  border: 1px solid rgba(191, 217, 233, 0.75);
+  background: #7fb6d5;
+  box-shadow: 0 0 0 2px rgba(127, 182, 213, 0.2);
 }
 
 .heroVisual {
@@ -181,6 +218,162 @@
   min-height: 380px;
   display: grid;
   align-items: center;
+}
+
+.heroArtwork {
+  position: relative;
+  width: min(420px, 100%);
+  height: 320px;
+  margin-left: auto;
+  border: 1px solid rgba(191, 217, 233, 0.8);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(236, 246, 254, 0.58));
+  overflow: hidden;
+}
+
+.artGrid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(164, 198, 219, 0.22) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(164, 198, 219, 0.22) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.orbit {
+  position: absolute;
+  border: 1px dashed rgba(109, 154, 182, 0.45);
+  border-radius: 50%;
+}
+
+.orbitOne {
+  width: 220px;
+  height: 220px;
+  left: 96px;
+  top: 52px;
+}
+
+.orbitTwo {
+  width: 280px;
+  height: 280px;
+  left: 66px;
+  top: 22px;
+}
+
+.coreNode {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  border-radius: 999px;
+  background: linear-gradient(120deg, #0d6f9a 0%, #0b5e84 100%);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  z-index: 2;
+}
+
+.artBadge {
+  position: absolute;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #35586f;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #c5dff0;
+  z-index: 3;
+}
+
+.artBadgeTop {
+  left: 30px;
+  top: 30px;
+}
+
+.artBadgeMiddle {
+  right: 22px;
+  top: 126px;
+}
+
+.artBadgeBottom {
+  left: 56px;
+  bottom: 26px;
+}
+
+.metricBand {
+  padding-top: 20px;
+  padding-bottom: 26px;
+}
+
+.metricBand::before {
+  display: none;
+}
+
+.metricRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metricCard {
+  border: 1px solid #cfe2f0;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 12px;
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.metricHeader p {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #49657a;
+}
+
+.metricIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #0b4f6e;
+  background: rgba(208, 230, 244, 0.95);
+}
+
+.metricIcon svg,
+.valueIcon svg,
+.roleIcon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.metricCard strong {
+  display: block;
+  font-size: 1.35rem;
+}
+
+.metricCard small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .pulseHalo {
@@ -248,11 +441,33 @@
 
 .valueRow {
   display: grid;
-  grid-template-columns: 74px 1fr;
-  gap: 16px;
+  grid-template-columns: minmax(220px, 0.7fr) 1fr;
+  gap: 18px;
   align-items: start;
   padding: 12px 0;
   border-top: 1px solid rgba(191, 218, 232, 0.7);
+}
+
+.valueHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.valueHead h3 {
+  margin: 0;
+}
+
+.valueIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b4f6e;
+  background: rgba(203, 228, 243, 0.85);
 }
 
 .valueIndex {
@@ -271,6 +486,23 @@
   margin: 0;
   color: var(--muted);
   line-height: 1.66;
+}
+
+.propertyList {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.propertyChip {
+  border: 1px solid #cfe2f0;
+  background: rgba(255, 255, 255, 0.84);
+  color: #4b6678;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .flowBand {
@@ -316,6 +548,14 @@
   line-height: 1.6;
 }
 
+.flowMeta {
+  display: inline-block;
+  margin-top: 9px;
+  font-size: 11px;
+  color: #4d6678;
+  font-weight: 600;
+}
+
 .roleBand {
   background:
     radial-gradient(circle at 100% 0%, rgba(205, 243, 231, 0.38), transparent 44%),
@@ -333,9 +573,34 @@
   border-top: 2px solid rgba(158, 199, 220, 0.75);
 }
 
+.roleHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.roleIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0b4f6e;
+  background: rgba(205, 230, 243, 0.9);
+}
+
 .roleTitle {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 1.12rem;
+}
+
+.roleMeta {
+  margin: 8px 0 10px;
+  font-size: 12px;
+  color: #4c6778;
+  font-weight: 600;
 }
 
 .rolePanel ul {
@@ -402,9 +667,54 @@
   color: #5f788a;
 }
 
+@keyframes heroTitleReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroTitleShimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroCopy h1 {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .heroTitleLoop {
+    animation: none;
+    background: none;
+    color: inherit;
+  }
+
+  .primaryBtn,
+  .outlineBtn,
+  .ghostBtn {
+    transition: none;
+  }
+}
+
 @media (max-width: 1080px) {
   .heroContent {
     grid-template-columns: 1fr;
+  }
+
+  .heroArtwork {
+    margin-left: 0;
+  }
+
+  .metricRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .heroCopy h1 {
@@ -444,6 +754,10 @@
 
   .flowTrack,
   .roleColumns {
+    grid-template-columns: 1fr;
+  }
+
+  .metricRow {
     grid-template-columns: 1fr;
   }
 

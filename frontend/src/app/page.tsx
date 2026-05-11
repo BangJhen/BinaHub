@@ -1,43 +1,189 @@
 import Link from "next/link";
 import styles from "./page.module.css";
 
+function AppIcon({ name }: { name: string }) {
+  if (name === "briefcase") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        <rect x="3" y="7" width="18" height="13" rx="2" />
+        <path d="M3 12h18" />
+      </svg>
+    );
+  }
+
+  if (name === "radar") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="8" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="12" cy="12" r="1" />
+        <path d="M12 12l6-4" />
+      </svg>
+    );
+  }
+
+  if (name === "clipboard-check") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="8" y="2" width="8" height="4" rx="1" />
+        <rect x="5" y="5" width="14" height="17" rx="2" />
+        <path d="m8 14 2 2 4-4" />
+      </svg>
+    );
+  }
+
+  if (name === "user-plus") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="10" cy="8" r="3" />
+        <path d="M4 19a6 6 0 0 1 12 0" />
+        <path d="M19 8v6" />
+        <path d="M16 11h6" />
+      </svg>
+    );
+  }
+
+  if (name === "file-plus") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7z" />
+        <path d="M14 2v5h5" />
+        <path d="M12 11v6" />
+        <path d="M9 14h6" />
+      </svg>
+    );
+  }
+
+  if (name === "link-match") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M10 14a4 4 0 0 1 0-6l1-1a4 4 0 0 1 6 6l-1 1" />
+        <path d="M14 10a4 4 0 0 1 0 6l-1 1a4 4 0 0 1-6-6l1-1" />
+      </svg>
+    );
+  }
+
+  if (name === "calendar-check") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="16" rx="2" />
+        <path d="M3 10h18" />
+        <path d="M8 3v4" />
+        <path d="M16 3v4" />
+        <path d="m9 15 2 2 4-4" />
+      </svg>
+    );
+  }
+
+  if (name === "store") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 10h16" />
+        <path d="M5 10v9h14v-9" />
+        <path d="m3 10 2-5h14l2 5" />
+        <path d="M10 19v-5h4v5" />
+      </svg>
+    );
+  }
+
+  if (name === "worker") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6 11V9a6 6 0 0 1 12 0v2" />
+        <rect x="5" y="11" width="14" height="4" rx="1" />
+        <path d="M12 15v3" />
+        <path d="M7 21a5 5 0 0 1 10 0" />
+      </svg>
+    );
+  }
+
+  if (name === "shield-check") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="m12 3 7 3v5c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6z" />
+        <path d="m9 12 2 2 4-4" />
+      </svg>
+    );
+  }
+
+  if (name === "chart-up") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 19h16" />
+        <path d="m6 15 4-4 3 3 5-6" />
+        <path d="M18 8h2v2" />
+      </svg>
+    );
+  }
+
+  if (name === "users") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="9" cy="8" r="3" />
+        <circle cx="17" cy="9" r="2" />
+        <path d="M3 19a6 6 0 0 1 12 0" />
+        <path d="M14 19a4 4 0 0 1 7 0" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8" />
+    </svg>
+  );
+}
+
 const valueItems = [
   {
+    icon: "briefcase",
     title: "Lowongan lebih terarah",
-    description: "UMKM membuat lowongan berdasarkan kebutuhan shift, kapasitas tim, dan kesiapan pendampingan harian."
+    description: "UMKM membuat lowongan berdasarkan kebutuhan shift, kapasitas tim, dan kesiapan pendampingan harian.",
+    properties: ["Shift-ready", "Target jelas", "Pendampingan awal"]
   },
   {
+    icon: "radar",
     title: "Matching berbasis data perilaku",
-    description: "Skor kecocokan mempertimbangkan performa kerja, konsistensi check-in, dan profil risiko individu."
+    description: "Skor kecocokan mempertimbangkan performa kerja, konsistensi check-in, dan profil risiko individu.",
+    properties: ["Skor relevansi", "Riwayat check-in", "Profil risiko"]
   },
   {
+    icon: "clipboard-check",
     title: "Monitoring harian yang humanis",
-    description: "Daily check memberi sinyal awal kondisi emosional agar dukungan dapat diberikan sebelum masalah membesar."
+    description: "Daily check memberi sinyal awal kondisi emosional agar dukungan dapat diberikan sebelum masalah membesar.",
+    properties: ["Alert dini", "Follow-up cepat", "Mentoring terjadwal"]
   }
 ];
 
 const flowSteps = [
   {
     title: "Registrasi dan pilih role",
-    description: "Akun dibuat sesuai peran: UMKM, pekerja, atau admin program."
+    description: "Akun dibuat sesuai peran: UMKM, pekerja, atau admin program.",
+    meta: "Durasi: < 5 menit"
   },
   {
     title: "Buat lowongan operasional",
-    description: "Posisi, lokasi, shift, dan target performa ditentukan sejak awal."
+    description: "Posisi, lokasi, shift, dan target performa ditentukan sejak awal.",
+    meta: "Output: lowongan aktif"
   },
   {
     title: "Lihat hasil matchmaking",
-    description: "Sistem menampilkan kandidat ex-napi paling relevan untuk tiap kebutuhan UMKM."
+    description: "Sistem menampilkan kandidat ex-napi paling relevan untuk tiap kebutuhan UMKM.",
+    meta: "Output: shortlist kandidat"
   },
   {
     title: "Pantau daily check pekerja",
-    description: "Dashboard individu menampilkan kondisi hari ini, riwayat check-in, dan tindak lanjut."
+    description: "Dashboard individu menampilkan kondisi hari ini, riwayat check-in, dan tindak lanjut.",
+    meta: "Output: rencana follow-up"
   }
 ];
 
 const roleItems = [
   {
+    icon: "store",
     title: "UMKM",
+    focus: "Fokus: operasional dan kestabilan tim",
     points: [
       "Kelola lowongan dan shortlist kandidat secara cepat.",
       "Pantau alert risiko serta status check-in harian.",
@@ -45,7 +191,9 @@ const roleItems = [
     ]
   },
   {
+    icon: "worker",
     title: "Pekerja Ex-Napi",
+    focus: "Fokus: adaptasi kerja dan dukungan harian",
     points: [
       "Mendapat akses peluang kerja yang lebih adil.",
       "Menyampaikan kondisi harian melalui daily check terstruktur.",
@@ -53,12 +201,41 @@ const roleItems = [
     ]
   },
   {
+    icon: "shield-check",
     title: "Admin Program",
+    focus: "Fokus: kualitas program dan monitoring agregat",
     points: [
       "Mengawasi kualitas matching antar UMKM.",
       "Menganalisis tren risiko pada level populasi.",
       "Menjaga standar pendampingan tetap konsisten."
     ]
+  }
+];
+
+const metricItems = [
+  {
+    icon: "store",
+    label: "UMKM Aktif",
+    value: "120+",
+    note: "Mitra usaha yang rutin membuka lowongan"
+  },
+  {
+    icon: "clipboard-check",
+    label: "Daily Check",
+    value: "1.420",
+    note: "Laporan kondisi mingguan yang terpantau"
+  },
+  {
+    icon: "chart-up",
+    label: "Match Rate",
+    value: "87%",
+    note: "Kandidat lanjut ke fase penempatan kerja"
+  },
+  {
+    icon: "users",
+    label: "Mentoring",
+    value: "6 / minggu",
+    note: "Sesi aktif untuk dukungan adaptasi pekerja"
   }
 ];
 
@@ -86,10 +263,12 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <article className={styles.heroCopy}>
             <p className={styles.eyebrow}>Ekosistem Kerja Inklusif Berbasis Monitoring</p>
-            <h1>BinaHub menghubungkan UMKM dan ex-napi lewat lowongan, matching, dan daily check yang terukur.</h1>
+            <h1>
+              <span className={styles.heroTitleLoop}>Platform kerja inklusif untuk UMKM dan ex-napi.</span>
+            </h1>
             <p>
-              Platform ini membantu proses dari awal hingga pasca-penempatan: mulai publikasi lowongan, penilaian kandidat,
-              sampai pemantauan kondisi harian agar keberlanjutan kerja lebih aman dan manusiawi.
+              BinaHub menyatukan lowongan, matchmaking, dan daily check agar proses penempatan lebih rapi serta pendampingan pekerja
+              lebih konsisten dari hari ke hari.
             </p>
 
             <div className={styles.heroCta}>
@@ -102,29 +281,40 @@ export default function HomePage() {
             </div>
 
             <ul className={styles.heroMeta}>
-              <li>120+ UMKM aktif</li>
-              <li>1.420 daily check per minggu</li>
-              <li>87% kandidat lanjut ke penempatan</li>
+              <li>Lowongan terstruktur</li>
+              <li>Matching terukur</li>
+              <li>Pendampingan berkelanjutan</li>
             </ul>
           </article>
 
           <aside className={styles.heroVisual}>
-            <div className={styles.pulseHalo} />
-            <div className={styles.metricStack}>
-              <div className={styles.metricItem}>
-                <strong>High Match</strong>
-                <p>Skor kecocokan kerja 92%</p>
-              </div>
-              <div className={styles.metricItem}>
-                <strong>Daily Check</strong>
-                <p>1 pekerja perlu follow-up hari ini</p>
-              </div>
-              <div className={styles.metricItem}>
-                <strong>Mentoring</strong>
-                <p>6 sesi pendampingan minggu ini</p>
-              </div>
+            <div className={styles.heroArtwork}>
+              <div className={styles.artGrid} />
+              <div className={`${styles.orbit} ${styles.orbitOne}`} />
+              <div className={`${styles.orbit} ${styles.orbitTwo}`} />
+              <div className={styles.coreNode}>BinaHub</div>
+              <div className={`${styles.artBadge} ${styles.artBadgeTop}`}>Lowongan</div>
+              <div className={`${styles.artBadge} ${styles.artBadgeMiddle}`}>Matching</div>
+              <div className={`${styles.artBadge} ${styles.artBadgeBottom}`}>Daily Check</div>
             </div>
           </aside>
+        </div>
+      </section>
+
+      <section className={`${styles.sectionBand} ${styles.metricBand}`}>
+        <div className={styles.metricRow}>
+          {metricItems.map((metric) => (
+            <article key={metric.label} className={styles.metricCard}>
+              <div className={styles.metricHeader}>
+                <span className={styles.metricIcon}>
+                  <AppIcon name={metric.icon} />
+                </span>
+                <p>{metric.label}</p>
+              </div>
+              <strong>{metric.value}</strong>
+              <small>{metric.note}</small>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -135,12 +325,23 @@ export default function HomePage() {
           <p>Setiap section dirancang untuk menyederhanakan proses operasional UMKM tanpa kehilangan aspek pendampingan manusia.</p>
         </div>
         <div className={styles.valueRows}>
-          {valueItems.map((item, index) => (
+          {valueItems.map((item) => (
             <article key={item.title} className={styles.valueRow}>
-              <span className={styles.valueIndex}>0{index + 1}</span>
-              <div>
+              <div className={styles.valueHead}>
+                <span className={styles.valueIcon}>
+                  <AppIcon name={item.icon} />
+                </span>
                 <h3>{item.title}</h3>
+              </div>
+              <div>
                 <p>{item.description}</p>
+                <div className={styles.propertyList}>
+                  {item.properties.map((property) => (
+                    <span key={property} className={styles.propertyChip}>
+                      {property}
+                    </span>
+                  ))}
+                </div>
               </div>
             </article>
           ))}
@@ -159,6 +360,7 @@ export default function HomePage() {
               <div className={styles.stepDot}>{index + 1}</div>
               <h3>{step.title}</h3>
               <p>{step.description}</p>
+              <span className={styles.flowMeta}>{step.meta}</span>
             </li>
           ))}
         </ol>
@@ -173,7 +375,13 @@ export default function HomePage() {
         <div className={styles.roleColumns}>
           {roleItems.map((role) => (
             <article key={role.title} className={styles.rolePanel}>
-              <h3 className={styles.roleTitle}>{role.title}</h3>
+              <div className={styles.roleHead}>
+                <span className={styles.roleIcon}>
+                  <AppIcon name={role.icon} />
+                </span>
+                <h3 className={styles.roleTitle}>{role.title}</h3>
+              </div>
+              <p className={styles.roleMeta}>{role.focus}</p>
               <ul>
                 {role.points.map((point) => (
                   <li key={point}>{point}</li>
