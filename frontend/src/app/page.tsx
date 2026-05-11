@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RevealSection } from "@/components/reveal-section";
 import styles from "./page.module.css";
 
 function AppIcon({ name }: { name: string }) {
@@ -156,6 +157,29 @@ const valueItems = [
   }
 ];
 
+const faqItems = [
+  {
+    question: "Apakah BinaHub hanya untuk UMKM tertentu?",
+    answer:
+      "Tidak. BinaHub dirancang untuk berbagai skala UMKM yang ingin membuka peluang kerja inklusif dengan proses monitoring yang lebih terstruktur."
+  },
+  {
+    question: "Bagaimana BinaHub melakukan matching kandidat?",
+    answer:
+      "Sistem mencocokkan kebutuhan posisi dengan data kandidat, termasuk riwayat check-in, konsistensi kerja, dan indikator kesiapan operasional."
+  },
+  {
+    question: "Apakah daily check wajib diisi setiap hari?",
+    answer:
+      "Disarankan diisi setiap hari untuk membantu deteksi dini kondisi pekerja. Data ini menjadi dasar rekomendasi tindak lanjut dan pendampingan."
+  },
+  {
+    question: "Siapa yang bisa melihat data monitoring individu?",
+    answer:
+      "Akses ditentukan berdasarkan role. UMKM melihat pekerja di unitnya, sementara admin program memantau tren agregat sesuai otorisasi."
+  }
+];
+
 const flowSteps = [
   {
     title: "Registrasi dan pilih role",
@@ -248,6 +272,7 @@ export default function HomePage() {
           <a href="#fitur">Fitur</a>
           <a href="#alur">Alur</a>
           <a href="#peran">Peran</a>
+          <a href="#faq">FAQ</a>
         </div>
         <div className={styles.navLinks}>
           <Link href="/auth/login" className={styles.ghostBtn}>
@@ -301,7 +326,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className={`${styles.sectionBand} ${styles.metricBand}`}>
+      <RevealSection className={`${styles.sectionBand} ${styles.metricBand}`}>
         <div className={styles.metricRow}>
           {metricItems.map((metric) => (
             <article key={metric.label} className={styles.metricCard}>
@@ -316,9 +341,9 @@ export default function HomePage() {
             </article>
           ))}
         </div>
-      </section>
+      </RevealSection>
 
-      <section id="fitur" className={`${styles.sectionBand} ${styles.valueBand}`}>
+      <RevealSection id="fitur" className={`${styles.sectionBand} ${styles.valueBand}`}>
         <div className={styles.bandHeader}>
           <p className={styles.eyebrow}>Platform Inklusi Kerja Berbasis Monitoring</p>
           <h2>Kenapa BinaHub</h2>
@@ -346,9 +371,9 @@ export default function HomePage() {
             </article>
           ))}
         </div>
-      </section>
+      </RevealSection>
 
-      <section id="alur" className={`${styles.sectionBand} ${styles.flowBand}`}>
+      <RevealSection id="alur" className={`${styles.sectionBand} ${styles.flowBand}`}>
         <div className={styles.bandHeader}>
           <p className={styles.eyebrow}>Workflow</p>
           <h2>Alur Penggunaan</h2>
@@ -364,9 +389,9 @@ export default function HomePage() {
             </li>
           ))}
         </ol>
-      </section>
+      </RevealSection>
 
-      <section id="peran" className={`${styles.sectionBand} ${styles.roleBand}`}>
+      <RevealSection id="peran" className={`${styles.sectionBand} ${styles.roleBand}`}>
         <div className={styles.bandHeader}>
           <p className={styles.eyebrow}>Peran</p>
           <h2>Siapa yang Diuntungkan</h2>
@@ -390,9 +415,28 @@ export default function HomePage() {
             </article>
           ))}
         </div>
-      </section>
+      </RevealSection>
 
-      <section className={`${styles.sectionBand} ${styles.ctaBand}`}>
+      <RevealSection id="faq" className={`${styles.sectionBand} ${styles.faqBand}`}>
+        <div className={styles.bandHeader}>
+          <p className={styles.eyebrow}>FAQ</p>
+          <h2>Pertanyaan yang Sering Diajukan</h2>
+          <p>Ringkasan jawaban singkat untuk memahami alur penggunaan BinaHub.</p>
+        </div>
+
+        <div className={styles.faqList}>
+          {faqItems.map((item) => (
+            <details key={item.question} className={styles.faqItem}>
+              <summary>{item.question}</summary>
+              <div className={styles.faqAnswer}>
+                <p>{item.answer}</p>
+              </div>
+            </details>
+          ))}
+        </div>
+      </RevealSection>
+
+      <RevealSection className={`${styles.sectionBand} ${styles.ctaBand}`}>
         <div className={styles.ctaInner}>
           <div className={styles.ctaText}>
             <h2>Siap mulai ekosistem kerja inklusif?</h2>
@@ -407,7 +451,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-      </section>
+      </RevealSection>
 
       <footer className={styles.footerBand}>
         <span>© {new Date().getFullYear()} BinaHub Prototype</span>
