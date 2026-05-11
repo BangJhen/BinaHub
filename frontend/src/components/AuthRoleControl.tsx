@@ -20,12 +20,12 @@ const ROLE_DASHBOARD: Record<Role, string> = {
   admin: "/admin/dashboard",
 };
 
-export default function AuthRoleControl() {
-  const [role, setRole] = useState<Role | null>(null);
+export default function AuthRoleControl({ initialRole = null }: { initialRole?: Role | null }) {
+  const [role, setRole] = useState<Role | null>(initialRole);
   const [openProfile, setOpenProfile] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   useEffect(() => {
     // Check initial session

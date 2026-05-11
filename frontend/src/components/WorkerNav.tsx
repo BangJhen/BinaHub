@@ -11,7 +11,7 @@ const navItems = [
   { href: "/worker/performance", label: "Performa" },
 ];
 
-export default function WorkerNav() {
+export default function WorkerNav({ initialRole }: { initialRole?: any }) {
   const pathname = usePathname();
 
   return (
@@ -28,7 +28,7 @@ export default function WorkerNav() {
             );
           })}
         </div>
-        <AuthRoleControl />
+        <AuthRoleControl initialRole={initialRole} />
       </div>
     </nav>
   );

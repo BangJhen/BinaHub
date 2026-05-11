@@ -11,7 +11,7 @@ const navItems = [
   { href: "/umkm/matching", label: "Matching" }
 ];
 
-export default function UmkmNav() {
+export default function UmkmNav({ initialRole }: { initialRole?: any }) {
   const pathname = usePathname();
 
   return (
@@ -29,7 +29,7 @@ export default function UmkmNav() {
             );
           })}
         </div>
-        <AuthRoleControl />
+        <AuthRoleControl initialRole={initialRole} />
       </div>
     </nav>
   );

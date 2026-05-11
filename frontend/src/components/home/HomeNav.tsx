@@ -1,7 +1,12 @@
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/server";
+import AuthRoleControl from "../AuthRoleControl";
 import styles from "./home-nav.module.css";
 
-export function HomeNav() {
+export async function HomeNav() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const role = user?.user_metadata?.role;
   return (
     <nav className={styles.topNav}>
       <div className={styles.brand}>BinaHub</div>
@@ -12,12 +17,7 @@ export function HomeNav() {
         <a href="#faq">FAQ</a>
       </div>
       <div className={styles.navLinks}>
-        <Link href="/auth/login" className={styles.ghostBtn}>
-          Login
-        </Link>
-        <Link href="/auth/register" className={styles.primaryBtn}>
-          Register
-        </Link>
+        <AuthRoleControl initialRole={role} />
       </div>
     </nav>
   );
