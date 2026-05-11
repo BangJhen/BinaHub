@@ -1,0 +1,97 @@
+.authRoot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.authBtn,
+.authBtnPrimary {
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.authBtn {
+  background: #e9f3fb;
+  color: #4f6c7e;
+}
+
+.authBtnPrimary {
+  background: #0f6e99;
+  color: #ffffff;
+}
+
+.profilePanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 220px;
+  background: #ffffff;
+  border: 1px solid #d5e6f2;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.profileRole {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #587082;
+}
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.roleBtn,
+.roleBtnActive {
+  border: 1px solid #dbe8f3;
+  border-radius: 8px;
+  background: #f5fafe;
+  padding: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #4f6878;
+}
+
+.roleBtnActive {
+  background: #0f6e99;
+  border-color: #0f6e99;
+  color: #ffffff;
+}
+
+.profileBtn {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: #0f6e99;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logoutBtn {
+  border: 0;
+  margin-top: 8px;
+  width: 100%;
+  border-radius: 8px;
+  background: #fee4e2;
+  color: #b42318;
+  padding: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}

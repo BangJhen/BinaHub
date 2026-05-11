@@ -1,0 +1,92 @@
+.pageRoot {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.headerCard {
+  background: #ffffff;
+  border: 1px solid #d6e6f2;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #0f6e99;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.headerCard h1 {
+  margin: 8px 0;
+}
+
+.headerCard p {
+  margin: 0;
+  color: #607485;
+}
+
+.mainCard {
+  margin-top: 14px;
+  background: #ffffff;
+  border: 1px solid #d6e6f2;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.topRow {
+  margin-bottom: 12px;
+}
+
+.topRow label {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: #567182;
+  max-width: 320px;
+}
+
+.topRow select {
+  border: 1px solid #d5e5f1;
+  border-radius: 9px;
+  padding: 8px;
+  font-size: 13px;
+}
+
+.rankList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+}
+
+.rankList li {
+  border: 1px solid #e4edf5;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.rankList strong {
+  display: block;
+}
+
+.rankList small {
+  color: #6f8392;
+}
+
+.scoreBadge {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f6e99;
+  background: #e8f3fb;
+}

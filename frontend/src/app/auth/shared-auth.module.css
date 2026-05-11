@@ -1,0 +1,71 @@
+.pageRoot {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #f4f8fc;
+  padding: 20px;
+}
+
+.card {
+  width: min(460px, 100%);
+  background: #ffffff;
+  border: 1px solid #d6e6f2;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #0f6e99;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.card h1 {
+  margin: 8px 0;
+}
+
+.card p {
+  margin: 0;
+  color: #607485;
+}
+
+.roleGrid {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.roleBtn {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px;
+  text-align: left;
+  background: #e8f3fb;
+  color: #0f6e99;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.roleBtn:hover {
+  background: #d9eaf7;
+}
+
+.linksRow {
+  margin-top: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.linksRow a {
+  color: #4d6879;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.linksRow a:hover {
+  text-decoration: underline;
+}

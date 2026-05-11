@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./umkm-nav.module.css";
+import AuthRoleControl from "./AuthRoleControl";
 
 const navItems = [
   { href: "/umkm/dashboard", label: "Dashboard" },
@@ -27,6 +28,7 @@ export default function UmkmNav() {
           );
         })}
       </div>
+      <AuthRoleControl />
     </nav>
   );
 }
