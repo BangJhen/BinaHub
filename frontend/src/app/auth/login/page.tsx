@@ -1,47 +1,88 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "../shared-auth.module.css";
+import { login } from "../actions";
 
-type Role = "umkm" | "worker" | "admin";
-
-const roles: { key: Role; label: string }[] = [
-  { key: "umkm", label: "UMKM" },
-  { key: "worker", label: "Worker" },
-  { key: "admin", label: "Admin" }
-];
-
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: { message?: string };
+}) {
   const router = useRouter();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [errorMsg, setErrorMsg] = useState("");
+  const [isPending, startTransition] = useTransition();
 
-  const roleRedirect: Record<Role, string> = {
-    umkm: "/umkm/dashboard",
-    worker: "/worker/dashboard",
-    admin: "/admin/dashboard",
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  function handleLogin(role: Role) {
-    window.localStorage.setItem("binahub-auth-role", role);
-    router.push(roleRedirect[role]);
-  }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+
+    const data = new FormData();
+    data.append("email", formData.email);
+    data.append("password", formData.password);
+
+    startTransition(async () => {
+      const res = await login(data);
+      if (res.success && res.redirectUrl) {
+        router.push(res.redirectUrl);
+      } else {
+        setErrorMsg(res.message || "Gagal masuk");
+      }
+    });
+  };
 
   return (
     <main className={styles.pageRoot}>
       <section className={styles.card}>
         <p className={styles.eyebrow}>Login</p>
         <h1>Masuk ke BinaHub</h1>
-        <p>Pilih role akun untuk simulasi login prototype.</p>
+        <p>Silakan masukkan kredensial akun Anda.</p>
 
-        <div className={styles.roleGrid}>
-          {roles.map((role) => (
-            <button key={role.key} className={styles.roleBtn} onClick={() => handleLogin(role.key)}>
-              Masuk sebagai {role.label}
-            </button>
-          ))}
-        </div>
+        {searchParams?.message && (
+          <p className={styles.message} style={{ background: '#e6f4ea', color: '#137333' }}>
+            {searchParams.message}
+          </p>
+        )}
+        {errorMsg && <p className={styles.message}>{errorMsg}</p>}
 
-        <div className={styles.linksRow}>
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.inputGroup}>
+            <label htmlFor="email">Email</label>
+            <input 
+              className={styles.input} 
+              type="email" 
+              name="email" 
+              value={formData.email} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+
+          <div className={styles.inputGroup}>
+            <label htmlFor="password">Password</label>
+            <input 
+              className={styles.input} 
+              type="password" 
+              name="password" 
+              value={formData.password} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+
+          <button type="submit" className={styles.primaryBtn} disabled={isPending} style={{ marginTop: 16 }}>
+            {isPending ? "Mautentikasi..." : "Login"}
+          </button>
+        </form>
+
+        <div className={styles.linksRow} style={{ marginTop: 24, textAlign: "center" }}>
           <Link href="/auth/register">Belum punya akun? Register</Link>
           <Link href="/">Kembali ke Beranda</Link>
         </div>

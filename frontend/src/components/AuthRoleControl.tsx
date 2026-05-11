@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import styles from "./auth-role-control.module.css";
 
 type Role = "umkm" | "worker" | "admin";
@@ -19,20 +20,36 @@ const ROLE_DASHBOARD: Record<Role, string> = {
   admin: "/admin/dashboard",
 };
 
-const STORAGE_KEY = "binahub-auth-role";
-
 export default function AuthRoleControl() {
   const [role, setRole] = useState<Role | null>(null);
   const [openProfile, setOpenProfile] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const supabase = createClient();
 
   useEffect(() => {
-    const savedRole = window.localStorage.getItem(STORAGE_KEY) as Role | null;
-    if (savedRole === "umkm" || savedRole === "worker" || savedRole === "admin") {
-      setRole(savedRole);
-    }
-  }, []);
+    // Check initial session
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user && user.user_metadata?.role) {
+        setRole(user.user_metadata.role as Role);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_IN" && session?.user) {
+          setRole(session.user.user_metadata?.role as Role);
+        } else if (event === "SIGNED_OUT") {
+          setRole(null);
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [supabase.auth]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -44,10 +61,9 @@ export default function AuthRoleControl() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openProfile]);
 
-  function handleLogout() {
-    window.localStorage.removeItem(STORAGE_KEY);
-    setRole(null);
+  async function handleLogout() {
     setOpenProfile(false);
+    await supabase.auth.signOut();
     router.push("/");
   }
 
@@ -60,8 +76,8 @@ export default function AuthRoleControl() {
     );
   }
 
-  const initial = ROLE_LABEL[role].charAt(0);
-  const dashboardHref = ROLE_DASHBOARD[role];
+  const initial = ROLE_LABEL[role]?.charAt(0) || "U";
+  const dashboardHref = ROLE_DASHBOARD[role] || "/";
 
   return (
     <div className={styles.authRoot} ref={panelRef}>

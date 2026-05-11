@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import WorkerNav from "@/components/WorkerNav";
 import styles from "./layout.module.css";
 
@@ -10,19 +11,26 @@ export default function WorkerLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const supabase = createClient();
 
   useEffect(() => {
-    const savedRole = window.localStorage.getItem("binahub-auth-role");
-    const hasRole = savedRole === "worker" || savedRole === "admin";
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      const role = user?.user_metadata?.role;
 
-    if (!hasRole) {
-      setIsAuthorized(false);
-      router.replace("/");
-      return;
+      const hasRole = role === "worker" || role === "admin";
+
+      if (!hasRole) {
+        setIsAuthorized(false);
+        router.replace("/auth/login");
+        return;
+      }
+
+      setIsAuthorized(true);
     }
 
-    setIsAuthorized(true);
-  }, [router, pathname]);
+    checkAuth();
+  }, [router, pathname, supabase.auth]);
 
   if (!isAuthorized) {
     return null;

@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import AdminNav from "@/components/AdminNav";
 import styles from "./layout.module.css";
 
@@ -10,19 +11,24 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const supabase = createClient();
 
   useEffect(() => {
-    const savedRole = window.localStorage.getItem("binahub-auth-role");
-    const hasRole = savedRole === "admin";
+    async function checkAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      const role = user?.user_metadata?.role;
 
-    if (!hasRole) {
-      setIsAuthorized(false);
-      router.replace("/");
-      return;
+      if (role !== "admin") {
+        setIsAuthorized(false);
+        router.replace("/auth/login");
+        return;
+      }
+
+      setIsAuthorized(true);
     }
-
-    setIsAuthorized(true);
-  }, [router, pathname]);
+    
+    checkAuth();
+  }, [router, pathname, supabase.auth]);
 
   if (!isAuthorized) {
     return null;

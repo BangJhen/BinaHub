@@ -69,3 +69,209 @@
 .linksRow a:hover {
   text-decoration: underline;
 }
+
+.form {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inputGroup label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4d6879;
+}
+
+.input {
+  padding: 10px;
+  border: 1px solid #d6e6f2;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fcfdfe;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #0f6e99;
+}
+
+.select {
+  padding: 10px;
+  border: 1px solid #d6e6f2;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fcfdfe;
+  appearance: none;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #0f6e99;
+}
+
+.submitBtn {
+  margin-top: 8px;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  background: #0f6e99;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitBtn:hover {
+  background: #0b5070;
+}
+
+.message {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #d93025;
+  background: #fce8e6;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.stepper {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  justify-content: center;
+}
+
+.stepDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #dbe3ef;
+  transition: all 0.3s;
+}
+
+.stepDot.active {
+  background: #0f6e99;
+  transform: scale(1.2);
+}
+
+.btnGroup {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.secondaryBtn {
+  flex: 1;
+  border: 1px solid #dbe3ef;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  background: transparent;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.secondaryBtn:hover {
+  background: #f8fafc;
+}
+
+.primaryBtn {
+  flex: 1;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  background: #0f6e99;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.primaryBtn:hover {
+  background: #0b5070;
+}
+
+.primaryBtn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.roleCard {
+  border: 2px solid #dbe3ef;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+  text-align: left;
+}
+
+.roleCard:hover {
+  border-color: #93c5fd;
+  background: #f0f9ff;
+}
+
+.roleCard.selected {
+  border-color: #0f6e99;
+  background: #e0f2fe;
+}
+
+.roleCard h3 {
+  margin: 0 0 4px;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.roleCard p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.successState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.successIcon {
+  width: 64px;
+  height: 64px;
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.successState h2 {
+  margin: 0 0 8px;
+  color: #0f172a;
+}
+
+.successState p {
+  color: #64748b;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
