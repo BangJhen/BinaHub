@@ -1,0 +1,512 @@
+.dashboardRoot {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 36px 20px 64px;
+}
+
+.headerCard {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #ffffff 0%, #f3faff 100%);
+  border: 1px solid #cce5f4;
+  border-radius: 20px;
+  padding: 26px;
+  box-shadow: 0 14px 32px rgba(10, 44, 79, 0.08);
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #0f6e99;
+}
+
+.headerCard h1 {
+  margin: 10px 0;
+  font-size: clamp(1.6rem, 3.6vw, 2.25rem);
+}
+
+.subtext {
+  margin: 0;
+  max-width: 640px;
+  color: #486274;
+  line-height: 1.6;
+}
+
+.headerMeta {
+  background: #ebf4fa;
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  text-align: right;
+  min-width: 140px;
+}
+
+.headerMeta span {
+  font-size: 11px;
+  color: #6d8291;
+}
+
+.headerMeta strong {
+  font-size: 14px;
+  color: #1f3a4a;
+}
+
+.headerMeta small {
+  font-size: 11px;
+  color: #6d8291;
+}
+
+.kpiGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.kpiCard {
+  background: #ffffff;
+  border: 1px solid #d6e6f2;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.kpiCard p {
+  margin: 0;
+  color: #4d6473;
+  font-size: 13px;
+}
+
+.kpiCard h3 {
+  margin: 6px 0;
+  font-size: 1.8rem;
+}
+
+.kpiCard span {
+  font-size: 12px;
+  color: #6f8190;
+}
+
+.kpiPrimary h3 {
+  color: #0f6e99;
+}
+
+.kpiInfo h3 {
+  color: #1d4ed8;
+}
+
+.kpiWarning h3 {
+  color: #b45309;
+}
+
+.kpiDanger h3 {
+  color: #b42318;
+}
+
+.chartGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.contentGrid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: 1.3fr 0.9fr;
+  gap: 14px;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #d6e6f2;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.helperBadge {
+  font-size: 11px;
+  color: #0f6e99;
+  background: #e7f3fc;
+  border: 1px solid #cfe5f6;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-weight: 700;
+}
+
+.chartWrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.donutChart {
+  width: 160px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.donutCenter {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #d8e6f2;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.donutCenter strong {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.donutCenter small {
+  color: #6a7f8f;
+  font-size: 11px;
+}
+
+.distributionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  width: 100%;
+}
+
+.distributionList li {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e8eff6;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.distributionList p {
+  margin: 0;
+  font-size: 13px;
+  color: #566f7f;
+}
+
+.distributionList strong {
+  font-size: 13px;
+  color: #2d4757;
+}
+
+.legendGreen,
+.legendYellow,
+.legendRed {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+}
+
+.legendGreen {
+  background: #16a34a;
+}
+
+.legendYellow {
+  background: #f59e0b;
+}
+
+.legendRed {
+  background: #dc2626;
+}
+
+.issueChart {
+  display: grid;
+  gap: 12px;
+}
+
+.issueRow {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.issueRow strong {
+  display: block;
+  font-size: 13px;
+}
+
+.issueRow small {
+  font-size: 11px;
+  color: #6f8291;
+}
+
+.issueTrack {
+  height: 10px;
+  border-radius: 999px;
+  background: #ecf3f8;
+  overflow: hidden;
+  display: flex;
+  gap: 0;
+}
+
+.issueBarRed,
+.issueBarYellow {
+  height: 100%;
+}
+
+.issueBarRed {
+  background: #dc2626;
+}
+
+.issueBarYellow {
+  background: #f59e0b;
+}
+
+.tableTools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  border: 1px solid #d6e5f2;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  min-width: 220px;
+  flex: 1;
+  background: #ffffff;
+}
+
+.filterRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filterButton,
+.filterActive {
+  border: 1px solid #d7e6f2;
+  border-radius: 999px;
+  background: #f8fbfe;
+  color: #537082;
+  font-size: 12px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.filterActive {
+  background: #0f6e99;
+  color: #ffffff;
+  border-color: #0f6e99;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  border-bottom: 1px solid #ebf1f5;
+  padding: 10px 6px;
+  font-size: 13px;
+}
+
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.table th {
+  color: #667b8a;
+  font-weight: 600;
+}
+
+.table strong {
+  display: block;
+  font-size: 13px;
+}
+
+.table small {
+  color: #7a8f9d;
+  font-size: 11px;
+}
+
+.tableActionLink {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f6e99;
+  background: #e8f4fc;
+  text-decoration: none;
+}
+
+.tableActionLink:hover {
+  background: #d8ebf8;
+}
+
+.updateBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f6e99;
+  background: #e8f4fc;
+}
+
+.updateMeta {
+  display: block;
+  margin-top: 4px;
+  color: #7a8f9d;
+  font-size: 11px;
+}
+
+.emptyCell {
+  text-align: center;
+  padding: 16px 10px;
+  color: #6d8291;
+  font-size: 12px;
+}
+
+.riskgreen,
+.riskyellow,
+.riskred {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.riskgreen {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.riskyellow {
+  color: #9a5b00;
+  background: #fff4d4;
+}
+
+.riskred {
+  color: #b42318;
+  background: #fee4e2;
+}
+
+.alertList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.alertItem {
+  border: 1px solid #e7eff6;
+  background: #fbfdff;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.alertTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.alertItem p {
+  margin: 6px 0;
+  color: #435c6d;
+  line-height: 1.55;
+  font-size: 13px;
+}
+
+.alertItem small {
+  color: #6e8290;
+  font-size: 11px;
+}
+
+.emptyState {
+  border: 1px dashed #d7e5f1;
+  background: #f8fcff;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  color: #6d8291;
+  font-size: 12px;
+}
+
+@media (max-width: 980px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chartGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .contentGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .headerCard {
+    flex-direction: column;
+  }
+
+  .headerMeta {
+    text-align: left;
+  }
+}
+
+@media (max-width: 540px) {
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .chartWrap {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .issueRow {
+    grid-template-columns: 1fr;
+  }
+}

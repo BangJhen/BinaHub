@@ -1,0 +1,8 @@
+.layoutRoot {
+  min-height: 100vh;
+  background: #f4f8fc;
+}
+
+.pageContent {
+  padding-bottom: 28px;
+}

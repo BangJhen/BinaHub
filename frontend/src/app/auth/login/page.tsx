@@ -18,7 +18,7 @@ export default function LoginPage() {
   const roleRedirect: Record<Role, string> = {
     umkm: "/umkm/dashboard",
     worker: "/worker/dashboard",
-    admin: "/umkm/dashboard",
+    admin: "/admin/dashboard",
   };
 
   function handleLogin(role: Role) {

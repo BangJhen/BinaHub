@@ -16,7 +16,7 @@ const ROLE_LABEL: Record<Role, string> = {
 const ROLE_DASHBOARD: Record<Role, string> = {
   umkm: "/umkm/dashboard",
   worker: "/worker/dashboard",
-  admin: "/umkm/dashboard",
+  admin: "/admin/dashboard",
 };
 
 const STORAGE_KEY = "binahub-auth-role";
