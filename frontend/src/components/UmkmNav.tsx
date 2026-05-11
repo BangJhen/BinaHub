@@ -17,18 +17,20 @@ export default function UmkmNav() {
   return (
     <nav className={styles.navRoot} aria-label="Navigasi UMKM">
       <div className={styles.brand}>BinaHub UMKM</div>
-      <div className={styles.links}>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+      <div className={styles.rightCluster}>
+        <div className={styles.links}>
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
-          return (
-            <Link key={item.href} href={item.href} className={isActive ? styles.linkActive : styles.link}>
-              {item.label}
-            </Link>
-          );
-        })}
+            return (
+              <Link key={item.href} href={item.href} className={isActive ? styles.linkActive : styles.link}>
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+        <AuthRoleControl />
       </div>
-      <AuthRoleControl />
     </nav>
   );
 }

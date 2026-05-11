@@ -171,24 +171,19 @@
 .riskyellow,
 .riskred {
   font-size: 11px;
-  padding: 4px 8px;
-  border-radius: 999px;
   font-weight: 700;
 }
 
 .riskgreen {
   color: #166534;
-  background: #dcfce7;
 }
 
 .riskyellow {
   color: #9a5b00;
-  background: #fff4d4;
 }
 
 .riskred {
   color: #b42318;
-  background: #fee4e2;
 }
 
 .noteText {

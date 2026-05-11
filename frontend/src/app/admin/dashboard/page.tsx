@@ -135,7 +135,11 @@ export default function AdminDashboardPage() {
             <span className={styles.helperBadge}>Total {totalConditions} pekerja</span>
           </div>
           <div className={styles.chartWrap}>
-            <div className={styles.donutChart} style={donutStyle}>
+            <div
+              className={styles.donutChart}
+              style={donutStyle}
+              data-tooltip={`Stabil ${overallSummary.green} • Atensi ${overallSummary.yellow} • Risiko ${overallSummary.red}`}
+            >
               <div className={styles.donutCenter}>
                 <strong>{totalConditions}</strong>
                 <small>Total</small>
@@ -168,13 +172,15 @@ export default function AdminDashboardPage() {
           </div>
           <div className={styles.issueChart}>
             {issueChartData.map((item) => {
+              const tooltipLabel = `Red ${item.redIssues} • Yellow ${item.yellowIssues} • Total ${item.totalIssues}`;
+
               return (
                 <div key={item.id} className={styles.issueRow}>
                   <div>
                     <strong>{item.name}</strong>
                     <small>{item.totalIssues} isu</small>
                   </div>
-                  <div className={styles.issueTrack}>
+                  <div className={styles.issueTrack} data-tooltip={tooltipLabel}>
                     <span className={styles.issueBarRed} style={{ width: `${(item.redIssues / maxIssueCount) * 100}%` }} />
                     <span className={styles.issueBarYellow} style={{ width: `${(item.yellowIssues / maxIssueCount) * 100}%` }} />
                   </div>

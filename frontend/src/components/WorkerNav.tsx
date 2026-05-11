@@ -17,17 +17,19 @@ export default function WorkerNav() {
   return (
     <nav className={styles.navRoot} aria-label="Navigasi Pekerja">
       <div className={styles.brand}>BinaHub Worker</div>
-      <div className={styles.links}>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return (
-            <Link key={item.href} href={item.href} className={isActive ? styles.linkActive : styles.link}>
-              {item.label}
-            </Link>
-          );
-        })}
+      <div className={styles.rightCluster}>
+        <div className={styles.links}>
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <Link key={item.href} href={item.href} className={isActive ? styles.linkActive : styles.link}>
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+        <AuthRoleControl />
       </div>
-      <AuthRoleControl />
     </nav>
   );
 }

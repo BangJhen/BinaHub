@@ -4,7 +4,7 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 14px;
   padding: 14px 20px;
   background: rgba(246, 251, 255, 0.9);
@@ -18,31 +18,8 @@
   color: #0f6e99;
 }
 
-.links {
+.rightCluster {
+  margin-left: auto;
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.link,
-.linkActive {
-  text-decoration: none;
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.link {
-  color: #567284;
-  background: #edf5fb;
-}
-
-.link:hover {
-  background: #dfeef9;
-}
-
-.linkActive {
-  color: #ffffff;
-  background: #0f6e99;
+  align-items: center;
 }
