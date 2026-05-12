@@ -1,10 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-import { adminUmkmData } from "@/features/admin/admin-umkm-data";
-import { riskLabel, type RiskLevel } from "@/features/umkm/workers-data";
+
+type RiskLevel = "green" | "yellow" | "red";
+
+type AdminUmkmData = {
+  id: string;
+  name: string;
+  category: string;
+  location: string;
+  owner: string;
+  lastUpdate: string;
+  notes: string;
+  workers: Array<{
+    id: string;
+    latestCondition: RiskLevel;
+  }>;
+  issues: Array<{
+    id: string;
+    level: RiskLevel;
+  }>;
+};
+
+function riskLabel(level: RiskLevel) {
+  if (level === "red") return "Risiko Tinggi";
+  if (level === "yellow") return "Perlu Atensi";
+  return "Stabil";
+}
 
 function summarizeRisk(workers: { latestCondition: RiskLevel }[]) {
   return workers.reduce(
@@ -23,8 +47,62 @@ function dominantRisk(summary: { green: number; yellow: number; red: number }) {
 }
 
 export default function AdminDashboardPage() {
+  const [data, setData] = useState<AdminUmkmData[]>([]);
+  const [fetchError, setFetchError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [riskFilter, setRiskFilter] = useState<RiskLevel | "all">("all");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
+      setFetchError("");
+      setLoading(true);
+      const res = await fetch("/api/dashboard/admin", { cache: "no-store" });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        if (isMounted) {
+          setFetchError(payload.message ?? "Gagal memuat data dashboard admin.");
+          setLoading(false);
+        }
+        return;
+      }
+
+      const payload = (await res.json()) as { adminUmkmData: AdminUmkmData[] };
+      if (!isMounted) return;
+      setData(payload.adminUmkmData ?? []);
+      setLoading(false);
+    }
+
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (fetchError) {
+    return (
+      <main className={styles.dashboardRoot}>
+        <section className={styles.panel}>
+          <h2>Gagal memuat data</h2>
+          <p>{fetchError}</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (loading) {
+    return (
+      <main className={styles.dashboardRoot}>
+        <section className={styles.panel}>
+          <h2>Memuat dashboard admin...</h2>
+        </section>
+      </main>
+    );
+  }
+
+  const adminUmkmData = data;
 
   const totalUmkm = adminUmkmData.length;
   const totalWorkers = adminUmkmData.reduce((acc, umkm) => acc + umkm.workers.length, 0);
@@ -62,26 +140,23 @@ export default function AdminDashboardPage() {
 
   const maxIssueCount = Math.max(1, ...issueChartData.map((item) => item.totalIssues));
 
-  const filteredUmkm = useMemo(() => {
-    const query = searchTerm.trim().toLowerCase();
+  const query = searchTerm.trim().toLowerCase();
+  const filteredUmkm = adminUmkmData.filter((umkm) => {
+    const summary = summarizeRisk(umkm.workers);
 
-    return adminUmkmData.filter((umkm) => {
-      const summary = summarizeRisk(umkm.workers);
+    const matchesRisk = (() => {
+      if (riskFilter === "all") return true;
+      if (riskFilter === "green") return summary.green > 0 && summary.yellow === 0 && summary.red === 0;
+      if (riskFilter === "yellow") return summary.yellow > 0;
+      return summary.red > 0;
+    })();
 
-      const matchesRisk = (() => {
-        if (riskFilter === "all") return true;
-        if (riskFilter === "green") return summary.green > 0 && summary.yellow === 0 && summary.red === 0;
-        if (riskFilter === "yellow") return summary.yellow > 0;
-        return summary.red > 0;
-      })();
+    if (!matchesRisk) return false;
+    if (!query) return true;
 
-      if (!matchesRisk) return false;
-      if (!query) return true;
-
-      return [umkm.name, umkm.owner, umkm.location, umkm.category]
-        .some((value) => value.toLowerCase().includes(query));
-    });
-  }, [riskFilter, searchTerm]);
+    return [umkm.name, umkm.owner, umkm.location, umkm.category]
+      .some((value) => value.toLowerCase().includes(query));
+  });
 
   const attentionList = filteredUmkm.filter((umkm) => {
     const summary = summarizeRisk(umkm.workers);

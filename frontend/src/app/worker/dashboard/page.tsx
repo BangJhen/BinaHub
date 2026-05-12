@@ -1,18 +1,52 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-import {
-  workerProfile,
-  dailyCheckins,
-  monthlyDays,
-  weeklyPerformanceByRange,
-  umkmReviews,
-  conditionLabel,
-  performanceRecommendations,
-  type PerfRange,
-  type CheckinCondition,
-} from "@/features/worker/worker-data";
+
+type PerfRange = "1w" | "1m" | "3m";
+type CheckinCondition = "green" | "yellow" | "red" | "missed";
+
+type WorkerDashboardData = {
+  workerProfile: {
+    name: string;
+    position: string;
+    umkm: string;
+    joinDate: string;
+    streakDays: number;
+    attendanceRate: number;
+    performanceScore: number;
+    avgRating: number;
+    checkinThisMonth: number;
+    checkinTarget: number;
+  };
+  dailyCheckins: Array<{
+    date: string;
+    dayLabel: string;
+    condition: CheckinCondition;
+    mood: string;
+    note: string;
+    time: string;
+  }>;
+  monthlyDays: Array<{ date: number; condition: CheckinCondition | "none" }>;
+  weeklyPerformanceByRange: Record<PerfRange, Array<{ week: string; score: number; checkinsCompleted: number; checkinsTotal: number }>>;
+  umkmReviews: Array<{
+    id: string;
+    umkmName: string;
+    position: string;
+    date: string;
+    rating: number;
+    comment: string;
+    aspects: { label: string; score: number }[];
+  }>;
+  performanceRecommendations: Array<{ icon?: string; title: string; desc: string }>;
+};
+
+function conditionLabel(c: CheckinCondition): string {
+  if (c === "green") return "Stabil";
+  if (c === "yellow") return "Perlu Atensi";
+  if (c === "red") return "Kurang Baik";
+  return "Tidak Check-in";
+}
 
 function StarRating({ rating }: { rating: number }) {
   return (
@@ -43,32 +77,80 @@ function formatDateLabel(iso: string) {
 }
 
 export default function WorkerDashboardPage() {
+  const [data, setData] = useState<WorkerDashboardData | null>(null);
+  const [fetchError, setFetchError] = useState("");
   const [perfRange, setPerfRange] = useState<PerfRange>("1m");
-  const perfData = weeklyPerformanceByRange[perfRange];
+  const [startDate, setStartDate] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
+      setFetchError("");
+      const res = await fetch("/api/dashboard/worker", { cache: "no-store" });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        if (isMounted) setFetchError(payload.message ?? "Gagal memuat data dashboard worker.");
+        return;
+      }
+
+      const payload = (await res.json()) as WorkerDashboardData;
+      if (!isMounted) return;
+      setData(payload);
+
+      const min = payload.dailyCheckins[payload.dailyCheckins.length - 1]?.date ?? "";
+      setStartDate(min);
+    }
+
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (fetchError) {
+    return (
+      <main className={styles.dashboardRoot}>
+        <section className={styles.panel}>
+          <h2>Gagal memuat data</h2>
+          <p>{fetchError}</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (!data) {
+    return (
+      <main className={styles.dashboardRoot}>
+        <section className={styles.panel}>
+          <h2>Memuat dashboard worker...</h2>
+        </section>
+      </main>
+    );
+  }
+
+  const { workerProfile, dailyCheckins, monthlyDays, weeklyPerformanceByRange, umkmReviews, performanceRecommendations } = data;
+  const perfData = weeklyPerformanceByRange[perfRange] ?? [];
   const maxScore = 100;
 
-  const minDate = dailyCheckins[dailyCheckins.length - 1]?.date ?? "2025-04-28";
-  const maxDate = dailyCheckins[0]?.date ?? "2025-05-11";
-  const [startDate, setStartDate] = useState(minDate);
+  const minDate = dailyCheckins[dailyCheckins.length - 1]?.date ?? "";
+  const maxDate = dailyCheckins[0]?.date ?? "";
 
-  const endDate = useMemo(() => {
+  const endDate = (() => {
+    if (!startDate) return maxDate;
     const d = new Date(startDate + "T00:00:00");
     d.setDate(d.getDate() + 13);
     return d.toISOString().split("T")[0];
-  }, [startDate]);
+  })();
 
-  const filteredCheckins = useMemo(() => {
-    return dailyCheckins.filter((c) => c.date >= startDate && c.date <= endDate);
-  }, [startDate, endDate]);
+  const filteredCheckins = dailyCheckins.filter((c) => c.date >= startDate && c.date <= endDate);
 
-  const checkinSummary = useMemo(() => {
-    return {
-      green: filteredCheckins.filter((c) => c.condition === "green").length,
-      yellow: filteredCheckins.filter((c) => c.condition === "yellow").length,
-      red: filteredCheckins.filter((c) => c.condition === "red").length,
-      missed: filteredCheckins.filter((c) => c.condition === "missed").length,
-    };
-  }, [filteredCheckins]);
+  const checkinSummary = {
+    green: filteredCheckins.filter((c) => c.condition === "green").length,
+    yellow: filteredCheckins.filter((c) => c.condition === "yellow").length,
+    red: filteredCheckins.filter((c) => c.condition === "red").length,
+    missed: filteredCheckins.filter((c) => c.condition === "missed").length,
+  };
 
   const progressPct = Math.round((workerProfile.checkinThisMonth / workerProfile.checkinTarget) * 100);
 
@@ -133,8 +215,9 @@ export default function WorkerDashboardPage() {
               type="date"
               className={styles.dateInput}
               value={startDate}
-              min="2025-01-01"
+              min={minDate || undefined}
               max={maxDate}
+              disabled={!maxDate}
               onChange={(e) => setStartDate(e.target.value)}
             />
             <label>s/d</label>
@@ -298,12 +381,10 @@ export default function WorkerDashboardPage() {
                 </div>
                 <div className={styles.reviewRatingBlock}>
                   <StarRating rating={review.rating} />
-                  <span>{review.rating}.0 / 5</span>
+                  <span>{review.rating.toFixed(1)} / 5</span>
                 </div>
               </div>
-              <blockquote className={styles.reviewQuote}>
-                "{review.comment}"
-              </blockquote>
+              <blockquote className={styles.reviewQuote}>{review.comment}</blockquote>
               <div className={styles.aspectGrid}>
                 {review.aspects.map((asp) => (
                   <div key={asp.label} className={styles.aspectItem}>

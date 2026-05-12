@@ -2,16 +2,49 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-import {
-  alerts,
-  checkinNotes,
-  riskLabel,
-  workers,
-  workerConditionTrendByRange,
-  type WorkerChartRange
-} from "@/features/umkm/workers-data";
+
+type RiskLevel = "green" | "yellow" | "red";
+type WorkerChartRange = "1w" | "1m" | "6m" | "1y";
+
+type UmkmDashboardData = {
+  workers: Array<{
+    id: string;
+    name: string;
+    role: string;
+    startDate: string;
+    attendanceRate: number;
+    productivityScore: number;
+    checkinConsistency: number;
+    hasCheckedInToday: boolean;
+    latestCheckin: string;
+    latestCondition: RiskLevel;
+    mentorNote: string;
+  }>;
+  alerts: Array<{
+    id: string;
+    workerId: string;
+    level: RiskLevel;
+    message: string;
+    createdAt: string;
+  }>;
+  checkinNotes: Array<{
+    id: string;
+    workerId: string;
+    summary: string;
+    mood: "Stabil" | "Waspada" | "Butuh Pendampingan";
+    submittedAt: string;
+    level: RiskLevel;
+  }>;
+  workerConditionTrendByRange: Record<string, Record<WorkerChartRange, Array<{ day: string; green: number; yellow: number; red: number }>>>;
+};
+
+function riskLabel(level: RiskLevel) {
+  if (level === "red") return "Risiko Tinggi";
+  if (level === "yellow") return "Perlu Atensi";
+  return "Stabil";
+}
 
 function dominantLevel(green: number, yellow: number, red: number) {
   if (red >= yellow && red >= green) return "red" as const;
@@ -21,11 +54,72 @@ function dominantLevel(green: number, yellow: number, red: number) {
 
 export default function WorkerDetailPage() {
   const params = useParams<{ workerId: string }>();
-  const workerId = params?.workerId;
+  const workerId = params?.workerId ?? "";
+  const [data, setData] = useState<UmkmDashboardData | null>(null);
+  const [fetchError, setFetchError] = useState("");
+  const [chartRange, setChartRange] = useState<WorkerChartRange>("1m");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
+      setFetchError("");
+      const res = await fetch("/api/dashboard/umkm", { cache: "no-store" });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        if (isMounted) setFetchError(payload.message ?? "Gagal memuat data pekerja.");
+        return;
+      }
+
+      const payload = (await res.json()) as UmkmDashboardData;
+      if (!isMounted) return;
+      setData(payload);
+    }
+
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (fetchError) {
+    return (
+      <main className={styles.pageRoot}>
+        <section className={styles.headerCard}>
+          <div>
+            <p className={styles.eyebrow}>Detail Individu</p>
+            <h1>Gagal memuat data</h1>
+            <p>{fetchError}</p>
+          </div>
+          <Link href="/umkm/dashboard" className={styles.backLink}>
+            Kembali ke Dashboard
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  if (!data) {
+    return (
+      <main className={styles.pageRoot}>
+        <section className={styles.headerCard}>
+          <div>
+            <p className={styles.eyebrow}>Detail Individu</p>
+            <h1>Memuat detail pekerja...</h1>
+          </div>
+          <Link href="/umkm/dashboard" className={styles.backLink}>
+            Kembali ke Dashboard
+          </Link>
+        </section>
+      </main>
+    );
+  }
 
   if (!workerId) {
     return null;
   }
+
+  const { workers, alerts, checkinNotes, workerConditionTrendByRange } = data;
 
   const worker = workers.find((item) => item.id === workerId);
 
@@ -46,15 +140,9 @@ export default function WorkerDetailPage() {
     );
   }
 
-  const [chartRange, setChartRange] = useState<WorkerChartRange>("1m");
+  const workerAlerts = alerts.filter((item) => item.workerId === worker.id);
 
-  const workerAlerts = useMemo(() => {
-    return alerts.filter((item) => item.workerId === worker.id);
-  }, [worker.id]);
-
-  const workerCheckins = useMemo(() => {
-    return checkinNotes.filter((item) => item.workerId === worker.id);
-  }, [worker.id]);
+  const workerCheckins = checkinNotes.filter((item) => item.workerId === worker.id);
 
   const weeklyDailyChecks = workerConditionTrendByRange[worker.id]?.["1w"] ?? [];
   const todayCheck = weeklyDailyChecks[weeklyDailyChecks.length - 1];

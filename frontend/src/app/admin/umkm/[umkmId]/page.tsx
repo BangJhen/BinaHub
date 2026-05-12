@@ -2,9 +2,46 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-import { adminUmkmData } from "@/features/admin/admin-umkm-data";
-import { riskLabel, type RiskLevel } from "@/features/umkm/workers-data";
+
+type RiskLevel = "green" | "yellow" | "red";
+
+type AdminUmkmData = {
+  id: string;
+  name: string;
+  category: string;
+  location: string;
+  owner: string;
+  lastUpdate: string;
+  notes: string;
+  workers: Array<{
+    id: string;
+    name: string;
+    role: string;
+    startDate: string;
+    attendanceRate: number;
+    productivityScore: number;
+    checkinConsistency: number;
+    latestCheckin: string;
+    latestCondition: RiskLevel;
+    mentorNote: string;
+  }>;
+  issues: Array<{
+    id: string;
+    workerId: string;
+    workerName: string;
+    level: RiskLevel;
+    message: string;
+    createdAt: string;
+  }>;
+};
+
+function riskLabel(level: RiskLevel) {
+  if (level === "red") return "Risiko Tinggi";
+  if (level === "yellow") return "Perlu Atensi";
+  return "Stabil";
+}
 
 function summarizeRisk(workers: { latestCondition: RiskLevel }[]) {
   return workers.reduce(
@@ -24,13 +61,71 @@ function dominantRisk(summary: { green: number; yellow: number; red: number }) {
 
 export default function AdminUmkmDetailPage() {
   const params = useParams<{ umkmId: string }>();
-  const umkmId = params?.umkmId;
+  const umkmId = params?.umkmId ?? "";
+  const [data, setData] = useState<AdminUmkmData[]>([]);
+  const [fetchError, setFetchError] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
+      setFetchError("");
+      const res = await fetch("/api/dashboard/admin", { cache: "no-store" });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        if (isMounted) setFetchError(payload.message ?? "Gagal memuat data UMKM.");
+        return;
+      }
+
+      const payload = (await res.json()) as { adminUmkmData: AdminUmkmData[] };
+      if (!isMounted) return;
+      setData(payload.adminUmkmData ?? []);
+    }
+
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (fetchError) {
+    return (
+      <main className={styles.pageRoot}>
+        <section className={styles.headerCard}>
+          <div>
+            <p className={styles.eyebrow}>Detail UMKM</p>
+            <h1>Gagal memuat data</h1>
+            <p>{fetchError}</p>
+          </div>
+          <Link href="/admin/dashboard" className={styles.backLink}>
+            Kembali ke Dashboard
+          </Link>
+        </section>
+      </main>
+    );
+  }
 
   if (!umkmId) {
     return null;
   }
 
-  const umkm = adminUmkmData.find((item) => item.id === umkmId);
+  if (data.length === 0) {
+    return (
+      <main className={styles.pageRoot}>
+        <section className={styles.headerCard}>
+          <div>
+            <p className={styles.eyebrow}>Detail UMKM</p>
+            <h1>Memuat data UMKM...</h1>
+          </div>
+          <Link href="/admin/dashboard" className={styles.backLink}>
+            Kembali ke Dashboard
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  const umkm = data.find((item) => item.id === umkmId);
 
   if (!umkm) {
     return (

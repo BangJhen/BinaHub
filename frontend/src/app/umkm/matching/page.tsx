@@ -1,8 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
-import { workers } from "@/features/umkm/workers-data";
+
+type WorkerItem = {
+  id: string;
+  name: string;
+  role: string;
+  attendanceRate: number;
+  checkinConsistency: number;
+  productivityScore: number;
+  latestCondition: "green" | "yellow" | "red";
+};
+
+type UmkmDashboardData = {
+  workers: WorkerItem[];
+};
 
 const openJobs = [
   "Staff Operasional Toko",
@@ -13,24 +26,61 @@ const openJobs = [
 
 type OpenJob = (typeof openJobs)[number];
 
-const suitabilityByJob: Record<OpenJob, Record<string, number>> = {
-  "Staff Operasional Toko": { "W-01": 92, "W-02": 81, "W-03": 68, "W-04": 84 },
-  "Kasir Shift Sore": { "W-01": 79, "W-02": 95, "W-03": 62, "W-04": 76 },
-  "Admin Gudang": { "W-01": 83, "W-02": 74, "W-03": 71, "W-04": 93 },
-  "Kurir UMKM": { "W-01": 72, "W-02": 66, "W-03": 90, "W-04": 70 }
-};
+function computeJobFit(worker: WorkerItem, job: OpenJob) {
+  const base =
+    worker.attendanceRate * 0.4 +
+    worker.checkinConsistency * 0.35 +
+    worker.productivityScore * 0.25;
+
+  let bonus = 0;
+  const roleText = worker.role.toLowerCase();
+  if (job === "Kasir Shift Sore" && roleText.includes("kasir")) bonus += 10;
+  if (job === "Admin Gudang" && (roleText.includes("gudang") || roleText.includes("admin"))) bonus += 10;
+  if (job === "Kurir UMKM" && roleText.includes("kurir")) bonus += 10;
+  if (job === "Staff Operasional Toko" && roleText.includes("operasional")) bonus += 10;
+
+  if (worker.latestCondition === "green") bonus += 4;
+  if (worker.latestCondition === "red") bonus -= 6;
+
+  return Math.max(0, Math.min(99, Math.round(base + bonus)));
+}
 
 export default function UmkmMatchingPage() {
+  const [workers, setWorkers] = useState<WorkerItem[]>([]);
+  const [fetchError, setFetchError] = useState("");
   const [selectedJob, setSelectedJob] = useState<OpenJob>("Staff Operasional Toko");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadWorkers() {
+      setFetchError("");
+      const res = await fetch("/api/dashboard/umkm", { cache: "no-store" });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        if (isMounted) setFetchError(payload.message ?? "Gagal memuat data pekerja.");
+        return;
+      }
+
+      const payload = (await res.json()) as UmkmDashboardData;
+      if (!isMounted) return;
+      setWorkers(payload.workers ?? []);
+    }
+
+    loadWorkers();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const rankedWorkers = useMemo(() => {
     return [...workers]
       .map((worker) => ({
         ...worker,
-        score: suitabilityByJob[selectedJob][worker.id] ?? 0
+        score: computeJobFit(worker, selectedJob)
       }))
       .sort((a, b) => b.score - a.score);
-  }, [selectedJob]);
+  }, [selectedJob, workers]);
 
   return (
     <main className={styles.pageRoot}>
@@ -41,6 +91,7 @@ export default function UmkmMatchingPage() {
       </section>
 
       <section className={styles.mainCard}>
+        {fetchError && <p>{fetchError}</p>}
         <div className={styles.topRow}>
           <label>
             Posisi Lowongan

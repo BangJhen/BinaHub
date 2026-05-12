@@ -1,18 +1,41 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-import {
-  activities,
-  alerts,
-  kpiByRange,
-  riskLabel,
-  workers,
-  workerConditionTrendByRange,
-  type TimeRange,
-  type WorkerChartRange
-} from "@/features/umkm/workers-data";
+
+type RiskLevel = "green" | "yellow" | "red";
+type TimeRange = "7d" | "30d";
+type WorkerChartRange = "1w" | "1m" | "6m" | "1y";
+
+type UmkmDashboardData = {
+  kpiByRange: Record<TimeRange, { activeWorkers: number; avgCheckinRate: number; needAttention: number; mentoringSessions: number }>;
+  workers: Array<{
+    id: string;
+    name: string;
+    role: string;
+    attendanceRate: number;
+    latestCheckin: string;
+    latestCondition: RiskLevel;
+  }>;
+  alerts: Array<{
+    id: string;
+    workerId: string;
+    workerName: string;
+    role: string;
+    level: RiskLevel;
+    message: string;
+    createdAt: string;
+  }>;
+  workerConditionTrendByRange: Record<string, Record<WorkerChartRange, Array<{ day: string; green: number; yellow: number; red: number }>>>;
+  activities: string[];
+};
+
+function riskLabel(level: RiskLevel) {
+  if (level === "red") return "Risiko Tinggi";
+  if (level === "yellow") return "Perlu Atensi";
+  return "Stabil";
+}
 
 function checkinRateClass(rate: number) {
   if (rate >= 90) return styles.checkinHigh;
@@ -21,53 +44,99 @@ function checkinRateClass(rate: number) {
 }
 
 export default function UmkmDashboardPage() {
-  const defaultWorker = workers[0];
-
-  if (!defaultWorker) {
-    return null;
-  }
+  const [data, setData] = useState<UmkmDashboardData | null>(null);
+  const [fetchError, setFetchError] = useState("");
 
   const [range, setRange] = useState<TimeRange>("7d");
   const [filter, setFilter] = useState<"all" | "green" | "yellow" | "red">("all");
   const [workerChartRange, setWorkerChartRange] = useState<WorkerChartRange>("1m");
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
+      setFetchError("");
+      const res = await fetch("/api/dashboard/umkm", { cache: "no-store" });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        if (isMounted) setFetchError(payload.message ?? "Gagal memuat data dashboard UMKM.");
+        return;
+      }
+
+      const payload = (await res.json()) as UmkmDashboardData;
+      if (!isMounted) return;
+      setData(payload);
+    }
+
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (fetchError) {
+    return (
+      <main className={styles.dashboardRoot}>
+        <section className={styles.panel}>
+          <h2>Gagal memuat data</h2>
+          <p>{fetchError}</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (!data) {
+    return (
+      <main className={styles.dashboardRoot}>
+        <section className={styles.panel}>
+          <h2>Memuat dashboard UMKM...</h2>
+        </section>
+      </main>
+    );
+  }
+
+  const { activities, alerts, kpiByRange, workers, workerConditionTrendByRange } = data;
+  const defaultWorker = workers[0];
+
+  if (!defaultWorker) {
+    return (
+      <main className={styles.dashboardRoot}>
+        <section className={styles.panel}>
+          <h2>Belum ada data pekerja aktif</h2>
+        </section>
+      </main>
+    );
+  }
+
   const kpi = kpiByRange[range];
-  const workerConditionTrend = useMemo(() => {
-    const labels = workerConditionTrendByRange[defaultWorker.id]?.[workerChartRange] ?? [];
-
-    return labels.map((basePoint, index) => {
-      return workers.reduce(
-        (acc, worker) => {
-          const point = workerConditionTrendByRange[worker.id]?.[workerChartRange]?.[index];
-          if (!point) {
-            return acc;
-          }
-          acc.green += point.green;
-          acc.yellow += point.yellow;
-          acc.red += point.red;
+  const labels = workerConditionTrendByRange[defaultWorker.id]?.[workerChartRange] ?? [];
+  const workerConditionTrend = labels.map((basePoint, index) => {
+    return workers.reduce(
+      (acc, worker) => {
+        const point = workerConditionTrendByRange[worker.id]?.[workerChartRange]?.[index];
+        if (!point) {
           return acc;
-        },
-        { day: basePoint.day, green: 0, yellow: 0, red: 0 }
-      );
-    });
-  }, [defaultWorker.id, workerChartRange]);
-
-  const filteredAlerts = useMemo(() => {
-    if (filter === "all") return alerts;
-    return alerts.filter((item) => item.level === filter);
-  }, [filter]);
-
-  const conditionDistribution = useMemo(() => {
-    return workerConditionTrend.reduce(
-      (acc, item) => {
-        acc.green += item.green;
-        acc.yellow += item.yellow;
-        acc.red += item.red;
+        }
+        acc.green += point.green;
+        acc.yellow += point.yellow;
+        acc.red += point.red;
         return acc;
       },
-      { green: 0, yellow: 0, red: 0 }
+      { day: basePoint.day, green: 0, yellow: 0, red: 0 }
     );
-  }, [workerConditionTrend]);
+  });
+
+  const filteredAlerts = filter === "all" ? alerts : alerts.filter((item) => item.level === filter);
+
+  const conditionDistribution = workerConditionTrend.reduce(
+    (acc, item) => {
+      acc.green += item.green;
+      acc.yellow += item.yellow;
+      acc.red += item.red;
+      return acc;
+    },
+    { green: 0, yellow: 0, red: 0 }
+  );
 
   const totalCondition = conditionDistribution.green + conditionDistribution.yellow + conditionDistribution.red;
   const greenRatio = totalCondition ? (conditionDistribution.green / totalCondition) * 100 : 0;
@@ -235,9 +304,10 @@ export default function UmkmDashboardPage() {
           <div className={styles.stackedChart}>
             {workerConditionTrend.map((item) => {
               const total = item.green + item.yellow + item.red;
-              const greenWidth = (item.green / total) * 100;
-              const yellowWidth = (item.yellow / total) * 100;
-              const redWidth = (item.red / total) * 100;
+              const safeTotal = total || 1;
+              const greenWidth = (item.green / safeTotal) * 100;
+              const yellowWidth = (item.yellow / safeTotal) * 100;
+              const redWidth = (item.red / safeTotal) * 100;
 
               return (
                 <div

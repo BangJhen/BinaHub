@@ -2,20 +2,109 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-import { adminUmkmData } from "@/features/admin/admin-umkm-data";
-import { riskLabel } from "@/features/umkm/workers-data";
+
+type RiskLevel = "green" | "yellow" | "red";
+
+type AdminUmkmData = {
+  id: string;
+  name: string;
+  workers: Array<{
+    id: string;
+    name: string;
+    role: string;
+    startDate: string;
+    attendanceRate: number;
+    productivityScore: number;
+    checkinConsistency: number;
+    latestCheckin: string;
+    latestCondition: RiskLevel;
+    mentorNote: string;
+  }>;
+  issues: Array<{
+    id: string;
+    workerId: string;
+    level: RiskLevel;
+    message: string;
+    createdAt: string;
+  }>;
+};
+
+function riskLabel(level: RiskLevel) {
+  if (level === "red") return "Risiko Tinggi";
+  if (level === "yellow") return "Perlu Atensi";
+  return "Stabil";
+}
 
 export default function AdminWorkerDetailPage() {
   const params = useParams<{ umkmId: string; workerId: string }>();
-  const umkmId = params?.umkmId;
-  const workerId = params?.workerId;
+  const umkmId = params?.umkmId ?? "";
+  const workerId = params?.workerId ?? "";
+  const [data, setData] = useState<AdminUmkmData[]>([]);
+  const [fetchError, setFetchError] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadData() {
+      setFetchError("");
+      const res = await fetch("/api/dashboard/admin", { cache: "no-store" });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        if (isMounted) setFetchError(payload.message ?? "Gagal memuat data worker.");
+        return;
+      }
+
+      const payload = (await res.json()) as { adminUmkmData: AdminUmkmData[] };
+      if (!isMounted) return;
+      setData(payload.adminUmkmData ?? []);
+    }
+
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if (fetchError) {
+    return (
+      <main className={styles.pageRoot}>
+        <section className={styles.headerCard}>
+          <div>
+            <p className={styles.eyebrow}>Detail Pekerja</p>
+            <h1>Gagal memuat data</h1>
+            <p>{fetchError}</p>
+          </div>
+          <Link href="/admin/dashboard" className={styles.backLink}>
+            Kembali ke Dashboard
+          </Link>
+        </section>
+      </main>
+    );
+  }
 
   if (!umkmId || !workerId) {
     return null;
   }
 
-  const umkm = adminUmkmData.find((item) => item.id === umkmId);
+  if (data.length === 0) {
+    return (
+      <main className={styles.pageRoot}>
+        <section className={styles.headerCard}>
+          <div>
+            <p className={styles.eyebrow}>Detail Pekerja</p>
+            <h1>Memuat data pekerja...</h1>
+          </div>
+          <Link href="/admin/dashboard" className={styles.backLink}>
+            Kembali ke Dashboard
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  const umkm = data.find((item) => item.id === umkmId);
   const worker = umkm?.workers.find((item) => item.id === workerId);
 
   if (!umkm || !worker) {

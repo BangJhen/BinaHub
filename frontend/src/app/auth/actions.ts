@@ -68,7 +68,7 @@ export async function signup(formData: FormData) {
     }
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data: signupData, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -78,6 +78,64 @@ export async function signup(formData: FormData) {
 
   if (error) {
     return { success: false, message: error.message }
+  }
+
+  const authUser = signupData.user
+
+  if (authUser) {
+    const { error: userInsertError } = await supabase
+      .from('users')
+      .upsert(
+        {
+          id: authUser.id,
+          email,
+          password_hash: 'managed-by-supabase-auth',
+          full_name: name,
+          role,
+          is_verified: Boolean(authUser.email_confirmed_at),
+        },
+        { onConflict: 'id' }
+      )
+
+    if (userInsertError) {
+      return { success: false, message: `Registrasi auth berhasil, tetapi sinkronisasi data user gagal: ${userInsertError.message}` }
+    }
+
+    if (role === 'umkm') {
+      const { error: umkmProfileError } = await supabase
+        .from('umkm_profiles')
+        .upsert(
+          {
+            user_id: authUser.id,
+            business_name: businessName,
+            business_sector: businessType,
+            business_address: businessAddress,
+          },
+          { onConflict: 'user_id' }
+        )
+
+      if (umkmProfileError) {
+        return { success: false, message: `Akun dibuat, tetapi profil UMKM gagal disimpan: ${umkmProfileError.message}` }
+      }
+    }
+
+    if (role === 'worker') {
+      const { error: workerProfileError } = await supabase
+        .from('worker_profiles')
+        .upsert(
+          {
+            user_id: authUser.id,
+            skills,
+            experience_summary: experience,
+            city: workerAddress,
+          },
+          { onConflict: 'user_id' }
+        )
+
+      if (workerProfileError) {
+        return { success: false, message: `Akun dibuat, tetapi profil worker gagal disimpan: ${workerProfileError.message}` }
+      }
+    }
   }
 
   return { success: true, message: 'Registrasi berhasil! Silakan cek email Anda untuk memverifikasi akun.' }
