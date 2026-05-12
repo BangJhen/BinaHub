@@ -2,6 +2,8 @@
 
 Struktur awal frontend untuk framework Next.js (App Router).
 
+Dokumentasi onboarding lintas tim tersedia di root project: `../README.md`.
+
 ## Integrasi Supabase (Aktif)
 
 Frontend sudah terhubung ke Supabase untuk auth dan data dashboard. Data dummy dari `src/features/*` tidak lagi dipakai di halaman dashboard.
