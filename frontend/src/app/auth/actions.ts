@@ -1,6 +1,16 @@
 'use server'
 
 import { createClient } from '@/utils/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+function normalizeSignupError(message: string) {
+  const lowered = message.toLowerCase()
+  if (lowered.includes('email rate limit exceeded')) {
+    return 'Pendaftaran ditolak sementara karena batas pengiriman email tercapai. Coba lagi 5-10 menit lagi, atau aktifkan mode auto-confirm untuk testing.'
+  }
+
+  return message
+}
 
 export async function signup(formData: FormData) {
   const email = formData.get('email') as string
@@ -68,19 +78,52 @@ export async function signup(formData: FormData) {
     }
   }
 
-  const { data: signupData, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: metadata,
-    },
-  })
+  const autoconfirmEnabled = process.env.AUTH_AUTOCONFIRM === 'true'
+  let authUser: { id: string; email_confirmed_at?: string | null } | null = null
 
-  if (error) {
-    return { success: false, message: error.message }
+  if (autoconfirmEnabled) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      return {
+        success: false,
+        message:
+          'Mode auto-confirm aktif, tetapi NEXT_PUBLIC_SUPABASE_URL atau SUPABASE_SERVICE_ROLE_KEY belum diisi di .env.local.',
+      }
+    }
+
+    const adminSupabase = createSupabaseClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    })
+
+    const { data, error } = await adminSupabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: metadata,
+    })
+
+    if (error) {
+      return { success: false, message: normalizeSignupError(error.message) }
+    }
+
+    authUser = data.user ? { id: data.user.id, email_confirmed_at: data.user.email_confirmed_at } : null
+  } else {
+    const { data: signupData, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: metadata,
+      },
+    })
+
+    if (error) {
+      return { success: false, message: normalizeSignupError(error.message) }
+    }
+
+    authUser = signupData.user
   }
-
-  const authUser = signupData.user
 
   if (authUser) {
     const { error: userInsertError } = await supabase
@@ -138,7 +181,12 @@ export async function signup(formData: FormData) {
     }
   }
 
-  return { success: true, message: 'Registrasi berhasil! Silakan cek email Anda untuk memverifikasi akun.' }
+  return {
+    success: true,
+    message: autoconfirmEnabled
+      ? 'Registrasi berhasil! Akun langsung aktif (auto-confirm mode). Anda bisa langsung login.'
+      : 'Registrasi berhasil! Silakan cek email Anda untuk memverifikasi akun.',
+  }
 }
 
 export async function login(formData: FormData) {

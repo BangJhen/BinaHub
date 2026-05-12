@@ -15,6 +15,7 @@ export default function RegisterProgressive() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Record<string, any>>({ role: "" });
   const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const handleNext = () => setStep((s) => s + 1);
@@ -38,6 +39,7 @@ export default function RegisterProgressive() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+    setSuccessMsg("");
 
     const data = new FormData();
     Object.entries(formData).forEach(([key, val]) => {
@@ -47,6 +49,7 @@ export default function RegisterProgressive() {
     startTransition(async () => {
       const res = await signup(data);
       if (res.success) {
+        setSuccessMsg(res.message ?? "Registrasi berhasil!");
         setStep(4); // Success State
       } else {
         setErrorMsg(res.message);
@@ -195,7 +198,7 @@ export default function RegisterProgressive() {
             <motion.div key="step4" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }} className={styles.successState}>
               <div className={styles.successIcon}>✓</div>
               <h2>Registrasi Berhasil!</h2>
-              <p>Akun {formData.role.toUpperCase()} Anda telah didaftarkan. Kami telah mengirimkan email konfirmasi ke <b>{formData.email}</b>. Silakan periksa inbox atau folder spam Anda.</p>
+              <p>{successMsg || `Akun ${formData.role.toUpperCase()} Anda telah didaftarkan.`}</p>
               <Link href="/auth/login" className={styles.primaryBtn} style={{ textDecoration: "none", width: "100%" }}>
                 Menuju Halaman Login
               </Link>

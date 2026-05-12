@@ -3,6 +3,7 @@
 ## Struktur
 - `schema.sql`: definisi enum, tabel, relasi, constraint, index.
 - `seed.sql`: data awal untuk demo prototype.
+- `seed-dashboard.sql`: data dummy lebih besar untuk uji dashboard (admin/UMKM/worker).
 
 ## Entitas utama
 - `users`: akun semua role (`admin`, `umkm`, `worker`).
@@ -21,6 +22,10 @@
 3. Isi data demo:
    ```bash
    psql -d binahub_db -f db/seed.sql
+   ```
+4. (Opsional, direkomendasikan untuk uji dashboard) isi data dummy tambahan:
+   ```bash
+   psql -d binahub_db -f db/seed-dashboard.sql
    ```
 
 ## Catatan
