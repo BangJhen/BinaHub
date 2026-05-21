@@ -17,8 +17,7 @@ export default function LowonganCard({ lowongan, isSelected, isChecked = false, 
   const [isHovering, setIsHovering] = useState(false);
   const statusColor = getStatusColor(lowongan.status);
 
-  return (
-    <div
+  return <div
       className={styles.cardTransition}
       style={{
         padding: "1rem",
@@ -112,6 +111,5 @@ export default function LowonganCard({ lowongan, isSelected, isChecked = false, 
         Ditambahkan {getRelativeTime(lowongan.createdAt)}
       </div>
       </div>
-    </div>
-  );
+    </div>;
 }
