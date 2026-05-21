@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/utils/supabase/server";
 import AuthRoleControl from "../AuthRoleControl";
 import styles from "./home-nav.module.css";
@@ -9,7 +10,9 @@ export async function HomeNav() {
   const role = user?.user_metadata?.role;
   return (
     <nav className={styles.topNav}>
-      <div className={styles.brand}>BinaHub</div>
+      <Link href="/" className={styles.brand} aria-label="BinaHub Home">
+        <Image src="/logo-binahub.svg" alt="Logo BinaHub" width={120} height={20} className={styles.brandLogo} priority />
+      </Link>
       <div className={styles.navCenter}>
         <a href="#fitur">Fitur</a>
         <a href="#alur">Alur</a>

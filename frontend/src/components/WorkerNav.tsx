@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import styles from "./worker-nav.module.css";
 import AuthRoleControl from "./AuthRoleControl";
@@ -16,7 +17,9 @@ export default function WorkerNav({ initialRole }: { initialRole?: any }) {
 
   return (
     <nav className={styles.navRoot} aria-label="Navigasi Pekerja">
-      <div className={styles.brand}>BinaHub Worker</div>
+      <Link href="/" className={styles.brand} aria-label="BinaHub Home">
+        <Image src="/logo-binahub.svg" alt="Logo BinaHub" width={120} height={20} className={styles.brandLogo} priority />
+      </Link>
       <div className={styles.rightCluster}>
         <div className={styles.links}>
           {navItems.map((item) => {

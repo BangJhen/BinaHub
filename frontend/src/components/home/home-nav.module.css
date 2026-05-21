@@ -15,10 +15,21 @@
 }
 
 .brand {
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  color: #0f6e99;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  width: 170px;
+  height: 42px;
+  overflow: hidden;
+}
+
+.brandLogo {
+  width: 170px;
+  height: 42px;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(.9);
+  transform-origin: center;
 }
 
 .navCenter {
