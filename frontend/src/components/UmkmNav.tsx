@@ -7,7 +7,7 @@ import AuthRoleControl from "./AuthRoleControl";
 
 const navItems = [
   { href: "/umkm/dashboard", label: "Dashboard" },
-  { href: "/umkm/jobs", label: "Lowongan" },
+  { href: "/umkm/lowongan", label: "Lowongan" },
   { href: "/umkm/matching", label: "Matching" }
 ];
 
