@@ -14,43 +14,26 @@ interface LowonganListProps {
   isLoading?: boolean;
 }
 
-export default function LowonganList({ 
-  lowonganList, 
-  selectedId, 
-  selectedIds = [], 
-  onSelect, 
+export default function LowonganList({
+  lowonganList,
+  selectedId,
+  selectedIds = [],
+  onSelect,
   onToggleSelect,
   onSelectAll,
-  isLoading 
+  isLoading
 }: LowonganListProps) {
   if (isLoading) {
     return (
-      <div
-        style={{
-          background: "var(--color-background-primary)",
-          border: "0.5px solid var(--color-border-tertiary)",
-          borderRadius: "var(--border-radius-lg)",
-          overflow: "hidden"
-        }}
-      >
-        <div
-          style={{
-            padding: "1rem",
-            borderBottom: "0.5px solid var(--color-border-tertiary)",
-            background: "var(--color-background-secondary)",
-            display: "flex", justifyContent: "space-between"
-          }}
-        >
-          <div className={`${styles.skeletonLine} ${styles.skeletonText}`} style={{ margin: 0, width: "100px" }} />
+      <div className={styles.listPanel}>
+        <div className={styles.listHeader}>
+          <p className={styles.listCount}>Memuat lowongan...</p>
         </div>
         {[...Array(4)].map((_, i) => (
-          <div key={i} style={{ padding: '1rem', borderBottom: '0.5px solid var(--color-border-tertiary)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
-              <div className={`${styles.skeletonLine} ${styles.skeletonBadge}`} />
-            </div>
-            <div className={`${styles.skeletonLine} ${styles.skeletonText}`} style={{ width: "30%" }} />
-            <div className={`${styles.skeletonLine} ${styles.skeletonText}`} style={{ width: "50%", marginTop: "12px" }} />
+          <div key={i} className={styles.skeletonRow}>
+            <div className={styles.skeletonLine} />
+            <div className={styles.skeletonLine} />
+            <div className={styles.skeletonLine} />
           </div>
         ))}
       </div>
@@ -59,117 +42,57 @@ export default function LowonganList({
 
   if (lowonganList.length === 0) {
     return (
-      <div
-        style={{
-          background: "var(--color-background-primary)",
-          border: "0.5px solid var(--color-border-tertiary)",
-          borderRadius: "var(--border-radius-lg)",
-          overflow: "hidden"
-        }}
-      >
-        <div
-          style={{
-            padding: "1rem",
-            borderBottom: "0.5px solid var(--color-border-tertiary)",
-            background: "var(--color-background-secondary)",
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}
-        >
-          <p style={{ margin: 0, fontSize: "13px", fontWeight: 500, color: "var(--color-text-secondary)" }}>
-            0 lowongan ditemukan
-          </p>
+      <div className={styles.listPanel}>
+        <div className={styles.listHeader}>
+          <p className={styles.listCount}>0 lowongan ditemukan</p>
         </div>
-        <div style={{
-          padding: "4rem 2rem",
-          textAlign: "center",
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '50%',
-            background: 'var(--color-background-secondary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--color-text-tertiary)'
-          }}>
-            <i className="ti ti-search" style={{ fontSize: '24px' }} aria-hidden="true" />
+        <div className={styles.emptyPanel}>
+          <div className={styles.emptyIcon}>
+            <i className="ti ti-briefcase-off" aria-hidden />
           </div>
-          <h3 style={{ margin: 0, fontSize: '15px', color: 'var(--color-text-primary)' }}>
-            Tidak ada hasil
-          </h3>
-          <p style={{ margin: 0, fontSize: '13px', color: "var(--color-text-secondary)", maxWidth: '250px' }}>
-            Coba sesuaikan filter atau kata kunci pencarian Anda untuk menemukan lowongan.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              marginTop: '8px',
-              padding: '8px 16px',
-              background: 'transparent',
-              border: '0.5px solid var(--color-border-tertiary)',
-              borderRadius: 'var(--border-radius-md)',
-              color: 'var(--color-text-primary)',
-              fontSize: '13px',
-              fontWeight: 500,
-              cursor: 'pointer'
-            }}
-          >
-            Reset Filter
-          </button>
+          <h3>Belum ada lowongan</h3>
+          <p>Buat lowongan pertama Anda untuk mulai menjangkau pekerja yang sesuai.</p>
+          <a href="/umkm/lowongan/create" className={styles.emptyAction}>
+            <i className="ti ti-plus" aria-hidden /> Buat Lowongan Baru
+          </a>
         </div>
       </div>
     );
   }
 
+  const allChecked = onSelectAll && selectedIds.length === lowonganList.length;
+  const someChecked = onSelectAll && selectedIds.length > 0 && !allChecked;
+
   return (
-    <div
-      style={{
-        background: "var(--color-background-primary)",
-        border: "0.5px solid var(--color-border-tertiary)",
-        borderRadius: "var(--border-radius-lg)",
-        overflow: "hidden"
-      }}
-    >
-      <div
-        style={{
-          padding: "1rem",
-          borderBottom: "0.5px solid var(--color-border-tertiary)",
-          background: "var(--color-background-secondary)",
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {onSelectAll && lowonganList.length > 0 && (
-            <input 
+    <div className={styles.listPanel}>
+      <div className={styles.listHeader}>
+        <div className={styles.selectAllRow}>
+          {onSelectAll && (
+            <input
               type="checkbox"
-              checked={selectedIds.length === lowonganList.length}
+              checked={Boolean(allChecked)}
+              ref={(el) => {
+                if (el) el.indeterminate = Boolean(someChecked);
+              }}
               onChange={(e) => onSelectAll(e.target.checked)}
-              style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+              aria-label="Pilih semua lowongan"
+              style={{ width: 16, height: 16, accentColor: "#0f6e99", cursor: "pointer" }}
             />
           )}
-          <p style={{ margin: 0, fontSize: "13px", fontWeight: 500, color: "var(--color-text-secondary)" }}>
-            {lowonganList.length} lowongan
+          <p className={styles.listCount}>
+            {lowonganList.length} lowongan{selectedIds.length > 0 ? ` • ${selectedIds.length} dipilih` : ""}
           </p>
         </div>
       </div>
 
       {lowonganList.map((lowongan) => (
-        <LowonganCard 
-          key={lowongan.id} 
-          lowongan={lowongan} 
+        <LowonganCard
+          key={lowongan.id}
+          lowongan={lowongan}
           isSelected={selectedId === lowongan.id}
           isChecked={selectedIds.includes(lowongan.id)}
           onToggleCheck={onToggleSelect}
-          onClick={onSelect} 
+          onClick={onSelect}
         />
       ))}
     </div>

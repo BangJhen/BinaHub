@@ -14,326 +14,240 @@ interface LowonganPreviewPanelProps {
 
 export default function LowonganPreviewPanel({ lowongan, onEdit, onClose, onDuplicate }: LowonganPreviewPanelProps) {
   const [isClosing, setIsClosing] = useState(false);
-  const statusColor = getStatusColor(lowongan.status);
-  const hiringProgress = getHiringProgress(lowongan.hired, lowongan.positions);
+  const [isDuplicating, setIsDuplicating] = useState(false);
+  const statusColor = getStatusColor(lowongan.status as string);
+  const hiringProgress = getHiringProgress(lowongan.hired || 0, lowongan.positions || 1);
+  const isClosed = lowongan.status === "Ditutup";
 
   const handleClose = async () => {
-    if (confirm("Apakah Anda yakin ingin menutup lowongan ini?")) {
-      setIsClosing(true);
-      try {
-        await onClose(lowongan.id);
-      } finally {
-        setIsClosing(false);
-      }
+    const message = isClosed
+      ? "Buka kembali lowongan ini?"
+      : "Apakah Anda yakin ingin menutup lowongan ini?";
+    if (!confirm(message)) return;
+
+    setIsClosing(true);
+    try {
+      await onClose(lowongan.id);
+    } finally {
+      setIsClosing(false);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    setIsDuplicating(true);
+    try {
+      await onDuplicate(lowongan.id);
+    } finally {
+      setIsDuplicating(false);
     }
   };
 
   return (
-    <div
-      key={lowongan.id}
-      className={styles.slideIn}
-      style={{
-        background: "var(--color-background-primary)",
-        border: "0.5px solid var(--color-border-tertiary)",
-        borderRadius: "var(--border-radius-lg)",
-        padding: "1.5rem",
-        overflow: "auto",
-        maxHeight: "600px"
-      }}
-    >
-      {/* Header */}
-      <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: "12px" }}>
-          <div>
-            <p style={{ margin: "0 0 4px", fontSize: "13px", color: "var(--color-text-secondary)", fontWeight: 500 }}>
-              {lowongan.jobCode}
-            </p>
-            <h2 style={{ margin: 0, fontSize: "22px", fontWeight: 500 }}>{lowongan.title}</h2>
-          </div>
+    <div className={styles.previewPanel}>
+      <div className={styles.previewHeader}>
+        <div className={styles.previewMeta}>
+          <p className={styles.previewCode}>{lowongan.jobCode}</p>
           <span
+            className={styles.statusBadge}
             style={{
               background: statusColor.bg,
               color: statusColor.text,
-              padding: "6px 12px",
-              borderRadius: "var(--border-radius-md)",
-              fontSize: "12px",
-              fontWeight: 500
+              borderColor: statusColor.border
             }}
           >
             {lowongan.status}
           </span>
         </div>
-        <p style={{ margin: 0, fontSize: "14px", color: "var(--color-text-secondary)" }}>
-          {lowongan.location} • {lowongan.type} • Rp {lowongan.salary}
-        </p>
+        <h2 className={styles.previewTitle}>{lowongan.title}</h2>
+        <div className={styles.previewSubMeta}>
+          <span><i className="ti ti-map-pin" aria-hidden /> {lowongan.location}</span>
+          <span><i className="ti ti-briefcase" aria-hidden /> {lowongan.type}</span>
+          <span><i className="ti ti-coin" aria-hidden /> {lowongan.salary}</span>
+        </div>
       </div>
 
-      <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
-        <h3 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 500 }}>Ringkas Persyaratan</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px" }}>
-          <div>
-            <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Pendidikan</p>
-            <p style={{ margin: "4px 0 0", fontSize: "13px", fontWeight: 500 }}>
-              {lowongan.educationLevel || "Tidak disebutkan"}
-            </p>
+      {/* META */}
+      <section className={styles.previewSection}>
+        <h3 className={styles.sectionTitle}>Ringkasan Persyaratan</h3>
+        <div className={styles.metaGrid}>
+          <div className={styles.metaItem}>
+            <p className={styles.metaLabel}>Pendidikan</p>
+            <p className={styles.metaValue}>{lowongan.educationLevel || "Tidak disebutkan"}</p>
           </div>
-          <div>
-            <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Pengalaman</p>
-            <p style={{ margin: "4px 0 0", fontSize: "13px", fontWeight: 500 }}>
-              {lowongan.experienceRequired || "Tidak disebutkan"}
-            </p>
+          <div className={styles.metaItem}>
+            <p className={styles.metaLabel}>Pengalaman</p>
+            <p className={styles.metaValue}>{lowongan.experienceRequired || "Tidak disebutkan"}</p>
           </div>
-          <div>
-            <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Rentang Usia</p>
-            <p style={{ margin: "4px 0 0", fontSize: "13px", fontWeight: 500 }}>
-              {lowongan.ageRange || "Tidak disebutkan"}
-            </p>
+          <div className={styles.metaItem}>
+            <p className={styles.metaLabel}>Rentang Usia</p>
+            <p className={styles.metaValue}>{lowongan.ageRange || "Tidak disebutkan"}</p>
           </div>
         </div>
 
-        <div style={{ marginTop: "12px" }}>
-          <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Skills</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" }}>
+        <div style={{ marginTop: 14 }}>
+          <p className={styles.metaLabel} style={{ marginBottom: 8 }}>Skills</p>
+          <div className={styles.tagWrap}>
             {(lowongan.skills || []).length > 0 ? (
-              lowongan.skills?.map((skill) => (
-                <span
-                  key={skill}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "999px",
-                    background: "var(--color-background-secondary)",
-                    fontSize: "11px",
-                    color: "var(--color-text-primary)"
-                  }}
-                >
-                  {skill}
-                </span>
+              (lowongan.skills || []).map((s) => (
+                <span key={s} className={styles.tag}>{s}</span>
               ))
             ) : (
-              <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>Belum ada</span>
+              <span style={{ fontSize: 13, color: "#6f8190" }}>Belum ada</span>
             )}
           </div>
         </div>
 
-        <div style={{ marginTop: "12px" }}>
-          <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Benefit</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" }}>
+        <div style={{ marginTop: 14 }}>
+          <p className={styles.metaLabel} style={{ marginBottom: 8 }}>Benefit</p>
+          <div className={styles.tagWrap}>
             {(lowongan.benefits || []).length > 0 ? (
-              lowongan.benefits?.map((benefit) => (
-                <span
-                  key={benefit}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: "999px",
-                    background: "var(--color-background-secondary)",
-                    fontSize: "11px",
-                    color: "var(--color-text-primary)"
-                  }}
-                >
-                  {benefit}
+              (lowongan.benefits || []).map((b) => (
+                <span key={b} className={styles.tag} style={{ background: "#fef3c7", color: "#92400e", borderColor: "#fde68a" }}>
+                  {b}
                 </span>
               ))
             ) : (
-              <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>Belum ada</span>
+              <span style={{ fontSize: 13, color: "#6f8190" }}>Belum ada</span>
             )}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Timeline */}
-      <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
-        <h3 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 500 }}>Timeline</h3>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "var(--color-text-secondary)" }}>
-          <i className="ti ti-calendar-plus" style={{ fontSize: "16px" }} aria-hidden="true" />
-          <span>Dibuat:</span>
-          <span style={{ color: "var(--color-text-primary)", fontWeight: 500 }}>
+      {/* DESC */}
+      {lowongan.description && (
+        <section className={styles.previewSection}>
+          <h3 className={styles.sectionTitle}>Deskripsi Pekerjaan</h3>
+          <p style={{ margin: 0, fontSize: 13, color: "#324b5e", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>
+            {lowongan.description}
+          </p>
+        </section>
+      )}
+
+      {/* TIMELINE */}
+      <section className={styles.previewSection}>
+        <h3 className={styles.sectionTitle}>Timeline</h3>
+        <div style={{ display: "grid", gap: 8, fontSize: 13, color: "#4d6473" }}>
+          <div>
+            <i className="ti ti-calendar-plus" aria-hidden style={{ marginRight: 6, color: "#0f6e99" }} />
+            <strong style={{ color: "#0a2c4f" }}>Dibuat:</strong>{" "}
             {formatDate(lowongan.createdAt)} • {getRelativeTime(lowongan.createdAt)}
-          </span>
+          </div>
+          {lowongan.publishedAt && (
+            <div>
+              <i className="ti ti-broadcast" aria-hidden style={{ marginRight: 6, color: "#16a34a" }} />
+              <strong style={{ color: "#0a2c4f" }}>Dipublikasi:</strong>{" "}
+              {formatDate(lowongan.publishedAt)}
+            </div>
+          )}
+          {lowongan.closedAt && (
+            <div>
+              <i className="ti ti-circle-x" aria-hidden style={{ marginRight: 6, color: "#dc2626" }} />
+              <strong style={{ color: "#0a2c4f" }}>Ditutup:</strong>{" "}
+              {formatDate(lowongan.closedAt)}
+            </div>
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* Statistik Views */}
-      <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
-        <h3 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 500 }}>Statistik Views</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-          <div
-            style={{ background: "var(--color-background-secondary)", padding: "1rem", borderRadius: "var(--border-radius-md)" }}
-          >
-            <p style={{ margin: "0 0 4px", fontSize: "12px", color: "var(--color-text-secondary)" }}>Total Views</p>
-            <p style={{ margin: 0, fontSize: "20px", fontWeight: 500 }}>{lowongan.views}</p>
-            <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--color-text-secondary)" }}>All time</p>
+      {/* STATS */}
+      <section className={styles.previewSection}>
+        <h3 className={styles.sectionTitle}>Statistik</h3>
+        <div className={styles.statRow}>
+          <div className={styles.statBox}>
+            <p className={styles.metaLabel}>Total Views</p>
+            <p className={styles.statValue}>{lowongan.views}</p>
+            <p style={{ margin: 0, fontSize: 11, color: "#6f8190" }}>+{lowongan.viewsThisWeek} minggu ini</p>
           </div>
-          <div
-            style={{ background: "var(--color-background-secondary)", padding: "1rem", borderRadius: "var(--border-radius-md)" }}
-          >
-            <p style={{ margin: "0 0 4px", fontSize: "12px", color: "var(--color-text-secondary)" }}>Views Minggu Ini</p>
-            <p style={{ margin: 0, fontSize: "20px", fontWeight: 500 }}>{lowongan.viewsThisWeek}</p>
-            <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--color-text-secondary)" }}>7 hari terakhir</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Pelamar & Hired */}
-      <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
-        <h3 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 500 }}>Pelamar</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "1rem" }}>
-          <div
-            style={{ background: "var(--color-background-secondary)", padding: "1rem", borderRadius: "var(--border-radius-md)" }}
-          >
-            <p style={{ margin: "0 0 4px", fontSize: "12px", color: "var(--color-text-secondary)" }}>Total Pelamar</p>
-            <p style={{ margin: 0, fontSize: "20px", fontWeight: 500 }}>{lowongan.applicants}</p>
-          </div>
-          <div style={{ background: "var(--color-background-info)", padding: "1rem", borderRadius: "var(--border-radius-md)" }}>
-            <p style={{ margin: "0 0 4px", fontSize: "12px", color: "var(--color-text-secondary)" }}>Terisi</p>
-            <p style={{ margin: 0, fontSize: "20px", fontWeight: 500, color: "var(--color-text-info)" }}>
-              {lowongan.hired}/{lowongan.positions}
-            </p>
+          <div className={styles.statBox}>
+            <p className={styles.metaLabel}>Pelamar</p>
+            <p className={styles.statValue}>{lowongan.applicants}</p>
+            <p style={{ margin: 0, fontSize: 11, color: "#6f8190" }}>{lowongan.hired} diterima</p>
           </div>
         </div>
-        <p style={{ margin: 0, fontSize: "13px", color: "var(--color-text-secondary)" }}>
-          <i
-            className="ti ti-info-circle"
-            style={{ fontSize: "14px", marginRight: "6px", verticalAlign: "-1px" }}
-            aria-hidden="true"
-          />
-          {lowongan.hired}/{lowongan.positions} posisi terisi
-        </p>
-      </div>
 
-      {/* Pekerja Terisi */}
+        <div style={{ marginTop: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontSize: 12, color: "#4d6473" }}>
+            <span>Progres rekrutmen</span>
+            <strong style={{ color: "#0a2c4f" }}>{hiringProgress}%</strong>
+          </div>
+          <div style={{ height: 8, borderRadius: 999, background: "#ebf2f7", overflow: "hidden" }}>
+            <div
+              style={{
+                width: `${hiringProgress}%`,
+                height: "100%",
+                background: hiringProgress >= 100 ? "#16a34a" : "#0f6e99",
+                transition: "width 0.4s ease"
+              }}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* APPLICANTS */}
       {lowongan.pekerjaList && lowongan.pekerjaList.length > 0 && (
-        <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
-          <h3 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 500 }}>Pekerja Terisi</h3>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-            {lowongan.pekerjaList.map((pekerja) => (
-              <div
-                key={pekerja.id}
-                style={{
-                  background: "var(--color-background-secondary)",
-                  borderRadius: "var(--border-radius-md)",
-                  padding: "12px"
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <div
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                      borderRadius: "50%",
-                      background: "#B5D4F4",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 500,
-                      fontSize: "13px",
-                      color: "var(--color-text-primary)"
-                    }}
-                  >
-                    {pekerja.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 500 }}>{pekerja.name}</p>
-                    <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>
-                      Bergabung {getRelativeTime(pekerja.joinedAt)}
-                    </p>
-                  </div>
-                  <span
-                    style={{
-                      background: "#E1F5EE",
-                      color: "#0F6E56",
-                      padding: "4px 8px",
-                      borderRadius: "var(--border-radius-md)",
-                      fontSize: "11px",
-                      fontWeight: 500
-                    }}
-                  >
-                    {pekerja.status}
-                  </span>
+        <section className={styles.previewSection}>
+          <h3 className={styles.sectionTitle}>Pelamar Terbaru ({lowongan.pekerjaList.length})</h3>
+          <div className={styles.applicantList}>
+            {lowongan.pekerjaList.slice(0, 4).map((pekerja) => (
+              <div key={pekerja.id} className={styles.applicantRow}>
+                <div className={styles.applicantAvatar}>
+                  {pekerja.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .slice(0, 2)
+                    .join("")}
                 </div>
+                <div className={styles.applicantInfo}>
+                  <p className={styles.applicantName}>{pekerja.name}</p>
+                  <p className={styles.applicantMeta}>
+                    {pekerja.city || pekerja.email || "-"} • {pekerja.status}
+                  </p>
+                </div>
+                <span className={styles.appliedAt}>{getRelativeTime(pekerja.joinedAt)}</span>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Action Buttons */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        <button
-          onClick={() => {
-            window.location.href = `/umkm/lowongan/${lowongan.id}/pelamar`;
-          }}
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            background: "transparent",
-            border: "0.5px solid var(--color-border-secondary)",
-            borderRadius: "var(--border-radius-md)",
-            fontSize: "14px",
-            fontWeight: 500,
-            cursor: "pointer",
-            color: "var(--color-text-primary)"
-          }}
-        >
-          <i className="ti ti-eye" style={{ fontSize: "16px", marginRight: "6px", verticalAlign: "-2px" }} aria-hidden="true" />
-          Lihat Semua Pelamar
-        </button>
-        <button
-          onClick={() => onEdit(lowongan.id)}
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            background: "transparent",
-            border: "0.5px solid var(--color-border-secondary)",
-            borderRadius: "var(--border-radius-md)",
-            fontSize: "14px",
-            fontWeight: 500,
-            cursor: "pointer",
-            color: "var(--color-text-primary)"
-          }}
-        >
-          <i className="ti ti-edit" style={{ fontSize: "16px", marginRight: "6px", verticalAlign: "-2px" }} aria-hidden="true" />
-          Edit Lowongan
-        </button>
-        <button
-          onClick={() => onDuplicate(lowongan.id)}
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            background: "transparent",
-            border: "0.5px solid var(--color-border-secondary)",
-            borderRadius: "var(--border-radius-md)",
-            fontSize: "14px",
-            fontWeight: 500,
-            cursor: "pointer",
-            color: "var(--color-text-primary)"
-          }}
-        >
-          <i className="ti ti-copy" style={{ fontSize: "16px", marginRight: "6px", verticalAlign: "-2px" }} aria-hidden="true" />
-          Duplikasi Lowongan
-        </button>
-        <button
-          onClick={handleClose}
-          disabled={isClosing}
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            background: "transparent",
-            border: "0.5px solid var(--color-border-danger)",
-            borderRadius: "var(--border-radius-md)",
-            fontSize: "14px",
-            fontWeight: 500,
-            cursor: isClosing ? "not-allowed" : "pointer",
-            color: "var(--color-text-danger)",
-            opacity: isClosing ? 0.6 : 1
-          }}
-        >
-          <i className="ti ti-x" style={{ fontSize: "16px", marginRight: "6px", verticalAlign: "-2px" }} aria-hidden="true" />
-          {isClosing ? "Menutup..." : "Tutup Lowongan"}
-        </button>
-      </div>
+      {/* ACTIONS */}
+      <section className={styles.previewSection}>
+        <div className={styles.actionGrid}>
+          <a
+            href={`/umkm/lowongan/${lowongan.id}/pelamar`}
+            className={`${styles.actionBtn} ${styles.actionBtnPrimary}`}
+          >
+            <i className="ti ti-users" aria-hidden /> Lihat Pelamar
+          </a>
+          <button
+            type="button"
+            onClick={() => onEdit(lowongan.id)}
+            className={styles.actionBtn}
+          >
+            <i className="ti ti-edit" aria-hidden /> Edit
+          </button>
+          <button
+            type="button"
+            onClick={handleDuplicate}
+            disabled={isDuplicating}
+            className={styles.actionBtn}
+          >
+            <i className="ti ti-copy" aria-hidden /> {isDuplicating ? "..." : "Duplikasi"}
+          </button>
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={isClosing}
+            className={`${styles.actionBtn} ${isClosed ? "" : styles.actionBtnDanger}`}
+          >
+            {isClosed ? (
+              <><i className="ti ti-refresh" aria-hidden /> {isClosing ? "..." : "Buka Lagi"}</>
+            ) : (
+              <><i className="ti ti-x" aria-hidden /> {isClosing ? "..." : "Tutup"}</>
+            )}
+          </button>
+        </div>
+      </section>
     </div>
   );
 }

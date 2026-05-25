@@ -1,117 +1,82 @@
 "use client";
 
 import { DashboardStats } from "@/types/lowongan";
+import styles from "./lowongan.module.css";
 
 interface StatisticsCardProps {
   stats: DashboardStats;
   isLoading?: boolean;
 }
 
-// Helper function untuk format value
-function formatStatValue(value: any): string | number {
-  if (value === null || value === undefined || isNaN(value)) {
-    return '-';
-  }
-  return value;
-}
-
-// Skeleton loader
-function StatSkeleton() {
-  return (
-    <div style={{
-      background: 'var(--color-background-secondary)',
-      borderRadius: 'var(--border-radius-lg)',
-      padding: '1rem',
-      height: '80px',
-      animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-    }} />
-  );
-}
-
-// Individual stat card component
 interface StatCardProps {
   label: string;
   value: number | null | undefined;
+  hint?: string;
+  icon?: string;
+  variant?: "active" | "warn" | "success" | "info";
   isLoading?: boolean;
 }
 
-function StatCard({ label, value, isLoading }: StatCardProps) {
-  if (isLoading) {
-    return <StatSkeleton />;
-  }
+function StatCard({ label, value, hint, icon, variant = "active", isLoading }: StatCardProps) {
+  const variantClass = {
+    active: styles.kpiCardActive,
+    warn: styles.kpiCardWarn,
+    success: styles.kpiCardSuccess,
+    info: styles.kpiCardInfo
+  }[variant];
 
-  const displayValue = formatStatValue(value);
+  const display =
+    value === null || value === undefined || (typeof value === "number" && Number.isNaN(value)) ? "-" : value;
 
   return (
-    <div style={{
-      background: 'var(--color-background-primary)',
-      border: '0.5px solid var(--color-border-tertiary)',
-      borderRadius: 'var(--border-radius-lg)',
-      padding: '1rem',
-      transition: 'all 0.2s ease'
-    }}>
-      <p style={{
-        margin: '0 0 8px',
-        fontSize: '12px',
-        color: 'var(--color-text-secondary)',
-        fontWeight: 500,
-        letterSpacing: '0.5px'
-      }}>
-        {label}
-      </p>
-      <p style={{
-        margin: 0,
-        fontSize: '28px',
-        fontWeight: 600,
-        color: 'var(--color-text-primary)'
-      }}>
-        {displayValue}
-      </p>
+    <div className={`${styles.kpiCard} ${variantClass}`}>
+      <p className={styles.kpiLabel}>{label}</p>
+      <h3 className={styles.kpiValue}>{isLoading ? "..." : display}</h3>
+      {hint && <p className={styles.kpiHint}>{hint}</p>}
+      {icon && (
+        <div className={styles.kpiIcon}>
+          <i className={`ti ti-${icon}`} aria-hidden />
+        </div>
+      )}
     </div>
   );
 }
 
-// Main component
 export default function StatisticsCard({ stats, isLoading = false }: StatisticsCardProps) {
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-      gap: '16px',
-      marginBottom: '2rem'
-    }}>
+    <div className={styles.kpiGrid}>
       <StatCard
         label="Lowongan Aktif"
         value={stats?.activeLowongan}
+        hint="Status terbuka"
+        icon="briefcase"
+        variant="active"
         isLoading={isLoading}
       />
       <StatCard
         label="Total Pelamar"
         value={stats?.totalApplicants}
+        hint="Sepanjang waktu"
+        icon="users"
+        variant="warn"
         isLoading={isLoading}
       />
       <StatCard
         label="Total Views"
         value={stats?.totalViews}
+        hint="Estimasi sesi pencari"
+        icon="eye"
+        variant="info"
         isLoading={isLoading}
       />
       <StatCard
-        label="Dengan Pekerja"
+        label="Lowongan Terisi"
         value={stats?.withPekerja}
+        hint="Sudah ada pekerja diterima"
+        icon="user-check"
+        variant="success"
         isLoading={isLoading}
       />
-
-      {/* CSS untuk pulse animation */}
-      <style>{`
-        @keyframes pulse {
-          0%, 100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0.5;
-          }
-        }
-      `}</style>
     </div>
   );
 }

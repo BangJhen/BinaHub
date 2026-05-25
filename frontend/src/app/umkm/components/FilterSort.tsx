@@ -1,65 +1,50 @@
 "use client";
 
 import { LowonganStatus } from "@/types/lowongan";
+import styles from "./lowongan.module.css";
 
 interface FilterSortProps {
   statusFilter: LowonganStatus | "Semua Status";
   sortBy: string;
   searchQuery: string;
+  selectedCount?: number;
   onStatusChange: (status: LowonganStatus | "Semua Status") => void;
   onSortChange: (sort: string) => void;
   onSearchChange: (query: string) => void;
+  onBulkDelete?: () => void;
 }
 
 export default function FilterSort({
   statusFilter,
   sortBy,
   searchQuery,
+  selectedCount = 0,
   onStatusChange,
   onSortChange,
-  onSearchChange
+  onSearchChange,
+  onBulkDelete
 }: FilterSortProps) {
   const statuses = ["Semua Status", LowonganStatus.AKTIF, LowonganStatus.DRAFT, LowonganStatus.DITUTUP];
-  const sortOptions = ["Terbaru Ditambahkan", "Tertua", "Paling Views", "Paling Pelamar"];
+  const sortOptions = ["Terbaru Ditambahkan", "Tertua", "Paling Pelamar", "Paling Views"];
 
   return (
-    <div style={{ display: "flex", gap: "16px", marginBottom: "1.5rem", flexWrap: "wrap", alignItems: "center" }}>
-      {/* Search Input */}
-      <div style={{ flex: 1, minWidth: "250px", position: "relative" }}>
-        <i
-          className="ti ti-search"
-          style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-secondary)" }}
-          aria-hidden="true"
-        />
-        <input
-          type="text"
-          placeholder="Cari posisi, kode absensi, atau lokasi..."
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "10px 12px 10px 36px",
-            border: "0.5px solid var(--color-border-secondary)",
-            borderRadius: "var(--border-radius-md)",
-            background: "var(--color-background-primary)",
-            fontSize: "14px"
-          }}
-        />
-      </div>
+    <>
+      <div className={styles.toolbar}>
+        <div className={styles.searchWrapper}>
+          <i className={`ti ti-search ${styles.searchIcon}`} aria-hidden />
+          <input
+            className={styles.searchInput}
+            type="text"
+            placeholder="Cari posisi, kode JOB, atau lokasi..."
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+          />
+        </div>
 
-      <div style={{ display: "flex", gap: "12px" }}>
-        {/* Status Filter */}
         <select
           value={statusFilter}
           onChange={(e) => onStatusChange(e.target.value as any)}
-          style={{
-            padding: "10px 12px",
-            border: "0.5px solid var(--color-border-secondary)",
-            borderRadius: "var(--border-radius-md)",
-            background: "var(--color-background-primary)",
-            fontSize: "14px",
-            cursor: "pointer"
-          }}
+          className={styles.toolbarSelect}
         >
           {statuses.map((status) => (
             <option key={status} value={status}>
@@ -68,19 +53,7 @@ export default function FilterSort({
           ))}
         </select>
 
-        {/* Sort */}
-        <select
-          value={sortBy}
-          onChange={(e) => onSortChange(e.target.value)}
-          style={{
-            padding: "10px 12px",
-            border: "0.5px solid var(--color-border-secondary)",
-            borderRadius: "var(--border-radius-md)",
-            background: "var(--color-background-primary)",
-            fontSize: "14px",
-            cursor: "pointer"
-          }}
-        >
+        <select value={sortBy} onChange={(e) => onSortChange(e.target.value)} className={styles.toolbarSelect}>
           {sortOptions.map((opt) => (
             <option key={opt} value={opt}>
               Urut: {opt}
@@ -88,6 +61,19 @@ export default function FilterSort({
           ))}
         </select>
       </div>
-    </div>
+
+      {selectedCount > 0 && (
+        <div className={styles.bulkBar}>
+          <i className="ti ti-checkbox" aria-hidden style={{ color: "#9a4f00" }} />
+          <strong>{selectedCount}</strong>
+          <span style={{ color: "#9a4f00" }}>lowongan dipilih</span>
+          {onBulkDelete && (
+            <button onClick={onBulkDelete} className={styles.bulkDangerBtn}>
+              <i className="ti ti-trash" aria-hidden /> Hapus
+            </button>
+          )}
+        </div>
+      )}
+    </>
   );
 }

@@ -1,8 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Lowongan, FilterSortState } from "@/types/lowongan";
-import { fetchLowonganList, fetchDashboardStats, closeLowongan, duplicateLowongan, deleteLowongan } from "@/lib/api/lowongan";
+import { useState, useEffect, useMemo } from "react";
+import { Lowongan, FilterSortState, LowonganStatus } from "@/types/lowongan";
+import {
+  fetchLowonganList,
+  closeLowongan,
+  duplicateLowongan,
+  deleteLowongan
+} from "@/lib/api/lowongan";
 import { calculateStats, filterAndSort } from "@/lib/utils/lowongan";
 
 import LowonganList from "../components/LowonganList";
@@ -12,8 +17,7 @@ import StatisticsCard from "../components/StatisticsCard";
 
 import styles from "../components/lowongan.module.css";
 
-export default function UMKMDashboard() {
-  // State
+export default function UMKMLowonganDashboard() {
   const [lowonganList, setLowonganList] = useState<Lowongan[]>([]);
   const [selectedLowonganId, setSelectedLowonganId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -25,50 +29,67 @@ export default function UMKMDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Computed values
-  const selectedLowongan = lowonganList.find((l) => l.id === selectedLowonganId);
-  const filteredLowongan = filterAndSort(lowonganList, filterSort.statusFilter, filterSort.sortBy, filterSort.searchQuery);
-  const stats = calculateStats(lowonganList);
+  const filteredLowongan = useMemo(
+    () => filterAndSort(lowonganList, filterSort.statusFilter, filterSort.sortBy, filterSort.searchQuery),
+    [lowonganList, filterSort]
+  );
 
-  // Fetch data
+  const selectedLowongan = useMemo(
+    () => lowonganList.find((l) => l.id === selectedLowonganId) || null,
+    [lowonganList, selectedLowonganId]
+  );
+
+  const stats = useMemo(() => calculateStats(lowonganList), [lowonganList]);
+
+  // Initial load + read selected from query params
   useEffect(() => {
+    let isMounted = true;
+
     async function loadData() {
       try {
         setIsLoading(true);
         const data = await fetchLowonganList();
+        if (!isMounted) return;
         setLowonganList(data);
-        if (data.length > 0) {
+
+        const params = new URLSearchParams(window.location.search);
+        const preselected = params.get("selected");
+        if (preselected && data.some((l) => l.id === preselected)) {
+          setSelectedLowonganId(preselected);
+        } else if (data.length > 0) {
           setSelectedLowonganId(data[0].id);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load lowongan");
+        if (!isMounted) return;
+        setError(err instanceof Error ? err.message : "Gagal memuat data lowongan");
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     }
 
     loadData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Handlers
-  const handleSelectLowongan = (id: string) => {
-    setSelectedLowonganId(id);
-  };
+  // Auto-select first filtered if current selection no longer in filter
+  useEffect(() => {
+    if (filteredLowongan.length === 0) return;
+    if (!filteredLowongan.some((l) => l.id === selectedLowonganId)) {
+      setSelectedLowonganId(filteredLowongan[0].id);
+    }
+  }, [filteredLowongan, selectedLowonganId]);
 
-  const handleFilterChange = (newFilter: string) => {
+  const handleSelectLowongan = (id: string) => setSelectedLowonganId(id);
+  const handleFilterChange = (newFilter: string) =>
     setFilterSort((prev) => ({ ...prev, statusFilter: newFilter as any }));
-  };
-
-  const handleSortChange = (newSort: string) => {
+  const handleSortChange = (newSort: string) =>
     setFilterSort((prev) => ({ ...prev, sortBy: newSort as any }));
-  };
-
-  const handleSearchChange = (query: string) => {
+  const handleSearchChange = (query: string) =>
     setFilterSort((prev) => ({ ...prev, searchQuery: query }));
-  };
 
   const handleEditLowongan = (id: string) => {
-    // Navigate to edit page
     window.location.href = `/umkm/lowongan/${id}/edit`;
   };
 
@@ -77,14 +98,14 @@ export default function UMKMDashboard() {
       const updatedLowongan = await closeLowongan(id);
       setLowonganList((prev) => prev.map((l) => (l.id === id ? updatedLowongan : l)));
     } catch (err) {
-      alert("Gagal menutup lowongan");
+      alert("Gagal mengubah status lowongan");
     }
   };
 
   const handleDuplicateLowongan = async (id: string) => {
     try {
       const newLowongan = await duplicateLowongan(id);
-      setLowonganList((prev) => [...prev, newLowongan]);
+      setLowonganList((prev) => [newLowongan, ...prev]);
       setSelectedLowonganId(newLowongan.id);
     } catch (err) {
       alert("Gagal menduplikasi lowongan");
@@ -92,176 +113,82 @@ export default function UMKMDashboard() {
   };
 
   const handleToggleSelect = (id: string, checked: boolean) => {
-    setSelectedIds((prev) => 
-      checked ? [...prev, id] : prev.filter((item) => item !== id)
-    );
+    setSelectedIds((prev) => (checked ? [...prev, id] : prev.filter((item) => item !== id)));
   };
 
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(filteredLowongan.map(l => l.id));
-    } else {
-      setSelectedIds([]);
-    }
+    setSelectedIds(checked ? filteredLowongan.map((l) => l.id) : []);
   };
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    
-    if (confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} lowongan?`)) {
-      try {
-        await deleteLowongan(selectedIds);
-        setLowonganList((prev) => prev.filter((l) => !selectedIds.includes(l.id)));
-        setSelectedIds([]);
-        if (selectedLowonganId && selectedIds.includes(selectedLowonganId)) {
-          setSelectedLowonganId(null);
-        }
-      } catch (err) {
-        alert("Gagal menghapus lowongan");
+    if (!confirm(`Yakin ingin menghapus ${selectedIds.length} lowongan? Tindakan ini tidak bisa dibatalkan.`)) {
+      return;
+    }
+    try {
+      await deleteLowongan(selectedIds);
+      setLowonganList((prev) => prev.filter((l) => !selectedIds.includes(l.id)));
+      if (selectedLowonganId && selectedIds.includes(selectedLowonganId)) {
+        setSelectedLowonganId(null);
       }
+      setSelectedIds([]);
+    } catch (err) {
+      alert("Gagal menghapus lowongan");
     }
   };
 
-  // Render
   return (
     <div className={styles.container}>
       {/* Header */}
-      <div style={{
-        background: 'var(--color-background-primary)',
-        border: '1px solid var(--color-border-secondary)',
-        borderRadius: '12px',
-        padding: '1.5rem',
-        marginBottom: '2rem'
-      }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1rem'
-        }}>
-          <div>
-            <p style={{
-              margin: 0,
-              fontSize: '13px',
-              color: 'var(--color-text-secondary)',
-              fontWeight: 500
-            }}>
-              DASHBOARD UMKM
-            </p>
-            <h1 style={{
-              margin: '0.5rem 0 0',
-              fontSize: '28px',
-              fontWeight: 500
-            }}>
-              Kelola Lowongan
-            </h1>
-          </div>
-          <a
-            href="/umkm/lowongan/create"
-            style={{
-              background: 'var(--color-background-info)',
-              color: 'var(--color-text-info)',
-              border: 'none',
-              padding: '10px 16px',
-              borderRadius: 'var(--border-radius-md)',
-              fontWeight: 500,
-              cursor: 'pointer',
-              fontSize: '14px',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              (e.target as HTMLElement).style.opacity = '0.9';
-            }}
-            onMouseLeave={(e) => {
-              (e.target as HTMLElement).style.opacity = '1';
-            }}
-          >
-            <i className="ti ti-plus" style={{ fontSize: "16px" }} aria-hidden="true" />
-            Buat Lowongan
-          </a>
+      <div className={styles.headerCard}>
+        <div>
+          <p className={styles.eyebrow}>Dashboard UMKM</p>
+          <h1>Kelola Lowongan</h1>
+          <p className={styles.subtext}>
+            Pantau performa lowongan, kelola pelamar, dan terhubung dengan pekerja yang siap bergabung.
+            Buat lowongan baru atau optimalkan yang sudah ada.
+          </p>
         </div>
-        <p style={{
-          margin: 0,
-          fontSize: '14px',
-          color: 'var(--color-text-secondary)',
-          lineHeight: '1.5'
-        }}>
-          Pantau performa lowongan dan data pelamar Anda
-        </p>
+        <a href="/umkm/lowongan/create" className={styles.createButton}>
+          <i className="ti ti-plus" aria-hidden />
+          Buat Lowongan
+        </a>
       </div>
 
-      {/* Error message */}
       {error && (
         <div
           style={{
-            padding: "12px",
-            marginBottom: "1rem",
-            background: "#FCEBEB",
-            color: "#A32D2D",
-            borderRadius: "var(--border-radius-md)"
+            padding: "12px 16px",
+            background: "#fef2f2",
+            border: "1px solid #fecaca",
+            borderRadius: 12,
+            color: "#b91c1c",
+            marginBottom: 16,
+            fontSize: 13
           }}
         >
+          <i className="ti ti-alert-circle" aria-hidden style={{ marginRight: 6 }} />
           {error}
         </div>
       )}
 
-      {/* Statistics */}
-      <StatisticsCard stats={stats as any} />
+      {/* KPI */}
+      <StatisticsCard stats={stats as any} isLoading={isLoading} />
 
       {/* Filters */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
-        <FilterSort
-          statusFilter={filterSort.statusFilter}
-          sortBy={filterSort.sortBy}
-          searchQuery={filterSort.searchQuery}
-          onStatusChange={handleFilterChange}
-          onSortChange={handleSortChange}
-          onSearchChange={handleSearchChange}
-        />
-        
-        {/* Bulk Actions */}
-        {selectedIds.length > 0 && (
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '12px',
-            padding: '12px 16px',
-            background: 'var(--color-background-secondary)',
-            border: '1px solid var(--color-border-secondary)',
-            borderRadius: 'var(--border-radius-md)'
-          }}>
-            <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--color-text-primary)' }}>
-              {selectedIds.length} lowongan terpilih
-            </span>
-            <button
-              onClick={handleBulkDelete}
-              style={{
-                padding: '6px 12px',
-                background: 'var(--color-text-danger)',
-                color: 'white',
-                border: 'none',
-                borderRadius: 'var(--border-radius-sm)',
-                fontSize: '13px',
-                fontWeight: 500,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <i className="ti ti-trash" style={{ fontSize: '14px' }} />
-              Hapus Terpilih
-            </button>
-          </div>
-        )}
-      </div>
+      <FilterSort
+        statusFilter={filterSort.statusFilter}
+        sortBy={filterSort.sortBy}
+        searchQuery={filterSort.searchQuery}
+        selectedCount={selectedIds.length}
+        onStatusChange={handleFilterChange}
+        onSortChange={handleSortChange}
+        onSearchChange={handleSearchChange}
+        onBulkDelete={handleBulkDelete}
+      />
 
-      {/* Main Layout */}
-      <div className={styles.mainGrid}>
+      {/* Main grid */}
+      <div className={`${styles.mainGrid} ${!selectedLowongan && !isLoading && filteredLowongan.length === 0 ? styles.gridSingle : ""}`}>
         <LowonganList
           lowonganList={filteredLowongan}
           selectedId={selectedLowonganId}

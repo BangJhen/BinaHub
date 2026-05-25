@@ -25,8 +25,10 @@ export interface Lowongan {
   title: string;
   jobCode: string; // e.g., J-201
   location: string;
-  type: JobType;
-  salary: string; // e.g., "2500000-3500000"
+  type: JobType | string;
+  salary: string; // formatted display string
+  salaryMin: number | null;
+  salaryMax: number | null;
   description?: string;
   requirements?: string;
   skills?: string[];
@@ -34,11 +36,12 @@ export interface Lowongan {
   educationLevel?: string;
   experienceRequired?: string;
   ageRange?: string;
-  status: LowonganStatus;
+  status: LowonganStatus | string;
   positions: number; // How many positions needed
   createdAt: Date;
   updatedAt: Date;
   closedAt?: Date;
+  publishedAt?: Date | null;
 
   // Stats
   views: number;
@@ -59,18 +62,13 @@ export interface Pekerja {
   phone: string;
   avatar?: string;
   joinedAt: Date;
-  status: PekerjaStatus;
+  status: PekerjaStatus | string;
   salary?: number;
   notes?: string;
-}
-
-export interface LowonganView {
-  id: string;
-  lowonganId: string;
-  viewedBy?: string; // User ID or anonymous
-  viewedAt: Date;
-  isInternal: boolean; // UMKM sendiri atau user lain
-  userAgent?: string; // Browser info
+  coverLetter?: string;
+  skills?: string;
+  experienceSummary?: string;
+  city?: string;
 }
 
 export interface DashboardStats {
@@ -78,11 +76,11 @@ export interface DashboardStats {
   totalApplicants: number;
   totalViews: number;
   withPekerja: number;
-  viewsTrend: number; // Percentage change from last week
+  viewsTrend: number;
 }
 
 export interface FilterSortState {
   statusFilter: LowonganStatus | "Semua Status";
-  sortBy: "Terbaru Ditambahkan" | "Tertua" | "Paling Views" | "Paling Pelamar";
+  sortBy: "Terbaru Ditambahkan" | "Tertua" | "Paling Pelamar" | "Paling Views";
   searchQuery: string;
 }
