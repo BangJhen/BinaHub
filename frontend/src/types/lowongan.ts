@@ -29,6 +29,11 @@ export interface Lowongan {
   salary: string; // e.g., "2500000-3500000"
   description?: string;
   requirements?: string;
+  skills?: string[];
+  benefits?: string[];
+  educationLevel?: string;
+  experienceRequired?: string;
+  ageRange?: string;
   status: LowonganStatus;
   positions: number; // How many positions needed
   createdAt: Date;

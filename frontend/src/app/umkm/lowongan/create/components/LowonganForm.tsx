@@ -20,8 +20,19 @@ export default function LowonganForm({ initialData, onSubmit, isEditing }: Lowon
     salaryMax: initialData?.salaryMax || "",
     positions: initialData?.positions || 1,
     description: initialData?.description || "",
-    requirements: initialData?.requirements || ""
+    requirements: initialData?.requirements || "",
+    skills: initialData?.skills || "",
+    benefits: initialData?.benefits || "",
+    educationLevel: initialData?.educationLevel || "",
+    experienceRequired: initialData?.experienceRequired || "",
+    ageRange: initialData?.ageRange || ""
   });
+
+  const splitTags = (value: string) =>
+    value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -34,7 +45,9 @@ export default function LowonganForm({ initialData, onSubmit, isEditing }: Lowon
     try {
       const payload = {
         ...formData,
-        salary: `${formData.salaryMin}-${formData.salaryMax}`
+        salary: `${formData.salaryMin}-${formData.salaryMax}`,
+        skills: splitTags(formData.skills),
+        benefits: splitTags(formData.benefits)
       };
       await onSubmit(payload);
     } finally {
@@ -150,6 +163,63 @@ export default function LowonganForm({ initialData, onSubmit, isEditing }: Lowon
         </div>
       </div>
 
+      <div style={{ display: "flex", gap: "1rem" }}>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500 }}>Pendidikan Minimal</label>
+          <input
+            type="text"
+            name="educationLevel"
+            value={formData.educationLevel}
+            onChange={handleChange}
+            placeholder="e.g. SMA/SMK, D3, S1"
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "0.5px solid var(--color-border-secondary)",
+              borderRadius: "var(--border-radius-md)",
+              background: "var(--color-background-primary)",
+              fontSize: "14px"
+            }}
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500 }}>Pengalaman Minimal</label>
+          <input
+            type="text"
+            name="experienceRequired"
+            value={formData.experienceRequired}
+            onChange={handleChange}
+            placeholder="e.g. 1 Tahun, Fresh Graduate"
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "0.5px solid var(--color-border-secondary)",
+              borderRadius: "var(--border-radius-md)",
+              background: "var(--color-background-primary)",
+              fontSize: "14px"
+            }}
+          />
+        </div>
+        <div style={{ flex: 1 }}>
+          <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500 }}>Rentang Usia</label>
+          <input
+            type="text"
+            name="ageRange"
+            value={formData.ageRange}
+            onChange={handleChange}
+            placeholder="e.g. 18 - 30 Tahun"
+            style={{
+              width: "100%",
+              padding: "10px 12px",
+              border: "0.5px solid var(--color-border-secondary)",
+              borderRadius: "var(--border-radius-md)",
+              background: "var(--color-background-primary)",
+              fontSize: "14px"
+            }}
+          />
+        </div>
+      </div>
+
       <div>
         <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500 }}>Gaji Bulanan (Rp) *</label>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
@@ -216,6 +286,44 @@ export default function LowonganForm({ initialData, onSubmit, isEditing }: Lowon
           value={formData.requirements}
           onChange={handleChange}
           placeholder="Pengalaman, keahlian khusus..."
+          style={{
+            width: "100%",
+            padding: "10px 12px",
+            border: "0.5px solid var(--color-border-secondary)",
+            borderRadius: "var(--border-radius-md)",
+            background: "var(--color-background-primary)",
+            fontSize: "14px"
+          }}
+        />
+      </div>
+
+      <div>
+        <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500 }}>Skills (pisahkan dengan koma)</label>
+        <input
+          type="text"
+          name="skills"
+          value={formData.skills}
+          onChange={handleChange}
+          placeholder="Contoh: Telesales, Customer Service, B2B Sales"
+          style={{
+            width: "100%",
+            padding: "10px 12px",
+            border: "0.5px solid var(--color-border-secondary)",
+            borderRadius: "var(--border-radius-md)",
+            background: "var(--color-background-primary)",
+            fontSize: "14px"
+          }}
+        />
+      </div>
+
+      <div>
+        <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: 500 }}>Benefit Kerja (pisahkan dengan koma)</label>
+        <input
+          type="text"
+          name="benefits"
+          value={formData.benefits}
+          onChange={handleChange}
+          placeholder="Contoh: BPJS, THR, Cuti Tahunan"
           style={{
             width: "100%",
             padding: "10px 12px",

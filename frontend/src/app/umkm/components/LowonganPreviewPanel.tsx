@@ -68,6 +68,78 @@ export default function LowonganPreviewPanel({ lowongan, onEdit, onClose, onDupl
         </p>
       </div>
 
+      <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
+        <h3 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 500 }}>Ringkas Persyaratan</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "12px" }}>
+          <div>
+            <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Pendidikan</p>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", fontWeight: 500 }}>
+              {lowongan.educationLevel || "Tidak disebutkan"}
+            </p>
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Pengalaman</p>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", fontWeight: 500 }}>
+              {lowongan.experienceRequired || "Tidak disebutkan"}
+            </p>
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Rentang Usia</p>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", fontWeight: 500 }}>
+              {lowongan.ageRange || "Tidak disebutkan"}
+            </p>
+          </div>
+        </div>
+
+        <div style={{ marginTop: "12px" }}>
+          <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Skills</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" }}>
+            {(lowongan.skills || []).length > 0 ? (
+              lowongan.skills?.map((skill) => (
+                <span
+                  key={skill}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: "999px",
+                    background: "var(--color-background-secondary)",
+                    fontSize: "11px",
+                    color: "var(--color-text-primary)"
+                  }}
+                >
+                  {skill}
+                </span>
+              ))
+            ) : (
+              <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>Belum ada</span>
+            )}
+          </div>
+        </div>
+
+        <div style={{ marginTop: "12px" }}>
+          <p style={{ margin: 0, fontSize: "12px", color: "var(--color-text-secondary)" }}>Benefit</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginTop: "6px" }}>
+            {(lowongan.benefits || []).length > 0 ? (
+              lowongan.benefits?.map((benefit) => (
+                <span
+                  key={benefit}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: "999px",
+                    background: "var(--color-background-secondary)",
+                    fontSize: "11px",
+                    color: "var(--color-text-primary)"
+                  }}
+                >
+                  {benefit}
+                </span>
+              ))
+            ) : (
+              <span style={{ fontSize: "12px", color: "var(--color-text-secondary)" }}>Belum ada</span>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Timeline */}
       <div style={{ marginBottom: "1.5rem", paddingBottom: "1.5rem", borderBottom: "0.5px solid var(--color-border-tertiary)" }}>
         <h3 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 500 }}>Timeline</h3>

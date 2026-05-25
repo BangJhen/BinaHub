@@ -8,7 +8,7 @@ import AuthRoleControl from "./AuthRoleControl";
 const navItems = [
   { href: "/worker/dashboard", label: "Dashboard" },
   { href: "/worker/check-in", label: "Daily Check" },
-  { href: "/worker/performance", label: "Performa" },
+  { href: "/worker/lowongan", label: "Lowongan" },
 ];
 
 export default function WorkerNav({ initialRole }: { initialRole?: any }) {

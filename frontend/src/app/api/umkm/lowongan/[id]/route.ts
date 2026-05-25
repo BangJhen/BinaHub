@@ -77,6 +77,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
       salary: salaryFormat,
       description: job.description,
       requirements: job.requirements,
+      skills: job.skills || [],
+      benefits: job.benefits || [],
+      educationLevel: job.education_level || '',
+      experienceRequired: job.experience_required || '',
+      ageRange: job.age_range || '',
       status: mappedStatus,
       positions: 1, // Defaulting as nothing matches in jobs schema explicitly
       createdAt: job.created_at,
@@ -119,6 +124,11 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         location: payload.location || '',
         salary_min: payload.salaryMin,
         salary_max: payload.salaryMax,
+        skills: Array.isArray(payload.skills) ? payload.skills : [],
+        benefits: Array.isArray(payload.benefits) ? payload.benefits : [],
+        education_level: payload.educationLevel || null,
+        experience_required: payload.experienceRequired || null,
+        age_range: payload.ageRange || null,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

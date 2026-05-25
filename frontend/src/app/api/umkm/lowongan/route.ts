@@ -44,6 +44,11 @@ export async function GET(request: Request) {
         salary: salaryFormat,
         description: job.description,
         requirements: job.requirements,
+        skills: job.skills || [],
+        benefits: job.benefits || [],
+        educationLevel: job.education_level || '',
+        experienceRequired: job.experience_required || '',
+        ageRange: job.age_range || '',
         status: mappedStatus,
         applicantCount: applicantCount,
         viewCount: 0, 
@@ -82,6 +87,11 @@ export async function POST(request: Request) {
         location: payload.location || '',
         salary_min: payload.salaryMin ? parseFloat(payload.salaryMin) : null,
         salary_max: payload.salaryMax ? parseFloat(payload.salaryMax) : null,
+        skills: Array.isArray(payload.skills) ? payload.skills : [],
+        benefits: Array.isArray(payload.benefits) ? payload.benefits : [],
+        education_level: payload.educationLevel || null,
+        experience_required: payload.experienceRequired || null,
+        age_range: payload.ageRange || null,
         status: 'open',
         published_at: new Date().toISOString()
       })

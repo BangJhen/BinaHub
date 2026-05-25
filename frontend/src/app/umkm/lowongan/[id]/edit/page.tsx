@@ -35,7 +35,12 @@ export default function EditLowonganPage({ params }: { params: { id: string } })
           salaryMax: salaryMax,
           positions: data.positions || 1,
           description: data.description || "",
-          requirements: data.requirements || ""
+          requirements: data.requirements || "",
+          skills: Array.isArray(data.skills) ? data.skills.join(", ") : "",
+          benefits: Array.isArray(data.benefits) ? data.benefits.join(", ") : "",
+          educationLevel: data.educationLevel || "",
+          experienceRequired: data.experienceRequired || "",
+          ageRange: data.ageRange || ""
         });
       } catch (err: any) {
         setError(err.message || "Failed to load");

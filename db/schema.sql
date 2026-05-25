@@ -57,6 +57,11 @@ CREATE TABLE jobs (
     location VARCHAR(150),
     salary_min NUMERIC(12, 2),
     salary_max NUMERIC(12, 2),
+    skills TEXT[] DEFAULT ARRAY[]::TEXT[],
+    benefits TEXT[] DEFAULT ARRAY[]::TEXT[],
+    education_level VARCHAR(255),
+    experience_required VARCHAR(255),
+    age_range VARCHAR(255),
     status job_status NOT NULL DEFAULT 'draft',
     published_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -74,6 +79,14 @@ CREATE TABLE job_applications (
     status application_status NOT NULL DEFAULT 'submitted',
     applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (job_id, worker_id)
+);
+
+CREATE TABLE saved_jobs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    worker_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (job_id, worker_id)
 );
 
@@ -135,6 +148,7 @@ CREATE TABLE alerts (
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_jobs_umkm_status ON jobs(umkm_id, status);
 CREATE INDEX idx_job_applications_worker_status ON job_applications(worker_id, status);
+CREATE INDEX idx_saved_jobs_worker ON saved_jobs(worker_id, created_at DESC);
 CREATE INDEX idx_placements_worker_status ON placements(worker_id, status);
 CREATE INDEX idx_checkins_worker_submitted_at ON checkins(worker_id, submitted_at DESC);
 CREATE INDEX idx_risk_assessments_worker_assessed_at ON risk_assessments(worker_id, assessed_at DESC);
