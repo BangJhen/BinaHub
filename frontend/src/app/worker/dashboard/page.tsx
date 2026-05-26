@@ -76,25 +76,119 @@ function formatDateLabel(iso: string) {
   return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 }
 
+type WorkerProfileData = {
+  profile: {
+    full_name?: string;
+    gender?: string;
+    city?: string;
+    education_level?: string;
+    skills?: string;
+    nik?: string;
+    phone?: string;
+    experience_summary?: string;
+    crime_type?: string;
+    profile_completed?: boolean;
+  } | null;
+};
+
+function ProfileEmptyState({ profileData, onSkip }: { profileData: WorkerProfileData | null; onSkip: () => void }) {
+  const profile = profileData?.profile;
+  const checks = [
+    { label: "Data Diri", desc: "Nama, NIK, Jenis Kelamin, Kota", done: !!(profile?.full_name && profile?.gender && profile?.city) },
+    { label: "Pendidikan & Skills", desc: "Pendidikan terakhir dan keahlian", done: !!(profile?.education_level && profile?.skills) },
+    { label: "Latar Belakang", desc: "Informasi kriminalitas (opsional, direkomendasikan)", done: !!(profile?.crime_type) },
+  ];
+  const donePct = Math.round((checks.filter(c => c.done).length / checks.length) * 100);
+
+  return (
+    <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <div style={{ maxWidth: 520, width: "100%", textAlign: "center" }}>
+        {/* Illustration */}
+        <div style={{ fontSize: 80, marginBottom: 16, lineHeight: 1 }}>👋</div>
+        <h1 style={{ fontSize: "1.75rem", color: "#0a2c4f", margin: "0 0 10px", fontWeight: 800 }}>
+          Selamat Datang di BinaHub!
+        </h1>
+        <p style={{ color: "#4d6473", fontSize: 15, lineHeight: 1.6, margin: "0 0 28px" }}>
+          Sebelum mulai mencari lowongan, lengkapi profil Anda terlebih dahulu.<br />
+          Profil yang lengkap <strong>meningkatkan peluang Anda diterima kerja</strong>.
+        </p>
+
+        {/* Progress bar */}
+        <div style={{ background: "#e5edf4", borderRadius: 99, height: 10, marginBottom: 8, overflow: "hidden" }}>
+          <div style={{ background: "linear-gradient(90deg,#0f6e99,#1198c8)", height: 10, width: `${donePct}%`, borderRadius: 99, transition: "width 0.4s" }} />
+        </div>
+        <p style={{ fontSize: 13, color: "#7a8a99", marginBottom: 24 }}>{donePct}% profil terisi</p>
+
+        {/* Checklist */}
+        <div style={{ background: "#f6fafe", border: "1px solid #e5edf4", borderRadius: 14, padding: "18px 20px", marginBottom: 24, textAlign: "left" }}>
+          {checks.map((c, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: i < checks.length - 1 ? "1px solid #e5edf4" : "none" }}>
+              <span style={{ width: 24, height: 24, borderRadius: 99, background: c.done ? "#16a34a" : "#e5edf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                {c.done
+                  ? <i className="ti ti-check" style={{ color: "#fff", fontSize: 13 }} />
+                  : <i className="ti ti-x" style={{ color: "#7a8a99", fontSize: 13 }} />
+                }
+              </span>
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: c.done ? "#16a34a" : "#0a2c4f" }}>{c.label}</p>
+                <p style={{ margin: 0, fontSize: 12, color: "#7a8a99" }}>{c.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <a href="/worker/profile/edit"
+          style={{ display: "block", background: "linear-gradient(135deg,#0f6e99,#1198c8)", color: "#fff", padding: "14px 32px", borderRadius: 12, fontWeight: 700, fontSize: 15, textDecoration: "none", marginBottom: 12, boxShadow: "0 8px 20px rgba(15,110,153,0.25)" }}>
+          <i className="ti ti-user-edit" /> Lengkapi Profil Sekarang
+        </a>
+        <button onClick={onSkip}
+          style={{ background: "none", border: "none", color: "#7a8a99", fontSize: 13, cursor: "pointer", textDecoration: "underline" }}>
+          Lewati untuk sekarang
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function WorkerDashboardPage() {
   const [data, setData] = useState<WorkerDashboardData | null>(null);
   const [fetchError, setFetchError] = useState("");
   const [perfRange, setPerfRange] = useState<PerfRange>("1m");
   const [startDate, setStartDate] = useState("");
+  const [profileData, setProfileData] = useState<WorkerProfileData | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [skipProfile, setSkipProfile] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadData() {
       setFetchError("");
-      const res = await fetch("/api/dashboard/worker", { cache: "no-store" });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+
+      // Load profile and dashboard data in parallel
+      const [profileRes, dashRes] = await Promise.all([
+        fetch("/api/worker/profile", { cache: "no-store" }),
+        fetch("/api/dashboard/worker", { cache: "no-store" }),
+      ]);
+
+      if (!isMounted) return;
+
+      // Handle profile
+      if (profileRes.ok) {
+        const pd = await profileRes.json();
+        if (isMounted) setProfileData(pd);
+      }
+      if (isMounted) setProfileLoaded(true);
+
+      // Handle dashboard
+      if (!dashRes.ok) {
+        const payload = (await dashRes.json().catch(() => ({}))) as { message?: string };
         if (isMounted) setFetchError(payload.message ?? "Gagal memuat data dashboard worker.");
         return;
       }
 
-      const payload = (await res.json()) as WorkerDashboardData;
+      const payload = (await dashRes.json()) as WorkerDashboardData;
       if (!isMounted) return;
       setData(payload);
 
@@ -119,12 +213,22 @@ export default function WorkerDashboardPage() {
     );
   }
 
-  if (!data) {
+  if (!data || !profileLoaded) {
     return (
       <main className={styles.dashboardRoot}>
         <section className={styles.panel}>
           <h2>Memuat dashboard worker...</h2>
         </section>
+      </main>
+    );
+  }
+
+  // Show empty state if profile not completed and user hasn't skipped
+  const isProfileComplete = profileData?.profile?.profile_completed === true;
+  if (!isProfileComplete && !skipProfile) {
+    return (
+      <main className={styles.dashboardRoot}>
+        <ProfileEmptyState profileData={profileData} onSkip={() => setSkipProfile(true)} />
       </main>
     );
   }
