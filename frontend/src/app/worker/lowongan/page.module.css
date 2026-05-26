@@ -250,17 +250,20 @@
 }
 
 .savedShortcut {
-  width: 38px;
   height: 38px;
+  padding: 0 14px;
   border-radius: 10px;
   border: 1px solid #d6e6f2;
   background: #ffffff;
   color: #4d6473;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
   text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .savedShortcut:hover {

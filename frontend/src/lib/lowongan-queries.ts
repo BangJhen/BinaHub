@@ -8,6 +8,7 @@ export type WorkerLowongan = {
   salary_min: number | null;
   salary_max: number | null;
   published_at: string | null;
+  saved_at?: string | null;
   umkm_name: string;
   business_sector: string | null;
   business_address: string | null;
@@ -110,14 +111,16 @@ export async function getWorkerSavedLowonganData(): Promise<WorkerLowongan[]> {
 
   const { data: savedJobs, error: savedError } = await supabase
     .from("saved_jobs")
-    .select("job_id")
-    .eq("worker_id", authData.user.id);
+    .select("job_id, created_at")
+    .eq("worker_id", authData.user.id)
+    .order("created_at", { ascending: false });
 
   if (savedError || !savedJobs || savedJobs.length === 0) {
     return [];
   }
 
   const jobIds = savedJobs.map((item) => item.job_id);
+  const savedAtMap = new Map(savedJobs.map((item) => [item.job_id, item.created_at]));
 
   const { data: jobs, error: jobsError } = await supabase
     .from("jobs")
@@ -153,6 +156,7 @@ export async function getWorkerSavedLowonganData(): Promise<WorkerLowongan[]> {
       salary_min: job.salary_min,
       salary_max: job.salary_max,
       published_at: job.published_at,
+      saved_at: savedAtMap.get(job.id) ?? null,
       umkm_name: umkm?.business_name ?? "UMKM",
       business_sector: umkm?.business_sector ?? null,
       business_address: umkm?.business_address ?? null,

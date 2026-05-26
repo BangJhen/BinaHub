@@ -30,25 +30,14 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: "Job not available" }, { status: 404 });
     }
 
-    const { data: existingSaved } = await supabase
+    const { error: upsertError } = await supabase
       .from("saved_jobs")
-      .select("id")
-      .eq("job_id", params.id)
-      .eq("worker_id", authData.user.id)
-      .maybeSingle();
+      .upsert(
+        { job_id: params.id, worker_id: authData.user.id },
+        { onConflict: "job_id,worker_id", ignoreDuplicates: true }
+      );
 
-    if (existingSaved?.id) {
-      return NextResponse.json({ success: true, saved: true });
-    }
-
-    const { error: insertError } = await supabase
-      .from("saved_jobs")
-      .insert({
-        job_id: params.id,
-        worker_id: authData.user.id
-      });
-
-    if (insertError) throw insertError;
+    if (upsertError) throw upsertError;
 
     return NextResponse.json({ success: true, saved: true });
   } catch (error: any) {

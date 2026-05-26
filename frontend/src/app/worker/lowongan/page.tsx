@@ -128,6 +128,11 @@ export default function LowonganPage() {
     if (savingIds.includes(jobId)) return;
     setSavingIds((prev) => [...prev, jobId]);
 
+    // Optimistic update — flip immediately
+    setLowonganList((prev) =>
+      prev.map((item) => (item.id === jobId ? { ...item, isSaved: !isSaved } : item))
+    );
+
     try {
       const response = await fetch(`/api/worker/lowongan/${jobId}/save`, {
         method: isSaved ? "DELETE" : "POST",
@@ -138,12 +143,11 @@ export default function LowonganPage() {
         const payload = await response.json().catch(() => ({}));
         throw new Error(payload.error || "Gagal memperbarui simpan lowongan");
       }
-
-      const payload = await response.json();
-      setLowonganList((prev) =>
-        prev.map((item) => (item.id === jobId ? { ...item, isSaved: Boolean(payload.saved) } : item))
-      );
     } catch (err: any) {
+      // Rollback on failure
+      setLowonganList((prev) =>
+        prev.map((item) => (item.id === jobId ? { ...item, isSaved } : item))
+      );
       setError(err.message || "Gagal memperbarui simpan lowongan");
     } finally {
       setSavingIds((prev) => prev.filter((id) => id !== jobId));
@@ -182,9 +186,7 @@ export default function LowonganPage() {
 
           <div className={styles.searchBar}>
             <div className={styles.searchInputWrapper}>
-              <svg className={styles.searchSvg} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <i className="ti ti-search" style={{ fontSize: 18, marginRight: 10, color: "#4d6473", flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Posisi, skill, atau perusahaan"
@@ -194,10 +196,7 @@ export default function LowonganPage() {
               />
             </div>
             <div className={styles.searchInputWrapper}>
-              <svg className={styles.searchSvg} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 21C16 16.8 19 12.8 19 9C19 5.13401 15.866 2 12 2C8.13401 2 5 5.13401 5 9C5 12.8 8 16.8 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3431 6 9 7.34315 9 9C9 10.6569 10.3431 12 12 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <i className="ti ti-map-pin" style={{ fontSize: 18, marginRight: 10, color: "#4d6473", flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Semua Kota / Provinsi"
@@ -301,9 +300,7 @@ export default function LowonganPage() {
                 title="Lowongan tersimpan"
                 aria-label="Lowongan tersimpan"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 3H18C19.1046 3 20 3.89543 20 5V21L12 16.5L4 21V5C4 3.89543 4.89543 3 6 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <i className="ti ti-bookmark" aria-hidden /> Tersimpan
               </a>
             </div>
           </div>
@@ -382,16 +379,7 @@ export default function LowonganPage() {
                         title={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
                         aria-label={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
                       >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M6 3H18C19.1046 3 20 3.89543 20 5V21L12 16.5L4 21V5C4 3.89543 4.89543 3 6 3Z"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            fill={job.isSaved ? "currentColor" : "none"}
-                          />
-                        </svg>
+                        <i className={job.isSaved ? "ti ti-bookmark-filled" : "ti ti-bookmark"} aria-hidden />
                       </button>
                     </div>
 
