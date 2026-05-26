@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
 import type { WorkerLowongan } from "@/lib/lowongan-queries";
+import { computeMatchScore, getMatchLabel, getMatchColors, type WorkerProfileForMatch } from "@/lib/match-utils";
 
 const JOB_TYPES = ["Full Time", "Part Time", "Freelance", "Contract", "Internship"];
 const WORK_SYSTEMS = ["Work from Office", "Hybrid", "Remote"];
@@ -10,17 +11,11 @@ const EXPERIENCES = ["Fresh Graduate", "1-3 Tahun", "3-5 Tahun", "Senior"];
 
 function formatRupiah(amount: number | null) {
   if (!amount) return "";
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0
-  }).format(amount);
+  return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
 }
 
 function getSalary(job: WorkerLowongan) {
-  if (job.salary_min && job.salary_max) {
-    return `${formatRupiah(job.salary_min)} - ${formatRupiah(job.salary_max)}`;
-  }
+  if (job.salary_min && job.salary_max) return `${formatRupiah(job.salary_min)} - ${formatRupiah(job.salary_max)}`;
   if (job.salary_min) return `Mulai dari ${formatRupiah(job.salary_min)}`;
   if (job.salary_max) return `Hingga ${formatRupiah(job.salary_max)}`;
   return "Gaji Dirahasiakan";
@@ -31,7 +26,6 @@ function getRelativeTime(dateString: string | null) {
   const date = new Date(dateString);
   const now = new Date();
   const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-
   if (diffDays === 0) return "Hari ini";
   if (diffDays === 1) return "Kemarin";
   if (diffDays < 7) return `${diffDays} hari lalu`;
@@ -39,8 +33,111 @@ function getRelativeTime(dateString: string | null) {
   return `${Math.floor(diffDays / 30)} bulan lalu`;
 }
 
+function MatchBadge({ score, label }: { score: number; label: ReturnType<typeof getMatchLabel> }) {
+  if (!label) return null;
+  const { bg, color, border } = getMatchColors(label);
+  return (
+    <span style={{
+      background: bg, color, border: `1px solid ${border}`,
+      padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 700,
+      display: "inline-flex", alignItems: "center", gap: 4, whiteSpace: "nowrap",
+    }}>
+      <i className="ti ti-target-arrow" style={{ fontSize: 11 }} />
+      {score}% {label}
+    </span>
+  );
+}
+
+function JobCard({
+  job, onSave, onApply, isSaving, isApplying, isApplied,
+}: {
+  job: WorkerLowongan;
+  onSave: (id: string, saved: boolean) => void;
+  onApply: (id: string) => void;
+  isSaving: boolean;
+  isApplying: boolean;
+  isApplied: boolean;
+}) {
+  return (
+    <div className={styles.card}>
+      <div className={styles.cardHeader}>
+        <div className={styles.companyLogo}>{job.umkm_name.charAt(0).toUpperCase()}</div>
+        <div className={styles.jobInfo}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 3 }}>
+            <h3 className={styles.jobTitle} style={{ margin: 0 }}>{job.title}</h3>
+            {job.matchLabel && <MatchBadge score={job.matchScore ?? 0} label={job.matchLabel} />}
+          </div>
+          <p className={styles.companyName}>
+            {job.umkm_name}
+            <span className={styles.verifiedBadge} title="Verified UMKM">
+              <i className="ti ti-check" style={{ fontSize: 9 }} />
+            </span>
+          </p>
+          <p className={styles.companyMeta}>
+            <span><i className="ti ti-map-pin" aria-hidden /> {job.location || "Lokasi tidak ditentukan"}</span>
+            <span>•</span>
+            <span><i className="ti ti-briefcase" aria-hidden /> {job.employment_type || "Full Time"}</span>
+            {job.business_sector && (
+              <>
+                <span>•</span>
+                <span><i className="ti ti-building-store" aria-hidden /> {job.business_sector}</span>
+              </>
+            )}
+          </p>
+        </div>
+        <button
+          className={`${styles.saveIconBtn} ${job.isSaved ? styles.saveIconBtnActive : ""}`}
+          onClick={(e) => { e.stopPropagation(); onSave(job.id, job.isSaved); }}
+          disabled={isSaving}
+          title={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
+          aria-label={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
+        >
+          <i className={job.isSaved ? "ti ti-bookmark-filled" : "ti ti-bookmark"} aria-hidden />
+        </button>
+      </div>
+
+      <div className={styles.cardBody}>
+        <div className={styles.metaRow}>
+          <span className={styles.salaryText}>
+            <i className="ti ti-coin" aria-hidden /> {getSalary(job)}
+          </span>
+        </div>
+        {job.skills && job.skills.length > 0 && (
+          <div className={styles.skillsWrapper}>
+            {job.skills.slice(0, 4).map((skill, idx) => (
+              <span key={idx} className={styles.skillBadge}>{skill}</span>
+            ))}
+            {job.skills.length > 4 && (
+              <span className={styles.skillBadgeMore}>+{job.skills.length - 4} lagi</span>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className={styles.cardFooter}>
+        <span className={styles.timeLabel}>
+          <i className="ti ti-clock" aria-hidden /> {getRelativeTime(job.published_at)}
+        </span>
+        <div className={styles.cardActions}>
+          <a className={styles.secondaryBtn} href={`/worker/lowongan/${job.id}`}>Lihat Detail</a>
+          {isApplied ? (
+            <span className={styles.appliedBadge}>
+              <i className="ti ti-check" aria-hidden /> Sudah Melamar
+            </span>
+          ) : (
+            <button className={styles.applyBtn} onClick={() => onApply(job.id)} disabled={isApplying}>
+              {isApplying ? "Mengirim..." : "Lamar Sekarang"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LowonganPage() {
   const [lowonganList, setLowonganList] = useState<WorkerLowongan[]>([]);
+  const [workerProfile, setWorkerProfile] = useState<WorkerProfileForMatch | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [savingIds, setSavingIds] = useState<string[]>([]);
@@ -48,25 +145,58 @@ export default function LowonganPage() {
   const [appliedIds, setAppliedIds] = useState<string[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // Filter States
   const [searchTitle, setSearchTitle] = useState("");
   const [searchLocation, setSearchLocation] = useState("");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedSystems, setSelectedSystems] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState<"newest" | "salary">("newest");
+  const [sortBy, setSortBy] = useState<"newest" | "salary" | "match">("newest");
 
   useEffect(() => {
     let isMounted = true;
     async function loadData() {
       try {
-        const res = await fetch("/api/worker/lowongan", { cache: "no-store" });
-        if (!res.ok) {
-          const payload = (await res.json().catch(() => ({}))) as { message?: string };
+        const [jobsRes, profileRes] = await Promise.all([
+          fetch("/api/worker/lowongan", { cache: "no-store" }),
+          fetch("/api/worker/profile", { cache: "no-store" }),
+        ]);
+
+        if (!jobsRes.ok) {
+          const payload = (await jobsRes.json().catch(() => ({}))) as { message?: string };
           throw new Error(payload.message || "Gagal mengambil data lowongan");
         }
-        const data = await res.json();
+
+        const jobs: WorkerLowongan[] = await jobsRes.json();
+        let profile: WorkerProfileForMatch | null = null;
+
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          if (profileData?.profile) {
+            profile = {
+              skills: profileData.profile.skills,
+              education_level: profileData.profile.education_level,
+              city: profileData.profile.city,
+              province: profileData.profile.province,
+              experience_summary: profileData.profile.experience_summary,
+            };
+          }
+        }
+
         if (!isMounted) return;
-        setLowonganList(data);
+
+        // Compute match scores
+        const scored = jobs.map((job) => {
+          if (!profile) return job;
+          const score = computeMatchScore(profile, {
+            skills: job.skills,
+            education_level_required: job.education_level_required,
+            location: job.location,
+            experience_required: job.experience_required,
+          });
+          return { ...job, matchScore: score, matchLabel: getMatchLabel(score) };
+        });
+
+        setWorkerProfile(profile);
+        setLowonganList(scored);
       } catch (err: any) {
         if (!isMounted) return;
         setError(err.message || "Gagal memuat data");
@@ -75,10 +205,17 @@ export default function LowonganPage() {
       }
     }
     loadData();
-    return () => {
-      isMounted = false;
-    };
+    return () => { isMounted = false; };
   }, []);
+
+  // Top recommendations: score >= 50, sorted desc, max 3
+  const recommendations = useMemo(() => {
+    if (!workerProfile) return [];
+    return [...lowonganList]
+      .filter((j) => (j.matchScore ?? 0) >= 50)
+      .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0))
+      .slice(0, 3);
+  }, [lowonganList, workerProfile]);
 
   const filteredList = useMemo(() => {
     let result = [...lowonganList];
@@ -86,9 +223,7 @@ export default function LowonganPage() {
     if (searchTitle.trim()) {
       const q = searchTitle.toLowerCase();
       result = result.filter(
-        (j) =>
-          j.title.toLowerCase().includes(q) ||
-          j.umkm_name.toLowerCase().includes(q) ||
+        (j) => j.title.toLowerCase().includes(q) || j.umkm_name.toLowerCase().includes(q) ||
           (j.skills || []).some((s) => s.toLowerCase().includes(q))
       );
     }
@@ -104,6 +239,8 @@ export default function LowonganPage() {
 
     if (sortBy === "salary") {
       result.sort((a, b) => (b.salary_max || b.salary_min || 0) - (a.salary_max || a.salary_min || 0));
+    } else if (sortBy === "match") {
+      result.sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
     } else {
       result.sort((a, b) => {
         const aDate = a.published_at ? new Date(a.published_at).getTime() : 0;
@@ -118,36 +255,24 @@ export default function LowonganPage() {
     arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
   const handleResetFilters = () => {
-    setSearchTitle("");
-    setSearchLocation("");
-    setSelectedTypes([]);
-    setSelectedSystems([]);
+    setSearchTitle(""); setSearchLocation(""); setSelectedTypes([]); setSelectedSystems([]);
   };
 
   const handleSaveToggle = async (jobId: string, isSaved: boolean) => {
     if (savingIds.includes(jobId)) return;
     setSavingIds((prev) => [...prev, jobId]);
-
-    // Optimistic update — flip immediately
-    setLowonganList((prev) =>
-      prev.map((item) => (item.id === jobId ? { ...item, isSaved: !isSaved } : item))
-    );
-
+    setLowonganList((prev) => prev.map((item) => item.id === jobId ? { ...item, isSaved: !isSaved } : item));
     try {
       const response = await fetch(`/api/worker/lowongan/${jobId}/save`, {
         method: isSaved ? "DELETE" : "POST",
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
-
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         throw new Error(payload.error || "Gagal memperbarui simpan lowongan");
       }
     } catch (err: any) {
-      // Rollback on failure
-      setLowonganList((prev) =>
-        prev.map((item) => (item.id === jobId ? { ...item, isSaved } : item))
-      );
+      setLowonganList((prev) => prev.map((item) => item.id === jobId ? { ...item, isSaved } : item));
       setError(err.message || "Gagal memperbarui simpan lowongan");
     } finally {
       setSavingIds((prev) => prev.filter((id) => id !== jobId));
@@ -159,8 +284,7 @@ export default function LowonganPage() {
     setApplyingIds((prev) => [...prev, jobId]);
     try {
       const response = await fetch(`/api/worker/lowongan/${jobId}/apply`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" }
+        method: "POST", headers: { "Content-Type": "application/json" },
       });
       if (!response.ok && response.status !== 409) {
         const payload = await response.json().catch(() => ({}));
@@ -174,6 +298,8 @@ export default function LowonganPage() {
     }
   };
 
+  const hasProfile = !!workerProfile;
+
   return (
     <main className={styles.mainContainer}>
       {/* HERO SEARCH */}
@@ -181,29 +307,21 @@ export default function LowonganPage() {
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>Cari Pekerjaan Impianmu</h1>
           <p className={styles.heroSubtitle}>
-            Temukan ribuan lowongan dari UMKM terverifikasi yang siap memberi kesempatan kerja inklusif.
+            Temukan lowongan dari UMKM terverifikasi yang siap memberi kesempatan kerja inklusif.
           </p>
 
           <div className={styles.searchBar}>
             <div className={styles.searchInputWrapper}>
               <i className="ti ti-search" style={{ fontSize: 18, marginRight: 10, color: "#4d6473", flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="Posisi, skill, atau perusahaan"
-                value={searchTitle}
-                onChange={(e) => setSearchTitle(e.target.value)}
-                className={styles.searchInput}
-              />
+              <input type="text" placeholder="Posisi, skill, atau perusahaan"
+                value={searchTitle} onChange={(e) => setSearchTitle(e.target.value)}
+                className={styles.searchInput} />
             </div>
             <div className={styles.searchInputWrapper}>
               <i className="ti ti-map-pin" style={{ fontSize: 18, marginRight: 10, color: "#4d6473", flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="Semua Kota / Provinsi"
-                value={searchLocation}
-                onChange={(e) => setSearchLocation(e.target.value)}
-                className={styles.searchInput}
-              />
+              <input type="text" placeholder="Semua Kota / Provinsi"
+                value={searchLocation} onChange={(e) => setSearchLocation(e.target.value)}
+                className={styles.searchInput} />
             </div>
             <button className={styles.searchBtn}>CARI</button>
           </div>
@@ -231,12 +349,9 @@ export default function LowonganPage() {
             <div className={styles.filterList}>
               {JOB_TYPES.map((type) => (
                 <label key={type} className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={selectedTypes.includes(type)}
+                  <input type="checkbox" checked={selectedTypes.includes(type)}
                     onChange={() => setSelectedTypes((prev) => toggleArray(prev, type))}
-                    className={styles.checkbox}
-                  />
+                    className={styles.checkbox} />
                   <span className={styles.checkboxText}>{type}</span>
                 </label>
               ))}
@@ -248,12 +363,9 @@ export default function LowonganPage() {
             <div className={styles.filterList}>
               {WORK_SYSTEMS.map((sys) => (
                 <label key={sys} className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={selectedSystems.includes(sys)}
+                  <input type="checkbox" checked={selectedSystems.includes(sys)}
                     onChange={() => setSelectedSystems((prev) => toggleArray(prev, sys))}
-                    className={styles.checkbox}
-                  />
+                    className={styles.checkbox} />
                   <span className={styles.checkboxText}>{sys}</span>
                 </label>
               ))}
@@ -279,32 +391,145 @@ export default function LowonganPage() {
 
         {/* JOB LISTINGS */}
         <section className={styles.jobListings}>
+
+          {/* Profile incomplete notice */}
+          {!isLoading && !hasProfile && (
+            <div style={{
+              background: "linear-gradient(135deg, #fef3c7, #fde68a)",
+              border: "1px solid #fcd34d", borderRadius: 12,
+              padding: "14px 18px", marginBottom: 20,
+              display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+            }}>
+              <i className="ti ti-info-circle" style={{ color: "#d97706", fontSize: 20, flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: "#92400e" }}>
+                  Profil belum lengkap — rekomendasi kecocokan belum tersedia
+                </p>
+                <p style={{ margin: "2px 0 0", fontSize: 12, color: "#b45309" }}>
+                  Lengkapi profil Anda agar kami bisa menampilkan lowongan yang paling cocok.
+                </p>
+              </div>
+              <a href="/worker/profile/edit" style={{
+                background: "#d97706", color: "#fff", padding: "7px 16px",
+                borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap",
+              }}>
+                Lengkapi Profil
+              </a>
+            </div>
+          )}
+
+          {/* RECOMMENDATIONS */}
+          {!isLoading && hasProfile && recommendations.length > 0 && (
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: "linear-gradient(135deg, #0f6e99, #1198c8)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <i className="ti ti-sparkles" style={{ color: "#fff", fontSize: 16 }} />
+                </div>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#0a2c4f" }}>
+                    Rekomendasi Untukmu
+                  </h2>
+                  <p style={{ margin: 0, fontSize: 12, color: "#4d6473" }}>
+                    Berdasarkan skill, lokasi, dan pendidikan Anda
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+                {recommendations.map((job) => {
+                  const { bg, color, border } = getMatchColors(job.matchLabel ?? null);
+                  return (
+                    <a key={job.id} href={`/worker/lowongan/${job.id}`} style={{ textDecoration: "none" }}>
+                      <div style={{
+                        background: "#fff", border: `1px solid ${border}`,
+                        borderRadius: 14, padding: "16px 16px 14px",
+                        transition: "all 0.2s", cursor: "pointer",
+                        boxShadow: `0 4px 16px ${color}18`,
+                      }}>
+                        {/* Match score bar */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                          <span style={{
+                            background: bg, color, border: `1px solid ${border}`,
+                            padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 700,
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                          }}>
+                            <i className="ti ti-target-arrow" style={{ fontSize: 11 }} />
+                            {job.matchScore}% {job.matchLabel}
+                          </span>
+                          <span style={{ fontSize: 11, color: "#8198a8" }}>
+                            {getRelativeTime(job.published_at)}
+                          </span>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div style={{ height: 4, background: "#f1f5f9", borderRadius: 99, marginBottom: 12, overflow: "hidden" }}>
+                          <div style={{
+                            height: 4, borderRadius: 99, width: `${job.matchScore}%`,
+                            background: `linear-gradient(90deg, ${color}, ${color}99)`,
+                            transition: "width 0.6s ease",
+                          }} />
+                        </div>
+
+                        <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                          <div style={{
+                            width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                            background: bg, color, display: "flex", alignItems: "center",
+                            justifyContent: "center", fontSize: 18, fontWeight: 800,
+                          }}>
+                            {job.umkm_name.charAt(0).toUpperCase()}
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ margin: "0 0 2px", fontWeight: 700, fontSize: 14, color: "#0a2c4f", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {job.title}
+                            </p>
+                            <p style={{ margin: "0 0 6px", fontSize: 12, color: "#0f6e99", fontWeight: 600 }}>
+                              {job.umkm_name}
+                            </p>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                              <span style={{ fontSize: 11, color: "#6f8190", display: "flex", alignItems: "center", gap: 3 }}>
+                                <i className="ti ti-map-pin" /> {job.location}
+                              </span>
+                              {job.salary_min && (
+                                <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 700, display: "flex", alignItems: "center", gap: 3 }}>
+                                  <i className="ti ti-coin" /> {formatRupiah(job.salary_min)}+
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* LISTING HEADER */}
           <div className={styles.listingHeader}>
             <h2>{filteredList.length} Lowongan Ditemukan</h2>
             <div className={styles.listingActions}>
               <div className={styles.sortWrapper}>
                 <label htmlFor="sort">Urutkan:</label>
-                <select
-                  id="sort"
-                  className={styles.sortSelect}
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                >
+                <select id="sort" className={styles.sortSelect}
+                  value={sortBy} onChange={(e) => setSortBy(e.target.value as any)}>
                   <option value="newest">Terbaru</option>
                   <option value="salary">Gaji Tertinggi</option>
+                  {hasProfile && <option value="match">Paling Cocok</option>}
                 </select>
               </div>
-              <a
-                href="/worker/lowongan/saved"
-                className={styles.savedShortcut}
-                title="Lowongan tersimpan"
-                aria-label="Lowongan tersimpan"
-              >
+              <a href="/worker/lowongan/saved" className={styles.savedShortcut}
+                title="Lowongan tersimpan" aria-label="Lowongan tersimpan">
                 <i className="ti ti-bookmark" aria-hidden /> Tersimpan
               </a>
             </div>
           </div>
 
+          {/* SKELETON */}
           {isLoading && (
             <div className={styles.list}>
               {[1, 2, 3].map((n) => (
@@ -335,106 +560,24 @@ export default function LowonganPage() {
             <div className={styles.empty}>
               <div className={styles.emptyIcon}>🔍</div>
               <h3>Pencarian tidak ditemukan</h3>
-              <p>Coba gunakan kata kunci lain atau hapus beberapa filter untuk hasil yang lebih luas.</p>
-              <button className={styles.resetBtn} onClick={handleResetFilters}>
-                Reset Filter
-              </button>
+              <p>Coba gunakan kata kunci lain atau hapus beberapa filter.</p>
+              <button className={styles.resetBtn} onClick={handleResetFilters}>Reset Filter</button>
             </div>
           )}
 
           {!isLoading && !error && filteredList.length > 0 && (
             <div className={styles.list}>
-              {filteredList.map((job) => {
-                const isApplied = appliedIds.includes(job.id);
-                const isApplying = applyingIds.includes(job.id);
-                return (
-                  <div key={job.id} className={styles.card}>
-                    <div className={styles.cardHeader}>
-                      <div className={styles.companyLogo}>{job.umkm_name.charAt(0).toUpperCase()}</div>
-                      <div className={styles.jobInfo}>
-                        <h3 className={styles.jobTitle}>{job.title}</h3>
-                        <p className={styles.companyName}>
-                          {job.umkm_name}
-                          <span className={styles.verifiedBadge} title="Verified UMKM">✓</span>
-                        </p>
-                        <p className={styles.companyMeta}>
-                          <span><i className="ti ti-map-pin" aria-hidden /> {job.location || "Lokasi tidak ditentukan"}</span>
-                          <span>•</span>
-                          <span><i className="ti ti-briefcase" aria-hidden /> {job.employment_type || "Full Time"}</span>
-                          {job.business_sector && (
-                            <>
-                              <span>•</span>
-                              <span><i className="ti ti-building-store" aria-hidden /> {job.business_sector}</span>
-                            </>
-                          )}
-                        </p>
-                      </div>
-                      <button
-                        className={`${styles.saveIconBtn} ${job.isSaved ? styles.saveIconBtnActive : ""}`}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleSaveToggle(job.id, job.isSaved);
-                        }}
-                        disabled={savingIds.includes(job.id)}
-                        title={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
-                        aria-label={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
-                      >
-                        <i className={job.isSaved ? "ti ti-bookmark-filled" : "ti ti-bookmark"} aria-hidden />
-                      </button>
-                    </div>
-
-                    <div className={styles.cardBody}>
-                      <div className={styles.metaRow}>
-                        <span className={styles.salaryText}>
-                          <i className="ti ti-coin" aria-hidden /> {getSalary(job)}
-                        </span>
-                      </div>
-                      {job.business_address && (
-                        <div className={styles.metaRow}>
-                          <span className={styles.metaLabel}>Alamat</span>
-                          <span>{job.business_address}</span>
-                        </div>
-                      )}
-                      {job.skills && job.skills.length > 0 && (
-                        <div className={styles.skillsWrapper}>
-                          {job.skills.slice(0, 4).map((skill, idx) => (
-                            <span key={idx} className={styles.skillBadge}>
-                              {skill}
-                            </span>
-                          ))}
-                          {job.skills.length > 4 && (
-                            <span className={styles.skillBadgeMore}>+{job.skills.length - 4} lagi</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={styles.cardFooter}>
-                      <span className={styles.timeLabel}>
-                        <i className="ti ti-clock" aria-hidden /> {getRelativeTime(job.published_at)}
-                      </span>
-                      <div className={styles.cardActions}>
-                        <a className={styles.secondaryBtn} href={`/worker/lowongan/${job.id}`}>
-                          Lihat Detail
-                        </a>
-                        {isApplied ? (
-                          <span className={styles.appliedBadge}>
-                            <i className="ti ti-check" aria-hidden /> Sudah Melamar
-                          </span>
-                        ) : (
-                          <button
-                            className={styles.applyBtn}
-                            onClick={() => handleApply(job.id)}
-                            disabled={isApplying}
-                          >
-                            {isApplying ? "Mengirim..." : "Lamar Sekarang"}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {filteredList.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  onSave={handleSaveToggle}
+                  onApply={handleApply}
+                  isSaving={savingIds.includes(job.id)}
+                  isApplying={applyingIds.includes(job.id)}
+                  isApplied={appliedIds.includes(job.id)}
+                />
+              ))}
             </div>
           )}
         </section>

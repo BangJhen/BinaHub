@@ -1,5 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 
+import type { MatchLabel } from "./match-utils";
+
 export type WorkerLowongan = {
   id: string;
   title: string;
@@ -14,6 +16,11 @@ export type WorkerLowongan = {
   business_address: string | null;
   isSaved: boolean;
   skills: string[] | null;
+  education_level_required: string | null;
+  experience_required: string | null;
+  // computed client-side
+  matchScore?: number;
+  matchLabel?: MatchLabel;
 };
 
 export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
@@ -37,7 +44,7 @@ export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
   // Ambil lowongan dengan status 'open'
   const { data: jobs, error: jobsError } = await supabase
     .from("jobs")
-    .select("id, umkm_id, title, location, employment_type, salary_min, salary_max, published_at, skills")
+    .select("id, umkm_id, title, location, employment_type, salary_min, salary_max, published_at, skills, education_level, experience_required")
     .eq("status", "open")
     .order("published_at", { ascending: false });
 
@@ -86,7 +93,9 @@ export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
       business_sector: umkm?.business_sector ?? null,
       business_address: umkm?.business_address ?? null,
       isSaved: savedSet.has(job.id),
-      skills: job.skills ?? null
+      skills: job.skills ?? null,
+      education_level_required: job.education_level ?? null,
+      experience_required: job.experience_required ?? null,
     };
   });
 }
@@ -124,7 +133,7 @@ export async function getWorkerSavedLowonganData(): Promise<WorkerLowongan[]> {
 
   const { data: jobs, error: jobsError } = await supabase
     .from("jobs")
-    .select("id, umkm_id, title, location, employment_type, salary_min, salary_max, published_at, skills")
+    .select("id, umkm_id, title, location, employment_type, salary_min, salary_max, published_at, skills, education_level, experience_required")
     .in("id", jobIds)
     .order("published_at", { ascending: false });
 
@@ -161,7 +170,9 @@ export async function getWorkerSavedLowonganData(): Promise<WorkerLowongan[]> {
       business_sector: umkm?.business_sector ?? null,
       business_address: umkm?.business_address ?? null,
       isSaved: true,
-      skills: job.skills ?? null
+      skills: job.skills ?? null,
+      education_level_required: job.education_level ?? null,
+      experience_required: job.experience_required ?? null,
     };
   });
 }
