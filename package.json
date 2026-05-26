@@ -5,13 +5,16 @@
   "scripts": {
     "seed:auth": "node scripts/seed-auth.js",
     "seed:db": "echo 'Run db/seed-lowongan.sql in Supabase SQL Editor'",
-    "seed:all": "npm run seed:auth && npm run seed:db"
+    "seed:all": "npm run seed:auth && npm run seed:db",
+    "create:admin": "node scripts/create-admin.js",
+    "seed:lowongan": "node scripts/seed-lowongan.js",
+    "seed:full": "npm run seed:auth && npm run seed:lowongan"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",
+    "dotenv": "^17.4.2",
     "jsdom": "^28.1.0"
   },
-  "devDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   }
