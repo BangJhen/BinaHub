@@ -1,5 +1,18 @@
 {
+  "name": "binahub",
+  "version": "1.0.0",
+  "description": "BinaHub - Job Matching Platform for UMKM & Workers",
+  "scripts": {
+    "seed:auth": "node scripts/seed-auth.js",
+    "seed:db": "echo 'Run db/seed-lowongan.sql in Supabase SQL Editor'",
+    "seed:all": "npm run seed:auth && npm run seed:db"
+  },
   "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
     "jsdom": "^28.1.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
