@@ -523,6 +523,30 @@ export async function getWorkerDashboardData() {
 
   const activePlacement = ((placementRows ?? []) as PlacementRow[])[0] ?? null;
 
+  // Worker belum punya pekerjaan aktif — return empty state
+  if (!activePlacement) {
+    return {
+      isEmpty: true,
+      workerProfile: {
+        name: workerUser.full_name,
+        position: "-",
+        umkm: "-",
+        joinDate: formatDate(workerUser.created_at),
+        streakDays: 0,
+        attendanceRate: 0,
+        performanceScore: 0,
+        avgRating: 0,
+        checkinThisMonth: 0,
+        checkinTarget: 22,
+      },
+      dailyCheckins: [],
+      monthlyDays: [],
+      weeklyPerformanceByRange: { "1w": [], "1m": [], "3m": [] },
+      umkmReviews: [],
+      performanceRecommendations: [],
+    };
+  }
+
   const [umkmProfileRes, jobRes, checkinsRes, risksRes, alertsRes] = await Promise.all([
     activePlacement
       ? supabase.from("umkm_profiles").select("business_name").eq("user_id", activePlacement.umkm_id).maybeSingle()

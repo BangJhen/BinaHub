@@ -7,6 +7,7 @@ type PerfRange = "1w" | "1m" | "3m";
 type CheckinCondition = "green" | "yellow" | "red" | "missed";
 
 type WorkerDashboardData = {
+  isEmpty?: boolean;
   workerProfile: {
     name: string;
     position: string;
@@ -229,6 +230,31 @@ export default function WorkerDashboardPage() {
     return (
       <main className={styles.dashboardRoot}>
         <ProfileEmptyState profileData={profileData} onSkip={() => setSkipProfile(true)} />
+      </main>
+    );
+  }
+
+  // Worker belum punya pekerjaan aktif
+  if (data.isEmpty) {
+    return (
+      <main className={styles.dashboardRoot}>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh", padding: "40px 20px" }}>
+          <div style={{ maxWidth: 480, textAlign: "center" }}>
+            <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg,#e8f4fd,#c8e6f7)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
+              <i className="ti ti-briefcase-off" style={{ fontSize: 36, color: "#0f6e99" }} />
+            </div>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: "#0a2c4f", margin: "0 0 12px" }}>
+              Belum Ada Pekerjaan Aktif
+            </h2>
+            <p style={{ color: "#4d6473", fontSize: 15, lineHeight: 1.6, margin: "0 0 28px" }}>
+              Anda belum memiliki penempatan kerja aktif. Cari lowongan yang sesuai dan lamar sekarang untuk mulai bekerja.
+            </p>
+            <a href="/worker/lowongan"
+              style={{ display: "inline-block", background: "linear-gradient(135deg,#0f6e99,#1198c8)", color: "#fff", padding: "14px 32px", borderRadius: 12, fontWeight: 700, fontSize: 15, textDecoration: "none", boxShadow: "0 8px 20px rgba(15,110,153,0.25)" }}>
+              <i className="ti ti-search" /> Cari Lowongan
+            </a>
+          </div>
+        </div>
       </main>
     );
   }
