@@ -1,10 +1,13 @@
 /**
  * Icon utility — fetch & cache SVG icons from Heroicons
  * Heroicons: https://heroicons.com/
- * CDN: https://cdn.jsdelivr.net/npm/heroicons@2.0.18/
+ * CDN: https://cdn.jsdelivr.net/npm/heroicons@2.1.3/
+ * 
+ * Icon names: https://github.com/tailwindlabs/heroicons/tree/master/src/24/solid
  */
 
-const HEROICONS_CDN = "https://cdn.jsdelivr.net/npm/heroicons@2.0.18";
+// Heroicons CDN - using jsdelivr
+const HEROICONS_CDN = "https://cdn.jsdelivr.net/npm/heroicons@2.1.3";
 const iconCache = new Map<string, string>();
 
 export type IconSize = "16" | "20" | "24" | "32";
@@ -29,11 +32,12 @@ export async function getIcon(
   }
 
   try {
+    // Heroicons path: /{size}/{style}/{name}.svg
     const url = `${HEROICONS_CDN}/${size}/${style}/${name}.svg`;
     const response = await fetch(url);
 
     if (!response.ok) {
-      console.warn(`Icon not found: ${name}`);
+      console.warn(`Icon not found: ${name} at ${url}`);
       return ""; // Return empty string if icon not found
     }
 
@@ -59,42 +63,43 @@ export function getIconUrl(
 
 /**
  * Available Heroicons (common ones for job matching app)
+ * Full list: https://heroicons.com/
  */
 export const ICONS = {
   // Bookmarks & saves
   bookmark: "bookmark",
-  bookmarkFilled: "bookmark", // solid version
   
   // Actions
   heart: "heart",
   star: "star",
   check: "check",
-  x: "x",
+  xMark: "x-mark",
   trash: "trash",
   
   // Navigation
-  search: "magnifying-glass",
-  filter: "funnel",
-  sort: "bars-3",
+  magnifyingGlass: "magnifying-glass",
+  funnel: "funnel",
+  bars3: "bars-3",
   
   // Info
-  info: "information-circle",
-  warning: "exclamation-triangle",
-  error: "x-circle",
+  informationCircle: "information-circle",
+  exclamationTriangle: "exclamation-triangle",
+  xCircle: "x-circle",
   
   // Location & work
   mapPin: "map-pin",
   briefcase: "briefcase",
-  building: "building-office",
+  buildingOffice: "building-office-2",
   
   // Money
-  currency: "currency-dollar",
+  currencyDollar: "currency-dollar",
   
   // Time
   clock: "clock",
-  calendar: "calendar",
+  calendar: "calendar-days",
   
   // Sparkle
   sparkles: "sparkles",
   target: "target",
 } as const;
+
