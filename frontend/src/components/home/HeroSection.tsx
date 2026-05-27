@@ -1,7 +1,39 @@
 import Link from "next/link";
 import styles from "./hero-section.module.css";
+import GridMotion from "./GridMotion";
 
 export function HeroSection() {
+  const gridItems = [
+    'UMKM Go Digital',
+    <div key="g1" style={{color: '#0d6f9a'}}>Lowongan Valid</div>,
+    'https://images.unsplash.com/photo-1556761175-4b46a572b786?q=80&w=2000&auto=format&fit=crop',
+    'Mitigasi Risiko',
+    <div key="g2" style={{color: '#1d9e75'}}>Skoring AI</div>,
+    'Monitoring',
+    <div key="g3">Daily Check</div>,
+    'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2000&auto=format&fit=crop',
+    'Ex-Napi Mandiri',
+    <div key="g4">Bimbingan</div>,
+    'Matching Tepat',
+    <div key="g5" style={{color: '#d97706'}}>Data Terpusat</div>,
+    'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2000&auto=format&fit=crop',
+    'Peluang Baru',
+    'Ekosistem Inklusif',
+    <div key="g6">Dashboard Pintar</div>,
+    'https://images.unsplash.com/photo-1573164713988-8665fc963095?q=80&w=2000&auto=format&fit=crop',
+    'Transparan',
+    <div key="g7" style={{color: '#0369a1'}}>BinaHub</div>,
+    'Evaluasi Rutin',
+    <div key="g8">Kesetaraan</div>,
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2000&auto=format&fit=crop',
+    'Produktivitas',
+    <div key="g9">Keahlian</div>,
+    'Kerja Nyata',
+    <div key="g10" style={{color: '#16a34a'}}>Harmoni</div>,
+    'https://images.unsplash.com/photo-1600880292089-90a7e086ee0c?q=80&w=2000&auto=format&fit=crop',
+    'Terintegrasi'
+  ];
+
   return (
     <section className={`${styles.sectionBand} ${styles.heroBand}`}>
       <div className={styles.heroContent}>
@@ -35,60 +67,7 @@ export function HeroSection() {
 
         <aside className={styles.heroVisual}>
           <div className={styles.artContainer}>
-            <svg className={styles.artSvg} viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                  <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(3, 105, 161, 0.08)" strokeWidth="0.5"/>
-                </pattern>
-              </defs>
-              <rect width="500" height="500" fill="url(#grid)" />
-              
-              <circle cx="250" cy="250" r="80" fill="none" stroke="rgba(3, 105, 161, 0.15)" strokeWidth="1" strokeDasharray="5,5" />
-              <circle cx="250" cy="250" r="120" fill="none" stroke="rgba(3, 105, 161, 0.1)" strokeWidth="1" strokeDasharray="5,5" />
-              <circle cx="250" cy="250" r="160" fill="none" stroke="rgba(3, 105, 161, 0.08)" strokeWidth="1" strokeDasharray="5,5" />
-            </svg>
-
-            <div className={styles.rotatingWrapper}>
-              <div className={styles.rotatingPlatform}>
-                
-                <div className={styles.labelNode} style={{ top: '80px', left: '21.5px' }}>
-                  <div className={styles.labelTransform}>
-                    <div className={styles.labelCounterRotate}>
-                      <div className={`${styles.artBadge} ${styles.badgePrimary}`}>
-                        Lowongan
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.labelNode} style={{ top: '80px', left: '298.5px' }}>
-                  <div className={styles.labelTransform}>
-                    <div className={styles.labelCounterRotate}>
-                      <div className={`${styles.artBadge} ${styles.badgeSecondary}`}>
-                        Matching
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.labelNode} style={{ top: '320px', left: '160px' }}>
-                  <div className={styles.labelTransform}>
-                    <div className={styles.labelCounterRotate}>
-                      <div className={`${styles.artBadge} ${styles.badgePrimary}`}>
-                        Daily Check
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            <div className={styles.coreNodeContainer}>
-              <div className={styles.coreNode}>
-                BinaHub
-              </div>
-            </div>
+            <GridMotion items={gridItems} />
           </div>
         </aside>
       </div>

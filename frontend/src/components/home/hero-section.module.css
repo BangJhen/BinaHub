@@ -119,115 +119,21 @@
   min-height: 450px;
   display: grid;
   align-items: center;
+  /* Allow GridMotion to overflow a bit on the right but constrain it properly */
 }
 
 .artContainer {
   position: relative;
-  height: 450px;
+  height: 600px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-}
-
-.artSvg {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.rotatingWrapper {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 320px;
-  height: 320px;
-  margin-top: -160px;
-  margin-left: -160px;
-  pointer-events: none;
-}
-
-.rotatingPlatform {
-  width: 100%;
-  height: 100%;
-  animation: rotate 20s linear infinite;
-  transform-origin: center center;
-  will-change: transform;
-}
-
-.labelNode {
-  position: absolute;
-  text-align: center;
-  pointer-events: auto;
-}
-
-.labelTransform {
-  transform: translate(-50%, -50%);
-  width: max-content;
-}
-
-.labelCounterRotate {
-  animation: counterRotate 20s linear infinite;
-  transform-origin: center center;
-  will-change: transform;
-}
-
-.artBadge {
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.badgePrimary {
-  background: rgba(3, 105, 161, 0.95);
-  color: white;
-  box-shadow: 0 2px 8px rgba(3, 105, 161, 0.2);
-}
-
-.badgePrimary:hover {
-  background: rgba(3, 105, 161, 1);
-  box-shadow: 0 4px 16px rgba(3, 105, 161, 0.3);
-}
-
-.badgeSecondary {
-  background: rgba(59, 130, 246, 0.95);
-  color: white;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
-}
-
-.badgeSecondary:hover {
-  background: rgba(59, 130, 246, 1);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-}
-
-.coreNodeContainer {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  z-index: 10;
-}
-
-.coreNode {
-  width: 100px;
-  height: 100px;
-  background: #036BA1;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  box-shadow: 0 4px 16px rgba(3, 105, 161, 0.3);
+  border-radius: 24px;
+  /* Soft fade on edges of the art container */
+  mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
+  -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 90%);
 }
 
 .primaryBtn,
@@ -282,24 +188,6 @@
   }
 }
 
-@keyframes rotate {
-  from {
-    transform: rotate(0deg) translateZ(0);
-  }
-  to {
-    transform: rotate(360deg) translateZ(0);
-  }
-}
-
-@keyframes counterRotate {
-  from {
-    transform: rotate(0deg) translateZ(0);
-  }
-  to {
-    transform: rotate(-360deg) translateZ(0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .heroCopy h1 {
     opacity: 1;
@@ -316,11 +204,6 @@
   .primaryBtn,
   .outlineBtn {
     transition: none;
-  }
-
-  .rotatingPlatform,
-  .labelCounterRotate {
-    animation: none;
   }
 }
 
