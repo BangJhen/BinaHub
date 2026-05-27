@@ -27,29 +27,43 @@ const GridMotion = ({ items = [], gradientColor = 'transparent' }: GridMotionPro
   useEffect(() => {
     gsap.ticker.lagSmoothing(0);
 
-    // Start continuous carousel loop for each row
+    // Start seamless carousel loop for each row
     rowRefs.current.forEach((row, index) => {
       if (!row) return;
 
       const direction = index % 2 === 0 ? -1 : 1;
-      // Slower speed for more visible carousel effect
-      const speed = 30 + index * 3;
+      // Speed for carousel effect
+      const speed = 25 + index * 2;
 
-      // Create infinite carousel loop
-      // Each row scrolls continuously in one direction
-      gsap.to(row, {
-        x: direction === -1 ? '-=100%' : '+=100%',
-        duration: speed,
-        ease: 'none',
-        repeat: -1,
-        modifiers: {
-          x: gsap.utils.unitize(x => {
-            const val = parseFloat(x);
-            // Keep wrapping around 50% (one set of items)
-            return `${((val % 50) + 50) % 50}${direction === -1 ? '-' : ''}%`;
-          })
-        }
-      });
+      // Seamless carousel: items are rendered twice, so we animate exactly 50% (one set)
+      // When animation completes, it resets to start, but looks identical due to duplication
+      if (direction === -1) {
+        // Left-moving rows: animate from 0 to -50%
+        gsap.fromTo(
+          row,
+          { x: '0%' },
+          {
+            x: '-50%',
+            duration: speed,
+            ease: 'none',
+            repeat: -1,
+            repeatDelay: 0 // No delay between repeats for smooth loop
+          }
+        );
+      } else {
+        // Right-moving rows: animate from -50% to 0%
+        gsap.fromTo(
+          row,
+          { x: '-50%' },
+          {
+            x: '0%',
+            duration: speed,
+            ease: 'none',
+            repeat: -1,
+            repeatDelay: 0
+          }
+        );
+      }
     });
 
     return () => {
