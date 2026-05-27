@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { WorkerLowongan } from "@/lib/lowongan-queries";
+import { IconButton } from "@/components/IconButton";
 
 function formatRupiah(amount: number | null) {
   if (!amount) return "";
@@ -252,43 +253,38 @@ export default function SavedLowonganPage() {
                       )}
                     </div>
                     {/* Unsave button */}
-                    <button
+                    <IconButton
+                      icon="bookmark"
+                      iconSize="20"
+                      iconStyle="solid"
                       onClick={() => handleUnsave(job.id)}
                       disabled={isRemoving}
                       title="Hapus dari simpanan"
-                      aria-label="Hapus dari simpanan"
+                      ariaLabel="Hapus dari simpanan"
                       style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        padding: "8px 14px",
+                        padding: "8px 10px",
                         borderRadius: 10,
                         border: "1.5px solid #fecaca",
                         background: "#fef2f2",
-                        color: "#dc2626",
-                        fontSize: 13,
-                        fontWeight: 700,
                         cursor: isRemoving ? "not-allowed" : "pointer",
                         transition: "all 0.2s ease",
                         opacity: isRemoving ? 0.6 : 1,
                         flexShrink: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                       onMouseEnter={(e) => {
                         if (!isRemoving) {
                           e.currentTarget.style.background = "#fee2e2";
                           e.currentTarget.style.borderColor = "#fca5a5";
-                          e.currentTarget.style.color = "#b91c1c";
                         }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "#fef2f2";
                         e.currentTarget.style.borderColor = "#fecaca";
-                        e.currentTarget.style.color = "#dc2626";
                       }}
-                    >
-                      <i className="ti ti-bookmark-filled" />
-                      Hapus
-                    </button>
+                    />
                   </div>
 
                   {/* Card body */}
