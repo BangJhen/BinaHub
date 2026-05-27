@@ -38,24 +38,23 @@
   position: relative;
   min-height: 600px;
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  align-items: flex-start; /* Align to top */
+  justify-content: flex-end; /* Align to right */
 }
 
 .artContainer {
   position: absolute;
-  /* Shift it to the right, beyond the normal bounds */
-  right: -10vw;
-  height: 800px;
-  width: 60vw;
+  top: -50px; /* Shift up to cover top edge */
+  right: -5vw; /* Shift right */
+  height: 850px;
+  width: 65vw;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 24px;
-  /* Soft fade on edges of the art container */
-  mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
-  -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+  /* Fade out bottom and left, solid top right */
+  mask-image: radial-gradient(ellipse at top right, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at top right, black 30%, transparent 75%);
 }
 
 .heroCopy h1 {
