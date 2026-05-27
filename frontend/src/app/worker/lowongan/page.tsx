@@ -86,13 +86,42 @@ function JobCard({
           </p>
         </div>
         <button
-          className={`${styles.saveIconBtn} ${job.isSaved ? styles.saveIconBtnActive : ""}`}
           onClick={(e) => { e.stopPropagation(); onSave(job.id, job.isSaved); }}
           disabled={isSaving}
           title={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
           aria-label={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
+          style={{
+            marginLeft: "auto",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 14px",
+            borderRadius: 10,
+            border: job.isSaved ? "1.5px solid #fde68a" : "1.5px solid #d6e6f2",
+            background: job.isSaved ? "#fef3c7" : "#ffffff",
+            color: job.isSaved ? "#d97706" : "#4d6473",
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: isSaving ? "not-allowed" : "pointer",
+            transition: "all 0.2s ease",
+            opacity: isSaving ? 0.6 : 1,
+            flexShrink: 0,
+          }}
+          onMouseEnter={(e) => {
+            if (!isSaving) {
+              e.currentTarget.style.background = job.isSaved ? "#fcd34d" : "#eaf3fb";
+              e.currentTarget.style.borderColor = job.isSaved ? "#fcd34d" : "#0f6e99";
+              e.currentTarget.style.color = job.isSaved ? "#b45309" : "#0f6e99";
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = job.isSaved ? "#fef3c7" : "#ffffff";
+            e.currentTarget.style.borderColor = job.isSaved ? "#fde68a" : "#d6e6f2";
+            e.currentTarget.style.color = job.isSaved ? "#d97706" : "#4d6473";
+          }}
         >
           <i className={job.isSaved ? "ti ti-bookmark-filled" : "ti ti-bookmark"} aria-hidden />
+          {job.isSaved ? "Tersimpan" : "Simpan"}
         </button>
       </div>
 

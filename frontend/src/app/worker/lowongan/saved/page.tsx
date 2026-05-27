@@ -258,15 +258,36 @@ export default function SavedLowonganPage() {
                       title="Hapus dari simpanan"
                       aria-label="Hapus dari simpanan"
                       style={{
-                        width: 34, height: 34, borderRadius: 8, flexShrink: 0,
-                        border: "1px solid #fde68a", background: "#fef3c7",
-                        color: "#d97706", cursor: isRemoving ? "not-allowed" : "pointer",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 16, transition: "all 0.15s",
-                        opacity: isRemoving ? 0.5 : 1,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "8px 14px",
+                        borderRadius: 10,
+                        border: "1.5px solid #fecaca",
+                        background: "#fef2f2",
+                        color: "#dc2626",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: isRemoving ? "not-allowed" : "pointer",
+                        transition: "all 0.2s ease",
+                        opacity: isRemoving ? 0.6 : 1,
+                        flexShrink: 0,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isRemoving) {
+                          e.currentTarget.style.background = "#fee2e2";
+                          e.currentTarget.style.borderColor = "#fca5a5";
+                          e.currentTarget.style.color = "#b91c1c";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#fef2f2";
+                        e.currentTarget.style.borderColor = "#fecaca";
+                        e.currentTarget.style.color = "#dc2626";
                       }}
                     >
                       <i className="ti ti-bookmark-filled" />
+                      Hapus
                     </button>
                   </div>
 
