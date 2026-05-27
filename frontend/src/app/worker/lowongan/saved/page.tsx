@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import type { WorkerLowongan } from "@/lib/lowongan-queries";
-import { IconButton } from "@/components/IconButton";
 
 function formatRupiah(amount: number | null) {
   if (!amount) return "";
@@ -253,13 +252,11 @@ export default function SavedLowonganPage() {
                       )}
                     </div>
                     {/* Unsave button */}
-                    <IconButton
-                      icon="bookmark-filled"
-                      iconSize="20"
+                    <button
                       onClick={() => handleUnsave(job.id)}
                       disabled={isRemoving}
                       title="Hapus dari simpanan"
-                      ariaLabel="Hapus dari simpanan"
+                      aria-label="Hapus dari simpanan"
                       style={{
                         padding: "8px 10px",
                         borderRadius: 10,
@@ -272,18 +269,24 @@ export default function SavedLowonganPage() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        fontSize: 18,
+                        color: "#dc2626",
                       }}
                       onMouseEnter={(e) => {
                         if (!isRemoving) {
                           e.currentTarget.style.background = "#fee2e2";
                           e.currentTarget.style.borderColor = "#fca5a5";
+                          e.currentTarget.style.color = "#b91c1c";
                         }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = "#fef2f2";
                         e.currentTarget.style.borderColor = "#fecaca";
+                        e.currentTarget.style.color = "#dc2626";
                       }}
-                    />
+                    >
+                      <i className="ti ti-bookmark-filled" aria-hidden />
+                    </button>
                   </div>
 
                   {/* Card body */}

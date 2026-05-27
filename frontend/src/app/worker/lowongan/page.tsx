@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
 import type { WorkerLowongan } from "@/lib/lowongan-queries";
 import { computeMatchScore, getMatchLabel, getMatchColors, type WorkerProfileForMatch } from "@/lib/match-utils";
-import { IconButton } from "@/components/IconButton";
 
 const JOB_TYPES = ["Full Time", "Part Time", "Freelance", "Contract", "Internship"];
 const WORK_SYSTEMS = ["Work from Office", "Hybrid", "Remote"];
@@ -86,13 +85,11 @@ function JobCard({
             )}
           </p>
         </div>
-        <IconButton
-          icon="bookmark"
-          iconSize="20"
+        <button
           onClick={(e) => { e.stopPropagation(); onSave(job.id, job.isSaved); }}
           disabled={isSaving}
           title={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
-          ariaLabel={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
+          aria-label={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
           style={{
             marginLeft: "auto",
             padding: "8px 10px",
@@ -106,18 +103,24 @@ function JobCard({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
+            fontSize: 18,
+            color: job.isSaved ? "#d97706" : "#4d6473",
           }}
           onMouseEnter={(e) => {
             if (!isSaving) {
               e.currentTarget.style.background = job.isSaved ? "#fcd34d" : "#eaf3fb";
               e.currentTarget.style.borderColor = job.isSaved ? "#fcd34d" : "#0f6e99";
+              e.currentTarget.style.color = job.isSaved ? "#b45309" : "#0f6e99";
             }
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.background = job.isSaved ? "#fef3c7" : "#ffffff";
             e.currentTarget.style.borderColor = job.isSaved ? "#fde68a" : "#d6e6f2";
+            e.currentTarget.style.color = job.isSaved ? "#d97706" : "#4d6473";
           }}
-        />
+        >
+          <i className={job.isSaved ? "ti ti-bookmark-filled" : "ti ti-bookmark"} aria-hidden />
+        </button>
       </div>
 
       <div className={styles.cardBody}>
