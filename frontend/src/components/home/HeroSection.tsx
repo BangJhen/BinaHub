@@ -79,12 +79,11 @@ export function HeroSection() {
             <li>Pendampingan berkelanjutan</li>
           </ul>
         </article>
-
-        <aside className={styles.heroVisual}>
-          <div className={styles.artContainer}>
-            <GridMotion items={gridItems} />
-          </div>
-        </aside>
+      </div>
+      
+      {/* Moved outside heroContent to avoid being constrained by grid columns */}
+      <div className={styles.artContainer}>
+        <GridMotion items={gridItems} />
       </div>
     </section>
   );

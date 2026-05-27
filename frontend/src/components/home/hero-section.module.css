@@ -35,6 +35,30 @@
   min-height: 550px;
 }
 
+/* We don't need heroVisual anymore since artContainer is placed absolutely */
+
+.artContainer {
+  position: absolute;
+  /* Push it to the exact top right of the heroBand padding edge */
+  top: 0; 
+  right: 0;
+  height: 900px; /* fixed height to span down nicely */
+  width: 70vw; /* take up a large portion of the right side */
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  z-index: 1; 
+  pointer-events: none; 
+  
+  /* Mask fading out left and bottom, but keeping top-right solid */
+  mask-image: radial-gradient(ellipse at 100% 0%, black 15%, transparent 65%);
+  -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 15%, transparent 65%);
+}
+
+.artContainer > * {
+  pointer-events: auto;
+}
+
 .heroVisual {
   position: relative;
   height: 100%;

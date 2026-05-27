@@ -31,15 +31,16 @@
   gap: 1.2rem;
   flex: none;
   position: absolute;
-  top: -15%;
-  right: -10%;
+  /* Shift slightly to balance rotation */
+  top: -5%;
+  right: 0%;
   width: 120vw;
-  height: 120vh;
+  height: 110vh;
   display: grid;
   grid-template-rows: repeat(5, 1fr);
   grid-template-columns: 100%;
   transform: rotate(-15deg) scale(1);
-  transform-origin: top right; /* Rotate from top right corner */
+  transform-origin: center right; /* Safe origin to prevent it from flying off screen */
   z-index: 2;
   opacity: 0.85; 
 }
