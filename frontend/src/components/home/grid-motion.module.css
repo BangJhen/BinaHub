@@ -43,6 +43,18 @@
   transform-origin: center right; /* Safe origin to prevent it from flying off screen */
   z-index: 2;
   opacity: 0.85; 
+  
+  /* Carousel loop animation - slow continuous rotation */
+  animation: carouselLoop 60s linear infinite;
+}
+
+@keyframes carouselLoop {
+  0% {
+    transform: rotate(-15deg) scale(1);
+  }
+  100% {
+    transform: rotate(345deg) scale(1);
+  }
 }
 
 .row {
