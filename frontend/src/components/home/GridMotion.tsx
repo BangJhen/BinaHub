@@ -11,13 +11,12 @@ interface GridMotionProps {
 
 const ROWS = 3;
 const COLS = 7;
-const DUPLICATES = 4; // Render items 4x for smooth infinite scroll
+const DUPLICATES = 3; // Render items 3x
 
 const GridMotion = ({ items = [], gradientColor = 'transparent' }: GridMotionProps) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const rowPositionsRef = useRef<number[]>(new Array(ROWS).fill(0));
-  const itemWidthRef = useRef<number>(0);
+  const animationsRef = useRef<gsap.core.Tween[]>([]);
 
   const totalItems = ROWS * COLS;
   const defaultItems = Array.from({ length: totalItems }, (_, i) => `Item ${i + 1}`);
@@ -30,48 +29,49 @@ const GridMotion = ({ items = [], gradientColor = 'transparent' }: GridMotionPro
   useEffect(() => {
     gsap.ticker.lagSmoothing(0);
 
-    // Calculate item width after render
-    setTimeout(() => {
-      const firstItem = document.querySelector(`.${styles.rowItem}`) as HTMLElement;
-      if (firstItem) {
-        const rect = firstItem.getBoundingClientRect();
-        itemWidthRef.current = rect.width + 19.2; // width + gap (1.2rem = 19.2px at default font)
-      }
-
-      const speeds = [25, 28, 26]; // Different speed per row
-      const directions = [-1, 1, -1]; // Alternating directions
-
-      // Continuous animation using GSAP ticker
+    // Wait for DOM to render, then calculate dimensions
+    const timer = setTimeout(() => {
       rowRefs.current.forEach((row, rowIndex) => {
         if (!row) return;
 
-        const direction = directions[rowIndex];
-        const speed = speeds[rowIndex];
-        const pixelsPerSecond = (itemWidthRef.current * COLS) / speed;
+        // Calculate one set width (7 items + gaps)
+        const items = row.querySelectorAll(`.${styles.rowItem}`);
+        if (items.length < COLS) return;
 
-        // Animate continuously
-        gsap.to(row, {
-          x: direction === -1 ? -10000 : 10000, // Large value for continuous movement
-          duration: 10000 / pixelsPerSecond, // Duration based on distance and speed
+        let oneSetWidth = 0;
+        for (let i = 0; i < COLS; i++) {
+          const item = items[i] as HTMLElement;
+          oneSetWidth += item.offsetWidth + 19.2; // width + gap
+        }
+        oneSetWidth -= 19.2; // Remove last gap
+
+        const direction = rowIndex % 2 === 0 ? -1 : 1;
+        const speed = 25 + rowIndex * 2;
+
+        // Kill previous animation if exists
+        animationsRef.current[rowIndex]?.kill();
+
+        // Create seamless loop animation
+        // Animate exactly one set width, then repeat
+        const tween = gsap.to(row, {
+          x: direction === -1 ? -oneSetWidth : oneSetWidth,
+          duration: speed,
           ease: 'none',
           repeat: -1,
-          onUpdate: function() {
-            const currentX = gsap.getProperty(row, 'x') as number;
-            const oneSetWidth = itemWidthRef.current * COLS;
-
-            // Reset position when scrolled too far
-            if (direction === -1 && currentX < -oneSetWidth * 2) {
-              gsap.set(row, { x: 0 });
-            } else if (direction === 1 && currentX > oneSetWidth * 2) {
-              gsap.set(row, { x: 0 });
-            }
+          repeatDelay: 0,
+          onRepeat: function() {
+            // Reset position instantly when repeat starts (seamless because items are duplicated)
+            gsap.set(row, { x: 0 });
           }
         });
+
+        animationsRef.current[rowIndex] = tween;
       });
-    }, 100);
+    }, 150);
 
     return () => {
-      gsap.killTweensOf(rowRefs.current);
+      clearTimeout(timer);
+      animationsRef.current.forEach(tween => tween?.kill());
     };
   }, []);
 
@@ -90,7 +90,7 @@ const GridMotion = ({ items = [], gradientColor = 'transparent' }: GridMotionPro
               className={styles.row}
               ref={el => { rowRefs.current[rowIndex] = el; }}
             >
-              {/* Render items MULTIPLE times for smooth infinite carousel */}
+              {/* Render items 3x for seamless loop */}
               {[...Array(DUPLICATES)].flatMap((_, setIndex) =>
                 [...Array(COLS)].map((_, itemIndex) => {
                   const content = paddedItems[rowIndex * COLS + itemIndex];
