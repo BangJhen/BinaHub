@@ -1,30 +1,27 @@
 /**
- * Icon utility — fetch & cache SVG icons from Heroicons
- * Heroicons: https://heroicons.com/
- * CDN: https://cdn.jsdelivr.net/npm/heroicons@2.1.3/
+ * Icon utility — fetch & cache SVG icons from Tabler Icons
+ * Tabler Icons: https://tabler-icons.io/
+ * CDN: https://cdn.jsdelivr.net/npm/@tabler/icons@latest/tabler-icons/icons/
  * 
- * Icon names: https://github.com/tailwindlabs/heroicons/tree/master/src/24/solid
+ * Icon names: https://tabler-icons.io/
  */
 
-// Heroicons CDN - using jsdelivr
-const HEROICONS_CDN = "https://cdn.jsdelivr.net/npm/heroicons@2.1.3";
+// Tabler Icons CDN
+const TABLER_ICONS_CDN = "https://cdn.jsdelivr.net/npm/@tabler/icons@latest/tabler-icons/icons";
 const iconCache = new Map<string, string>();
 
-export type IconSize = "16" | "20" | "24" | "32";
-export type IconStyle = "solid" | "outline";
+export type IconSize = "16" | "20" | "24" | "32" | "48";
 
 /**
- * Fetch SVG icon from Heroicons CDN
+ * Fetch SVG icon from Tabler Icons CDN
  * @param name - Icon name (e.g., "bookmark", "heart", "star")
- * @param size - Icon size: 16, 20, 24, 32 (default: 24)
- * @param style - Icon style: solid or outline (default: solid)
+ * @param size - Icon size: 16, 20, 24, 32, 48 (default: 24)
  */
 export async function getIcon(
   name: string,
-  size: IconSize = "24",
-  style: IconStyle = "solid"
+  size: IconSize = "24"
 ): Promise<string> {
-  const cacheKey = `${name}-${size}-${style}`;
+  const cacheKey = `${name}-${size}`;
 
   // Return from cache if available
   if (iconCache.has(cacheKey)) {
@@ -32,8 +29,8 @@ export async function getIcon(
   }
 
   try {
-    // Heroicons path: /{size}/{style}/{name}.svg
-    const url = `${HEROICONS_CDN}/${size}/${style}/${name}.svg`;
+    // Tabler Icons path: /{name}.svg
+    const url = `${TABLER_ICONS_CDN}/${name}.svg`;
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -41,7 +38,13 @@ export async function getIcon(
       return ""; // Return empty string if icon not found
     }
 
-    const svg = await response.text();
+    let svg = await response.text();
+    
+    // Resize SVG if needed (Tabler icons are 24x24 by default)
+    if (size !== "24") {
+      svg = svg.replace(/width="24"/, `width="${size}"`).replace(/height="24"/, `height="${size}"`);
+    }
+    
     iconCache.set(cacheKey, svg);
     return svg;
   } catch (error) {
@@ -55,51 +58,54 @@ export async function getIcon(
  */
 export function getIconUrl(
   name: string,
-  size: IconSize = "24",
-  style: IconStyle = "solid"
+  size: IconSize = "24"
 ): string {
-  return `${HEROICONS_CDN}/${size}/${style}/${name}.svg`;
+  return `${TABLER_ICONS_CDN}/${name}.svg`;
 }
 
 /**
- * Available Heroicons (common ones for job matching app)
- * Full list: https://heroicons.com/
+ * Available Tabler Icons (common ones for job matching app)
+ * Full list: https://tabler-icons.io/
  */
 export const ICONS = {
   // Bookmarks & saves
   bookmark: "bookmark",
+  bookmarkFilled: "bookmark-filled",
   
   // Actions
   heart: "heart",
+  heartFilled: "heart-filled",
   star: "star",
+  starFilled: "star-filled",
   check: "check",
-  xMark: "x-mark",
+  x: "x",
   trash: "trash",
   
   // Navigation
-  magnifyingGlass: "magnifying-glass",
-  funnel: "funnel",
-  bars3: "bars-3",
+  search: "search",
+  filter: "filter",
+  sort: "sort-ascending",
   
   // Info
-  informationCircle: "information-circle",
-  exclamationTriangle: "exclamation-triangle",
-  xCircle: "x-circle",
+  info: "info-circle",
+  warning: "alert-triangle",
+  error: "circle-x",
   
   // Location & work
   mapPin: "map-pin",
   briefcase: "briefcase",
-  buildingOffice: "building-office-2",
+  building: "building",
   
   // Money
-  currencyDollar: "currency-dollar",
+  coin: "coin",
   
   // Time
   clock: "clock",
-  calendar: "calendar-days",
+  calendar: "calendar",
   
   // Sparkle
   sparkles: "sparkles",
   target: "target",
 } as const;
+
 

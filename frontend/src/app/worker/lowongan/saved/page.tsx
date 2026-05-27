@@ -254,9 +254,8 @@ export default function SavedLowonganPage() {
                     </div>
                     {/* Unsave button */}
                     <IconButton
-                      icon="bookmark"
+                      icon="bookmark-filled"
                       iconSize="20"
-                      iconStyle="solid"
                       onClick={() => handleUnsave(job.id)}
                       disabled={isRemoving}
                       title="Hapus dari simpanan"

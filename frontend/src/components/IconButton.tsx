@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getIconUrl, type IconSize, type IconStyle } from "@/lib/icon-utils";
+import { getIconUrl, type IconSize } from "@/lib/icon-utils";
 
 interface IconButtonProps {
   icon: string;
   iconSize?: IconSize;
-  iconStyle?: IconStyle;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
   title?: string;
@@ -18,13 +17,12 @@ interface IconButtonProps {
 }
 
 /**
- * Reusable icon button component using Heroicons SVG
+ * Reusable icon button component using Tabler Icons SVG
  * Fetches SVG from CDN and renders as inline image
  */
 export function IconButton({
   icon,
   iconSize = "24",
-  iconStyle = "solid",
   onClick,
   disabled = false,
   title,
@@ -37,9 +35,9 @@ export function IconButton({
   const [iconUrl, setIconUrl] = useState<string>("");
 
   useEffect(() => {
-    const url = getIconUrl(icon, iconSize, iconStyle);
+    const url = getIconUrl(icon, iconSize);
     setIconUrl(url);
-  }, [icon, iconSize, iconStyle]);
+  }, [icon, iconSize]);
 
   return (
     <button
@@ -67,3 +65,4 @@ export function IconButton({
     </button>
   );
 }
+

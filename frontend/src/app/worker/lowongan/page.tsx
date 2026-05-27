@@ -89,7 +89,6 @@ function JobCard({
         <IconButton
           icon="bookmark"
           iconSize="20"
-          iconStyle={job.isSaved ? "solid" : "outline"}
           onClick={(e) => { e.stopPropagation(); onSave(job.id, job.isSaved); }}
           disabled={isSaving}
           title={job.isSaved ? "Hapus dari simpan" : "Simpan lowongan"}
