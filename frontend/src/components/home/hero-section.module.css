@@ -18,6 +18,8 @@
 .heroBand {
   position: relative;
   padding-top: clamp(42px, 8vw, 110px);
+  /* Optional: we can isolate the stacking context so parallax is behind the content */
+  isolation: isolate;
 }
 
 .heroBand::before,
@@ -26,6 +28,8 @@
 }
 
 .heroContent {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   gap: clamp(20px, 4vw, 44px);

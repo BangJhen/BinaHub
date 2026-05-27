@@ -1,0 +1,78 @@
+.parallaxContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.bgLayer {
+  position: absolute;
+  top: -10%;
+  left: -10%;
+  right: -10%;
+  bottom: -10%;
+  will-change: transform;
+}
+
+.bgGradients {
+  width: 100%;
+  height: 100%;
+  /* Diffuse light blue on left/bottom left, mint green on right/top right */
+  background: 
+    radial-gradient(100% 100% at 90% 10%, #e0f6ec 0%, transparent 80%),
+    radial-gradient(100% 100% at 10% 90%, #d4eafd 0%, transparent 80%),
+    linear-gradient(135deg, #ffffff 0%, #f4f9ff 100%);
+}
+
+.bgGrid {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 60%;
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.015) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(to left, black 0%, transparent 80%), linear-gradient(to bottom, black 0%, transparent 80%);
+  mask-composite: intersect;
+  -webkit-mask-image: linear-gradient(to left, black 0%, transparent 80%), linear-gradient(to bottom, black 0%, transparent 80%);
+  -webkit-mask-composite: source-in;
+}
+
+.bgDotsTopLeft {
+  position: absolute;
+  top: 15%;
+  left: 5%;
+  width: 150px;
+  height: 100px;
+  background-image: radial-gradient(rgba(10, 40, 80, 0.08) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+}
+
+.bgDotsBottomRight {
+  position: absolute;
+  bottom: 10%;
+  right: 10%;
+  width: 150px;
+  height: 100px;
+  background-image: radial-gradient(rgba(10, 40, 80, 0.08) 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+}
+
+.bgWaves {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1440 800' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M-200 650C100 500 400 800 900 650C1300 500 1500 600 1600 550' stroke='rgba(255,255,255,0.9)' stroke-width='1'/%3E%3Cpath d='M-200 660C120 520 420 810 920 660C1320 510 1520 610 1600 560' stroke='rgba(255,255,255,0.7)' stroke-width='1'/%3E%3Cpath d='M-200 670C140 540 440 820 940 670C1340 520 1540 620 1600 570' stroke='rgba(255,255,255,0.5)' stroke-width='1'/%3E%3Cpath d='M-200 680C160 560 460 830 960 680C1360 530 1560 630 1600 580' stroke='rgba(255,255,255,0.3)' stroke-width='1'/%3E%3Cpath d='M-200 690C180 580 480 840 980 690C1380 540 1580 640 1600 590' stroke='rgba(255,255,255,0.1)' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: cover;
+  background-position: left bottom;
+  background-repeat: no-repeat;
+  opacity: 1;
+}
