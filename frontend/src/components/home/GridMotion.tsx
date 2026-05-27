@@ -15,7 +15,7 @@ const GridMotion = ({ items = [], gradientColor = 'transparent' }: GridMotionPro
   // Use a ref for mouseX instead of state to avoid re-renders
   const mouseXRef = useRef(typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
 
-  const totalItems = 28;
+  const totalItems = 35;
   const defaultItems = Array.from({ length: totalItems }, (_, index) => `Item ${index + 1}`);
   const combinedItems = items.length > 0 ? items.slice(0, totalItems) : defaultItems;
 
@@ -64,7 +64,7 @@ const GridMotion = ({ items = [], gradientColor = 'transparent' }: GridMotionPro
         }}
       >
         <div className={styles.gridMotionContainer}>
-          {[...Array(4)].map((_, rowIndex) => (
+          {[...Array(5)].map((_, rowIndex) => (
             <div key={rowIndex} className={styles.row} ref={el => { rowRefs.current[rowIndex] = el; }}>
               {[...Array(7)].map((_, itemIndex) => {
                 const content = combinedItems[rowIndex * 7 + itemIndex];

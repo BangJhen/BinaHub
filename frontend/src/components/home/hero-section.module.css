@@ -56,9 +56,9 @@
   z-index: 1; 
   pointer-events: none; 
   
-  /* Mask fading out left and bottom */
-  mask-image: radial-gradient(circle at 90% 10%, black 15%, transparent 65%);
-  -webkit-mask-image: radial-gradient(circle at 90% 10%, black 15%, transparent 65%);
+  /* Mask fading out top, left, and bottom */
+  mask-image: radial-gradient(circle at 90% 35%, black 25%, transparent 70%);
+  -webkit-mask-image: radial-gradient(circle at 90% 35%, black 25%, transparent 70%);
 }
 
 .artContainer > * {

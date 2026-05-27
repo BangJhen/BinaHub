@@ -41,7 +41,12 @@ export function HeroSection() {
     <TestimonialCard key="t19" name="Diana F." role="UMKM Jasa" text="Kami merasa aman mempekerjakan mereka karena ada pantauan." />,
     <TestimonialCard key="t20" name="Reza M." role="Pekerja Ex-Napi" text="Mendapatkan kepercayaan lagi adalah hal yang luar biasa." />,
     <TestimonialCard key="t21" name="Wahyu N." role="UMKM Kerajinan" text="Pekerja yang dikirimkan selalu sesuai dengan spesifikasi kami." />,
-    <TestimonialCard key="t22" name="Surya D." role="Pekerja Ex-Napi" text="Semoga platform ini bisa menjangkau lebih banyak teman-teman." />
+    <TestimonialCard key="t22" name="Surya D." role="Pekerja Ex-Napi" text="Semoga platform ini bisa menjangkau lebih banyak teman-teman." />,
+    'https://images.unsplash.com/photo-1556761175-4b46a572b786?q=80&w=2000&auto=format&fit=crop',
+    <TestimonialCard key="t23" name="Samsul A." role="UMKM Distribusi" text="Fitur absensi membuat kami bisa melacak produktivitas dengan mudah." />,
+    <TestimonialCard key="t24" name="Dina M." role="Pekerja Ex-Napi" text="Sistem BinaHub membantu saya beradaptasi cepat dengan tim baru." />,
+    'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?q=80&w=2000&auto=format&fit=crop',
+    <TestimonialCard key="t25" name="Lukman B." role="Pemilik Konveksi" text="Kami merasa didukung penuh dari hari pertama proses rekrutmen." />
   ];
 
   return (
