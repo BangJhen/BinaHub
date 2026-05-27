@@ -27,34 +27,35 @@
 
 .heroContent {
   position: relative;
-  z-index: 1;
+  z-index: 2; /* higher than artContainer */
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.2fr 0.8fr; /* Empty column on the right allows grid motion to show through */
   gap: clamp(20px, 4vw, 44px);
   align-items: center;
-}
-
-.heroVisual {
-  position: relative;
-  min-height: 600px;
-  display: flex;
-  align-items: flex-start; /* Align to top */
-  justify-content: flex-end; /* Align to right */
+  min-height: 550px;
 }
 
 .artContainer {
   position: absolute;
-  top: -50px; /* Shift up to cover top edge */
-  right: -5vw; /* Shift right */
-  height: 850px;
-  width: 65vw;
+  top: 0;
+  right: 0;
+  height: 900px;
+  width: 60vw; /* take up a bit more than half the screen */
   display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  /* Fade out bottom and left, solid top right */
-  mask-image: radial-gradient(ellipse at top right, black 30%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse at top right, black 30%, transparent 75%);
+  align-items: flex-start;
+  justify-content: flex-end;
+  z-index: 1; /* behind content */
+  pointer-events: none; /* so it doesn't block clicks on content */
+  
+  /* Extremely strong fade out on bottom and left, solid top right */
+  /* Using 100% 0% ensures the core is EXACTLY at the top right corner */
+  mask-image: radial-gradient(ellipse at 100% 0%, black 15%, transparent 60%);
+  -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 15%, transparent 60%);
+}
+
+/* Enable pointer events on the inner grid so it still tracks mouse if needed */
+.artContainer > * {
+  pointer-events: auto;
 }
 
 .heroCopy h1 {
