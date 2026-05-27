@@ -40,30 +40,6 @@ export function HeroSection() {
     <T key="t19" name="Diana F."   role="UMKM Jasa"       text="Kami merasa aman mempekerjakan mereka karena ada pantauan." />,
     <T key="t20" name="Reza M."    role="Pekerja"         text="Mendapatkan kepercayaan lagi adalah hal yang luar biasa." />,
     <T key="t21" name="Wahyu N."   role="UMKM Kerajinan"  text="Pekerja yang dikirimkan selalu sesuai dengan spesifikasi kami." />,
-    // Row 4 (7 items)
-    <T key="t22" name="Surya D."   role="Pekerja"         text="Semoga platform ini bisa menjangkau lebih banyak teman-teman." />,
-    <T key="t23" name="Nita K."    role="UMKM Batik"      text="Kami bangga bisa memberi kesempatan kerja yang bermartabat." />,
-    <T key="t24" name="Andi P."    role="Pekerja"         text="Pelatihan dan bimbingan dari BinaHub sangat membantu karir saya." />,
-    <T key="t25" name="Fitri L."   role="UMKM Catering"   text="Dashboard monitoring sangat memudahkan pengelolaan tim kami." />,
-    <T key="t26" name="Joko S."    role="Pekerja"         text="Saya bisa membuktikan diri lewat kinerja nyata di sini." />,
-    <T key="t27" name="Putri A."   role="UMKM Florist"    text="Sangat mudah menemukan kandidat yang cocok dengan usaha kami." />,
-    <T key="t28" name="Haris M."   role="Pekerja"         text="BinaHub membantu saya membangun reputasi kerja yang baik." />,
-    // Row 5 (7 items)
-    <T key="t29" name="Dewi R."    role="UMKM Salon"      text="Sistem penilaian AI-nya akurat dan sangat membantu seleksi." />,
-    <T key="t30" name="Fandi O."   role="Pekerja"         text="Akhirnya ada platform yang benar-benar peduli dengan kami." />,
-    <T key="t31" name="Ratna S."   role="UMKM Percetakan" text="Rekrutmen jadi lebih efisien dan hasilnya memuaskan." />,
-    <T key="t32" name="Bambang L." role="Pekerja"         text="Kesempatan kerja yang adil dan berkelanjutan ada di sini." />,
-    <T key="t33" name="Sinta M."   role="UMKM Tekstil"    text="Kualitas pekerja dari BinaHub konsisten dan terpercaya." />,
-    <T key="t34" name="Rudi K."    role="Pekerja"         text="Saya merasa dihargai dan didengar oleh platform ini." />,
-    <T key="t35" name="Lia N."     role="UMKM Printing"   text="Fitur monitoring membuat manajemen tim jadi lebih mudah." />,
-    // Row 6 (7 items)
-    <T key="t36" name="Tono S."    role="Pekerja"         text="Dari nol kesempatan menjadi punya pekerjaan tetap berkat BinaHub." />,
-    <T key="t37" name="Citra W."   role="UMKM Logistik"   text="Transparansi sistem membuat kami percaya penuh pada platform ini." />,
-    <T key="t38" name="Bimo A."    role="Pekerja"         text="Pendampingan rutin membuat saya terus berkembang di pekerjaan." />,
-    <T key="t39" name="Sari P."    role="UMKM Restoran"   text="Matching algorithm BinaHub sangat memahami kebutuhan bisnis kami." />,
-    <T key="t40" name="Hari B."    role="Pekerja"         text="Saya bangga bisa berkontribusi nyata untuk UMKM lokal." />,
-    <T key="t41" name="Mira D."    role="UMKM Kecantikan" text="Sistem daily check membuat komunikasi dengan tim lebih efektif." />,
-    <T key="t42" name="Joni R."    role="Pekerja"         text="BinaHub adalah bukti nyata bahwa inklusivitas bisa menguntungkan semua." />,
   ];
 
   return (

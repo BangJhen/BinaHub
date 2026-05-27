@@ -9,7 +9,7 @@ interface GridMotionProps {
   gradientColor?: string;
 }
 
-const ROWS = 6;
+const ROWS = 3;
 const COLS = 7;
 
 const GridMotion = ({ items = [], gradientColor = 'transparent' }: GridMotionProps) => {
