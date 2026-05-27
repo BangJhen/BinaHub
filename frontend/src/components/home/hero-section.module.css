@@ -29,31 +29,38 @@
   position: relative;
   z-index: 2; /* higher than artContainer */
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr; /* Empty column on the right allows grid motion to show through */
+  grid-template-columns: 1.1fr 0.9fr; 
   gap: clamp(20px, 4vw, 44px);
   align-items: center;
   min-height: 550px;
 }
 
-.artContainer {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 900px;
-  width: 60vw; /* take up a bit more than half the screen */
+.heroVisual {
+  position: relative;
+  height: 100%;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-start; /* Ensure it starts at the top */
   justify-content: flex-end;
-  z-index: 1; /* behind content */
-  pointer-events: none; /* so it doesn't block clicks on content */
-  
-  /* Extremely strong fade out on bottom and left, solid top right */
-  /* Using 100% 0% ensures the core is EXACTLY at the top right corner */
-  mask-image: radial-gradient(ellipse at 100% 0%, black 15%, transparent 60%);
-  -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 15%, transparent 60%);
 }
 
-/* Enable pointer events on the inner grid so it still tracks mouse if needed */
+.artContainer {
+  position: absolute;
+  /* Push it all the way to the top and right of the screen bounds */
+  top: -110px; /* Offset the heroBand padding-top to hit the very top */
+  right: -5vw; /* Push to the right edge */
+  height: 900px;
+  width: 65vw; 
+  display: flex;
+  align-items: flex-start; /* Align inner grid to top */
+  justify-content: flex-end;
+  z-index: 1; 
+  pointer-events: none; 
+  
+  /* Mask fading out left and bottom */
+  mask-image: radial-gradient(circle at 90% 10%, black 15%, transparent 65%);
+  -webkit-mask-image: radial-gradient(circle at 90% 10%, black 15%, transparent 65%);
+}
+
 .artContainer > * {
   pointer-events: auto;
 }
