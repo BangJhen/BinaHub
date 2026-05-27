@@ -27,67 +27,40 @@
 
 .heroContent {
   position: relative;
-  z-index: 2; /* higher than artContainer */
+  z-index: 1;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr; 
+  grid-template-columns: 1fr 1fr;
   gap: clamp(20px, 4vw, 44px);
   align-items: center;
-  min-height: 550px;
-}
-
-/* We don't need heroVisual anymore since artContainer is placed absolutely */
-
-.artContainer {
-  position: absolute;
-  /* Push it to the exact top right of the heroBand padding edge */
-  top: 0; 
-  right: 0;
-  height: 900px; /* fixed height to span down nicely */
-  width: 70vw; /* take up a large portion of the right side */
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  z-index: 1; 
-  pointer-events: none; 
-  
-  /* Mask fading out left, top, and bottom to blend with background */
-  /* Using radial gradient centered at right side for smooth fade */
-  mask-image: radial-gradient(ellipse at 90% 50%, black 25%, transparent 65%);
-  -webkit-mask-image: radial-gradient(ellipse at 90% 50%, black 25%, transparent 65%);
-}
-
-.artContainer > * {
-  pointer-events: auto;
 }
 
 .heroVisual {
   position: relative;
-  height: 100%;
+  min-height: 600px;
   display: flex;
-  align-items: flex-start; /* Ensure it starts at the top */
+  align-items: center;
   justify-content: flex-end;
 }
 
 .artContainer {
   position: absolute;
-  /* Push it all the way to the top and right of the screen bounds */
-  top: -110px; /* Offset the heroBand padding-top to hit the very top */
-  right: -5vw; /* Push to the right edge */
-  height: 900px;
-  width: 65vw; 
+  right: -10vw;
+  height: 750px;
+  width: 58vw;
   display: flex;
-  align-items: flex-start; /* Align inner grid to top */
-  justify-content: flex-end;
-  z-index: 1; 
-  pointer-events: none; 
-  
-  /* Mask fading out top, left, and bottom */
-  mask-image: radial-gradient(circle at 90% 35%, black 25%, transparent 70%);
-  -webkit-mask-image: radial-gradient(circle at 90% 35%, black 25%, transparent 70%);
-}
-
-.artContainer > * {
-  pointer-events: auto;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 0;
+  /* Fade: left strong, top + bottom moderate, right none (bleeds off screen) */
+  mask-image:
+    linear-gradient(to right,  transparent 0%, black 22%, black 100%),
+    linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    linear-gradient(to right,  transparent 0%, black 22%, black 100%),
+    linear-gradient(to bottom, transparent 0%, black 18%, black 82%, transparent 100%);
+  -webkit-mask-composite: source-in;
 }
 
 .heroCopy h1 {
