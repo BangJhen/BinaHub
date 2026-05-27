@@ -18,8 +18,6 @@
 .heroBand {
   position: relative;
   padding-top: clamp(42px, 8vw, 110px);
-  /* Optional: we can isolate the stacking context so parallax is behind the content */
-  isolation: isolate;
 }
 
 .heroBand::before,

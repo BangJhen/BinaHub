@@ -1,11 +1,9 @@
 import Link from "next/link";
 import styles from "./hero-section.module.css";
-import { HeroBackground } from "./HeroBackground";
 
 export function HeroSection() {
   return (
     <section className={`${styles.sectionBand} ${styles.heroBand}`}>
-      <HeroBackground />
       <div className={styles.heroContent}>
         <article className={styles.heroCopy}>
           <p className={styles.eyebrow}>Ekosistem Kerja Inklusif Berbasis Monitoring</p>

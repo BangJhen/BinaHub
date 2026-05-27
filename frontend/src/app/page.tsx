@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { HomeNav } from "@/components/home/HomeNav";
 import { HeroSection } from "@/components/home/HeroSection";
+import { HeroBackground } from "@/components/home/HeroBackground";
 import styles from "./page.module.css";
 
 // Lazy Load Below-the-fold Sections
@@ -16,8 +17,11 @@ export default function HomePage() {
   return (
     <main className={styles.pageRoot}>
       <HomeNav />
-      <HeroSection />
-      <MetricSection />
+      <div className={styles.heroWrapper}>
+        <HeroBackground />
+        <HeroSection />
+        <MetricSection />
+      </div>
       <ValueSection />
       <FlowSection />
       <RoleSection />

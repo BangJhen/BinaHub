@@ -16,3 +16,8 @@
   overflow-x: hidden;
   padding-top: 72px;
 }
+
+.heroWrapper {
+  position: relative;
+  isolation: isolate;
+}
