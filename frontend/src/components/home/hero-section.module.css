@@ -29,9 +29,33 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 1fr 1fr;
   gap: clamp(20px, 4vw, 44px);
   align-items: center;
+}
+
+.heroVisual {
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.artContainer {
+  position: absolute;
+  /* Shift it to the right, beyond the normal bounds */
+  right: -10vw;
+  height: 800px;
+  width: 60vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 24px;
+  /* Soft fade on edges of the art container */
+  mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle at center, black 30%, transparent 80%);
 }
 
 .heroCopy h1 {
