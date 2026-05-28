@@ -190,8 +190,7 @@ export default function WorkerProfileEditPage() {
           {/* SECTION 1: DATA DIRI */}
           <section style={sectionCard}>
             <h3 style={sectionHeader}>
-              <span style={{ background: "#0f6e99", color: "#fff", borderRadius: 99, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>1</span>
-              <i className="ti ti-user" style={{ color: "#0f6e99" }} /> Data Diri
+              <i className="ti ti-user" style={{ color: "#0f6e99", fontSize: 18 }} /> Data Diri
             </h3>
 
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 14, marginBottom: 14 }}>
@@ -254,8 +253,7 @@ export default function WorkerProfileEditPage() {
           {/* SECTION 2: PENDIDIKAN & PENGALAMAN */}
           <section style={sectionCard}>
             <h3 style={sectionHeader}>
-              <span style={{ background: "#0f6e99", color: "#fff", borderRadius: 99, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>2</span>
-              <i className="ti ti-school" style={{ color: "#0f6e99" }} /> Pendidikan & Pengalaman
+              <i className="ti ti-school" style={{ color: "#0f6e99", fontSize: 18 }} /> Pendidikan & Pengalaman
             </h3>
 
             <div style={{ marginBottom: 14 }}>
@@ -295,8 +293,7 @@ export default function WorkerProfileEditPage() {
           {/* SECTION 3: LATAR BELAKANG (SENSITIVE) */}
           <section style={{ ...sectionCard, background: "#fffbeb", border: "1px solid #fde68a" }}>
             <h3 style={{ ...sectionHeader, color: "#92400e" }}>
-              <span style={{ background: "#f59e0b", color: "#fff", borderRadius: 99, width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>3</span>
-              <i className="ti ti-shield-lock" style={{ color: "#f59e0b" }} /> Latar Belakang
+              <i className="ti ti-shield-lock" style={{ color: "#f59e0b", fontSize: 18 }} /> Latar Belakang
               <span style={{ marginLeft: "auto", fontSize: 11, background: "#fde68a", color: "#92400e", padding: "2px 10px", borderRadius: 99, fontWeight: 600 }}>SENSITIF</span>
             </h3>
 

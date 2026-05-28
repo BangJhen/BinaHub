@@ -3,7 +3,10 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "BinaHub",
-  description: "Platform penyalur tenaga kerja ex-narapidana dengan mitigasi risiko berbasis AI"
+  description: "Platform penyalur tenaga kerja ex-narapidana dengan mitigasi risiko berbasis AI",
+  icons: {
+    icon: '/icon.png',
+  },
 };
 
 export default function RootLayout({

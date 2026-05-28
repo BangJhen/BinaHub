@@ -20,18 +20,35 @@ const ROLE_DASHBOARD: Record<Role, string> = {
   admin: "/admin/dashboard",
 };
 
+const ROLE_PROFILE: Record<Role, string> = {
+  umkm: "/umkm/profile",
+  worker: "/worker/profile",
+  admin: "/admin/dashboard",
+};
+
 export default function AuthRoleControl({ initialRole = null }: { initialRole?: Role | null }) {
   const [role, setRole] = useState<Role | null>(initialRole);
   const [openProfile, setOpenProfile] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [supabase] = useState(() => createClient());
+
+  // Fetch avatar from API
+  const fetchAvatar = async () => {
+    try {
+      const res = await fetch("/api/user/avatar");
+      const data = await res.json();
+      if (data.avatar_url) setAvatarUrl(data.avatar_url);
+    } catch {}
+  };
 
   useEffect(() => {
     // Check initial session
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user && user.user_metadata?.role) {
         setRole(user.user_metadata.role as Role);
+        fetchAvatar();
       }
     });
 
@@ -40,14 +57,24 @@ export default function AuthRoleControl({ initialRole = null }: { initialRole?: 
       (event, session) => {
         if (event === "SIGNED_IN" && session?.user) {
           setRole(session.user.user_metadata?.role as Role);
+          fetchAvatar();
         } else if (event === "SIGNED_OUT") {
           setRole(null);
+          setAvatarUrl(null);
         }
       }
     );
 
+    // Listen for avatar-updated event dispatched from profile pages
+    const handleAvatarUpdated = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.avatar_url) setAvatarUrl(detail.avatar_url);
+    };
+    window.addEventListener("avatar-updated", handleAvatarUpdated);
+
     return () => {
       authListener.subscription.unsubscribe();
+      window.removeEventListener("avatar-updated", handleAvatarUpdated);
     };
   }, [supabase.auth]);
 
@@ -78,22 +105,44 @@ export default function AuthRoleControl({ initialRole = null }: { initialRole?: 
 
   const initial = ROLE_LABEL[role]?.charAt(0) || "U";
   const dashboardHref = ROLE_DASHBOARD[role] || "/";
+  const profileHref = ROLE_PROFILE[role] || "/";
 
   return (
     <div className={styles.authRoot} ref={panelRef}>
+      {/* Navbar avatar button */}
       <button
         className={styles.profileBtn}
         onClick={() => setOpenProfile((prev) => !prev)}
         aria-label="User profile"
         aria-expanded={openProfile}
+        style={{ padding: 0, overflow: "hidden" }}
       >
-        {initial}
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt="Avatar"
+            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%", display: "block" }}
+          />
+        ) : (
+          initial
+        )}
       </button>
 
       {openProfile && (
         <div className={styles.profilePanel}>
           <div className={styles.profileHead}>
-            <div className={styles.profileAvatar}>{initial}</div>
+            {/* Dropdown avatar */}
+            <div className={styles.profileAvatar} style={{ padding: 0, overflow: "hidden" }}>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%", display: "block" }}
+                />
+              ) : (
+                initial
+              )}
+            </div>
             <div>
               <p className={styles.profileName}>Akun BinaHub</p>
               <span className={styles.profileRoleBadge}>{ROLE_LABEL[role]}</span>
@@ -105,7 +154,7 @@ export default function AuthRoleControl({ initialRole = null }: { initialRole?: 
           <nav className={styles.menuList}>
             <Link href="/" className={styles.menuItem} onClick={() => setOpenProfile(false)}>Beranda</Link>
             <Link href={dashboardHref} className={styles.menuItem} onClick={() => setOpenProfile(false)}>Dashboard</Link>
-            <Link href="/profile" className={styles.menuItem} onClick={() => setOpenProfile(false)}>Profil Saya</Link>
+            <Link href={profileHref} className={styles.menuItem} onClick={() => setOpenProfile(false)}>Profil Saya</Link>
             <Link href="/settings" className={styles.menuItem} onClick={() => setOpenProfile(false)}>Pengaturan</Link>
           </nav>
 

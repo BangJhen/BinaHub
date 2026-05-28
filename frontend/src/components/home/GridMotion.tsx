@@ -46,26 +46,36 @@ const GridMotion = ({ items = [], gradientColor = 'transparent' }: GridMotionPro
         oneSetWidth -= 19.2; // Remove last gap
 
         const direction = rowIndex % 2 === 0 ? -1 : 1;
-        const speed = 25 + rowIndex * 2;
+        const speed = 50 + rowIndex * 5; // Increased duration to slow down animation (was 25 + rowIndex * 2)
 
         // Kill previous animation if exists
         animationsRef.current[rowIndex]?.kill();
 
-        // Create seamless loop animation
-        // Animate exactly one set width, then repeat
-        const tween = gsap.to(row, {
-          x: direction === -1 ? -oneSetWidth : oneSetWidth,
-          duration: speed,
-          ease: 'none',
-          repeat: -1,
-          repeatDelay: 0,
-          onRepeat: function() {
-            // Reset position instantly when repeat starts (seamless because items are duplicated)
-            gsap.set(row, { x: 0 });
-          }
-        });
-
-        animationsRef.current[rowIndex] = tween;
+        if (direction === -1) {
+          gsap.set(row, { x: 0 });
+          animationsRef.current[rowIndex] = gsap.to(row, {
+            x: -oneSetWidth,
+            duration: speed,
+            ease: 'none',
+            repeat: -1,
+            repeatDelay: 0,
+            onRepeat: function() {
+              gsap.set(row, { x: 0 });
+            }
+          });
+        } else {
+          gsap.set(row, { x: -oneSetWidth });
+          animationsRef.current[rowIndex] = gsap.to(row, {
+            x: 0,
+            duration: speed,
+            ease: 'none',
+            repeat: -1,
+            repeatDelay: 0,
+            onRepeat: function() {
+              gsap.set(row, { x: -oneSetWidth });
+            }
+          });
+        }
       });
     }, 150);
 
