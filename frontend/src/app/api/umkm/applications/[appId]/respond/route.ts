@@ -89,6 +89,8 @@ export async function POST(request: Request, { params }: { params: { appId: stri
             worker_id: application.worker_id,
             umkm_id: authData.user.id,
             job_id: application.job_id,
+            application_id: application.id,
+            start_date: new Date().toISOString().split('T')[0],
             status: "active"
           });
 

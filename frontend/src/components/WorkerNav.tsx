@@ -8,7 +8,7 @@ import AuthRoleControl from "./AuthRoleControl";
 
 const navItems = [
   { href: "/worker/dashboard", label: "Dashboard" },
-  { href: "/worker/check-in", label: "Daily Check" },
+  { href: "/worker/check-in", label: "Mode Kerja" },
   { href: "/worker/lowongan", label: "Lowongan" },
 ];
 
