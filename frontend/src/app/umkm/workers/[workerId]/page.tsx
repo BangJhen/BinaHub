@@ -56,6 +56,7 @@ export default function WorkerDetailPage() {
   const params = useParams<{ workerId: string }>();
   const workerId = params?.workerId ?? "";
   const [data, setData] = useState<UmkmDashboardData | null>(null);
+  const [realWorkerFallback, setRealWorkerFallback] = useState<any>(null);
   const [fetchError, setFetchError] = useState("");
   const [chartRange, setChartRange] = useState<WorkerChartRange>("1m");
 
@@ -64,23 +65,35 @@ export default function WorkerDetailPage() {
 
     async function loadData() {
       setFetchError("");
-      const res = await fetch("/api/dashboard/umkm", { cache: "no-store" });
-      if (!res.ok) {
-        const payload = (await res.json().catch(() => ({}))) as { message?: string };
+      
+      const [dashRes, realWorkerRes] = await Promise.all([
+        fetch("/api/dashboard/umkm", { cache: "no-store" }),
+        fetch(`/api/umkm/workers/${workerId}`, { cache: "no-store" })
+      ]);
+
+      if (realWorkerRes.ok) {
+        const payload = await realWorkerRes.json();
+        if (isMounted && payload.data) {
+          setRealWorkerFallback(payload.data);
+        }
+      }
+
+      if (!dashRes.ok) {
+        const payload = (await dashRes.json().catch(() => ({}))) as { message?: string };
         if (isMounted) setFetchError(payload.message ?? "Gagal memuat data pekerja.");
         return;
       }
 
-      const payload = (await res.json()) as UmkmDashboardData;
+      const payload = (await dashRes.json()) as UmkmDashboardData;
       if (!isMounted) return;
       setData(payload);
     }
 
-    loadData();
+    if (workerId) loadData();
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [workerId]);
 
   if (fetchError) {
     return (
@@ -99,7 +112,7 @@ export default function WorkerDetailPage() {
     );
   }
 
-  if (!data) {
+  if (!data && !realWorkerFallback) {
     return (
       <main className={styles.pageRoot}>
         <section className={styles.headerCard}>
@@ -119,18 +132,19 @@ export default function WorkerDetailPage() {
     return null;
   }
 
-  const { workers, alerts, checkinNotes, workerConditionTrendByRange } = data;
+  const { workers, alerts, checkinNotes, workerConditionTrendByRange } = data || { workers: [], alerts: [], checkinNotes: [], workerConditionTrendByRange: {} };
 
   const worker = workers.find((item) => item.id === workerId);
 
-  if (!worker) {
+  // Jika tidak ketemu di dummy dashboard, gunakan data real fallback
+  if (!worker && !realWorkerFallback) {
     return (
       <main className={styles.pageRoot}>
         <section className={styles.headerCard}>
           <div>
             <p className={styles.eyebrow}>Detail Individu</p>
             <h1>Pekerja tidak ditemukan</h1>
-            <p>Data pekerja yang dipilih tidak tersedia.</p>
+            <p>Data pekerja yang dipilih tidak tersedia atau tidak ada di database.</p>
           </div>
           <Link href="/umkm/dashboard" className={styles.backLink}>
             Kembali ke Dashboard
@@ -140,16 +154,81 @@ export default function WorkerDetailPage() {
     );
   }
 
-  const workerAlerts = alerts.filter((item) => item.workerId === worker.id);
+  // Jika Pekerja Dummy Tidak Ketemu TAPI Data Real Profil Supabase ketemu, render Fallback UI Data Asli Supabase
+  if (!worker && realWorkerFallback) {
+    return (
+      <main className={styles.pageRoot}>
+        <section className={styles.headerCard}>
+          <div>
+            <p className={styles.eyebrow}>Profil Pekerja (Belum mulai bekerja)</p>
+            <h1>{realWorkerFallback.name}</h1>
+            <p>{realWorkerFallback.email} • {realWorkerFallback.phone}</p>
+          </div>
+          <Link href="/umkm/lowongan" className={styles.backLink}>
+            Kembali ke Lowongan
+          </Link>
+        </section>
 
-  const workerCheckins = checkinNotes.filter((item) => item.workerId === worker.id);
+        <section className={styles.gridTop}>
+          <article className={styles.card} style={{ gridColumn: "1 / -1" }}>
+            <h2>Informasi Personal & Keahlian</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginTop: "1rem" }}>
+              <div>
+                <p style={{ margin: "0 0 5px", fontSize: 13, color: "#64748b" }}>Lokasi</p>
+                <p style={{ margin: 0, fontWeight: 500 }}>{realWorkerFallback.location}</p>
+              </div>
+              <div>
+                <p style={{ margin: "0 0 5px", fontSize: 13, color: "#64748b" }}>Pendidikan</p>
+                <p style={{ margin: 0, fontWeight: 500 }}>{realWorkerFallback.educationLevel}</p>
+              </div>
+              <div>
+                <p style={{ margin: "0 0 5px", fontSize: 13, color: "#64748b" }}>Usia</p>
+                <p style={{ margin: 0, fontWeight: 500 }}>{realWorkerFallback.age} Tahun</p>
+              </div>
+              <div>
+                <p style={{ margin: "0 0 5px", fontSize: 13, color: "#64748b" }}>Gender</p>
+                <p style={{ margin: 0, fontWeight: 500 }}>{realWorkerFallback.gender}</p>
+              </div>
+            </div>
 
-  const weeklyDailyChecks = workerConditionTrendByRange[worker.id]?.["1w"] ?? [];
+            <div style={{ marginTop: "1.5rem" }}>
+              <p style={{ margin: "0 0 5px", fontSize: 13, color: "#64748b" }}>Keahlian / Skills</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {realWorkerFallback.skills.split(",").filter(Boolean).map((s: string) => (
+                  <span key={s} style={{ background: "#f1f5f9", padding: "4px 10px", borderRadius: "20px", fontSize: 13, border: "1px solid #cbd5e1" }}>
+                    {s.trim()}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginTop: "1.5rem" }}>
+              <p style={{ margin: "0 0 5px", fontSize: 13, color: "#64748b" }}>Ringkasan Pengalaman</p>
+              <div style={{ background: "#f8fafc", padding: "14px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+                <p style={{ margin: 0, fontSize: 14, lineHeight: 1.6 }}>{realWorkerFallback.experienceSummary}</p>
+              </div>
+            </div>
+            
+            <p style={{ marginTop: "2rem", fontSize: 13, color: "#94a3b8", fontStyle: "italic" }}>
+              * Data grafik check-in dan absensi hanya tersedia untuk pekerja yang sudah diterima dan mulai bekerja aktif.
+            </p>
+          </article>
+        </section>
+      </main>
+    );
+  }
+
+  // ALUR NORMAL UNTUK KARYAWAN DUMMY (YANG SUDAH ADA DI DASHBOARD) 
+  const workerAlerts = alerts.filter((item) => item.workerId === worker!.id);
+
+  const workerCheckins = checkinNotes.filter((item) => item.workerId === worker!.id);
+
+  const weeklyDailyChecks = workerConditionTrendByRange[worker!.id]?.["1w"] ?? [];
   const todayCheck = weeklyDailyChecks[weeklyDailyChecks.length - 1];
   const stableDays = weeklyDailyChecks.filter((item) => dominantLevel(item.green, item.yellow, item.red) === "green").length;
   const attentionDays = weeklyDailyChecks.filter((item) => dominantLevel(item.green, item.yellow, item.red) !== "green").length;
 
-  const trend = workerConditionTrendByRange[worker.id]?.[chartRange] ?? [];
+  const trend = workerConditionTrendByRange[worker!.id]?.[chartRange] ?? [];
 
   const conditionDistribution = trend.reduce(
     (acc, item) => {
@@ -170,8 +249,8 @@ export default function WorkerDetailPage() {
       <section className={styles.headerCard}>
         <div>
           <p className={styles.eyebrow}>Detail Individu</p>
-          <h1>{worker.name}</h1>
-          <p>{worker.role} • Mulai bekerja: {worker.startDate}</p>
+          <h1>{worker!.name}</h1>
+          <p>{worker!.role} • Mulai bekerja: {worker!.startDate}</p>
         </div>
         <Link href="/umkm/dashboard" className={styles.backLink}>
           Kembali ke Dashboard
@@ -182,12 +261,12 @@ export default function WorkerDetailPage() {
         <article className={styles.card}>
           <h2>Snapshot Personal</h2>
           <div className={styles.stats}>
-            <div><span>Kehadiran</span><strong>{worker.attendanceRate}%</strong></div>
-            <div><span>Produktivitas</span><strong>{worker.productivityScore}</strong></div>
-            <div><span>Check-in</span><strong>{worker.checkinConsistency}%</strong></div>
-            <div><span>Kondisi Saat Ini</span><strong>{riskLabel(worker.latestCondition)}</strong></div>
+            <div><span>Kehadiran</span><strong>{worker!.attendanceRate}%</strong></div>
+            <div><span>Produktivitas</span><strong>{worker!.productivityScore}</strong></div>
+            <div><span>Check-in</span><strong>{worker!.checkinConsistency}%</strong></div>
+            <div><span>Kondisi Saat Ini</span><strong>{riskLabel(worker!.latestCondition)}</strong></div>
           </div>
-          <p className={styles.note}>{worker.mentorNote}</p>
+          <p className={styles.note}>{worker!.mentorNote}</p>
         </article>
 
         <article className={styles.card}>

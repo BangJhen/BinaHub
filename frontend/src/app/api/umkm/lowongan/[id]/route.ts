@@ -75,6 +75,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
       
       return {
         id: app.id,
+        workerId: app.worker_id,
         lowonganId: job.id,
         name: userData.full_name || 'Unknown User',
         email: userData.email || '',

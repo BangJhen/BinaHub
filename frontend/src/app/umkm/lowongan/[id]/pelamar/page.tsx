@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { fetchLowonganDetail } from "@/lib/api/lowongan";
+import { fetchLowonganDetail, respondApplication } from "@/lib/api/lowongan";
 import { getRelativeTime } from "@/lib/utils/lowongan";
 
 const STATUS_OPTIONS = ["Semua", "Submitted", "Reviewed", "Active", "Rejected", "Inactive"] as const;
@@ -35,6 +35,7 @@ export default function DetailPelamarPage({ params }: { params: { id: string } }
   const [statusFilter, setStatusFilter] = useState<string>("Semua");
   const [search, setSearch] = useState("");
   const [activePelamar, setActivePelamar] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -78,6 +79,40 @@ export default function DetailPelamarPage({ params }: { params: { id: string } }
     });
     return counts;
   }, [data]);
+
+  const handleRespond = async (decision: "accept" | "reject") => {
+    if (!activePelamar || isProcessing) return;
+    
+    // Konfirmasi
+    const isAccepted = decision === "accept";
+    const confirmMsg = isAccepted 
+      ? `Apakah Anda yakin ingin MENERIMA ${activePelamar.name}? Pekerja akan ditambahkan ke sistem pemantauan.` 
+      : `Apakah Anda yakin ingin MENOLAK lamaran ${activePelamar.name}?`;
+      
+    if (!confirm(confirmMsg)) return;
+
+    setIsProcessing(true);
+    try {
+      await respondApplication(activePelamar.id, decision);
+      
+      alert(isAccepted ? "Berhasil menerima pelamar!" : "Berhasil menolak pelamar.");
+      
+      const newStatus = isAccepted ? "Active" : "Rejected";
+      setData((prevData: any) => {
+        if (!prevData) return prevData;
+        const updatedList = prevData.pekerjaList.map((p: any) => 
+          p.id === activePelamar.id ? { ...p, status: newStatus } : p
+        );
+        return { ...prevData, pekerjaList: updatedList };
+      });
+      setActivePelamar((prev: any) => ({ ...prev, status: newStatus }));
+
+    } catch (err: any) {
+      alert(err.message || "Terjadi kesalahan saat memproses keputusan.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -420,7 +455,7 @@ export default function DetailPelamarPage({ params }: { params: { id: string } }
                     <i className="ti ti-mail" aria-hidden /> Kirim Email
                   </a>
                   <a
-                    href={`/umkm/workers/${activePelamar.id}`}
+                    href={`/umkm/workers/${activePelamar.workerId}`}
                     style={{
                       flex: "1 1 140px",
                       padding: "10px 14px",
@@ -437,6 +472,48 @@ export default function DetailPelamarPage({ params }: { params: { id: string } }
                     <i className="ti ti-user-circle" aria-hidden /> Lihat Profil
                   </a>
                 </div>
+
+                {(activePelamar.status === "Submitted" || activePelamar.status === "Reviewed" || activePelamar.status === "Pending") && (
+                  <div style={{ display: "flex", gap: 10, marginTop: 18, paddingTop: 18, borderTop: "1px solid #e5edf4", flexWrap: "wrap" }}>
+                    <button
+                      onClick={() => handleRespond("reject")}
+                      disabled={isProcessing}
+                      style={{
+                        flex: "1 1 140px",
+                        padding: "10px 14px",
+                        background: "#ffffff",
+                        color: "#b91c1c",
+                        border: "1px solid #fecaca",
+                        borderRadius: 10,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: isProcessing ? "not-allowed" : "pointer",
+                        opacity: isProcessing ? 0.6 : 1
+                      }}
+                    >
+                      {isProcessing ? "Memproses..." : "Tolak Lamaran"}
+                    </button>
+                    <button
+                      onClick={() => handleRespond("accept")}
+                      disabled={isProcessing}
+                      style={{
+                        flex: "1 1 140px",
+                        padding: "10px 14px",
+                        background: "#16a34a",
+                        color: "#ffffff",
+                        border: "none",
+                        borderRadius: 10,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: isProcessing ? "not-allowed" : "pointer",
+                        boxShadow: "0 4px 12px rgba(22, 163, 74, 0.2)",
+                        opacity: isProcessing ? 0.6 : 1
+                      }}
+                    >
+                      {isProcessing ? "Memproses..." : "Terima Pelamar"}
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>

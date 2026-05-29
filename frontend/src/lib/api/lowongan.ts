@@ -79,6 +79,22 @@ export async function closeLowongan(lowonganId: string): Promise<Lowongan> {
 }
 
 /**
+ * POST /api/umkm/applications/:appId/respond
+ */
+export async function respondApplication(appId: string, decision: "accept" | "reject"): Promise<void> {
+  const response = await fetch(`/api/umkm/applications/${appId}/respond`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ decision })
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error || "Gagal merespons pelamar");
+  }
+}
+
+/**
  * POST /api/umkm/lowongan/:id/duplicate
  */
 export async function duplicateLowongan(lowonganId: string): Promise<Lowongan> {
