@@ -38,9 +38,71 @@ export async function GET() {
       .order("submitted_at", { ascending: false })
       .limit(5);
 
+    // 3. Ambil Tasks riil dari DB, jika gagal/kosong gunakan Mock Data
+    let realTasks: any[] = [];
+    try {
+      const { data: tasksData, error: tasksError } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("worker_id", user.id)
+        .order("created_at", { ascending: false });
+        
+      if (!tasksError && tasksData && tasksData.length > 0) {
+        realTasks = tasksData.map(t => ({
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          status: t.status,
+          proofText: t.proof_text,
+          proofMediaUrl: t.proof_media_url,
+          proofMediaType: t.proof_media_type,
+          feedback: t.feedback,
+        }));
+      }
+    } catch (e) {
+      console.log("Tasks table not ready yet, falling back to mock");
+    }
+
+    // Status enum: "todo" | "waiting_approval" | "approved" | "rejected"
+    const mockTasks = placement ? [
+      { 
+        id: "mock-1", 
+        title: "Datang tepat waktu",
+        description: "Datang tepat waktu dan buka pintu toko.", 
+        status: "approved", 
+        proofText: "Sudah dibuka jam 07:30 bos.",
+        feedback: "Mantap, pertahankan kedisiplinannya.",
+      },
+      { 
+        id: "mock-2", 
+        title: "Siapkan stok barang",
+        description: "Menyiapkan alat dan bahan stok di gudang belakang.", 
+        status: "waiting_approval",
+        proofText: "Barang sudah saya susun rapi sesuai abjad seperti instruksi kemarin.",
+        feedback: null,
+      },
+      { 
+        id: "mock-3", 
+        title: "Bersihkan etalase",
+        description: "Membersihkan etalase depan.", 
+        status: "rejected",
+        proofText: "Sudah di lap pakai kain basah.",
+        feedback: "Masih banyak debu di rak paling atas, tolong dikerjakan ulang dengan kemoceng dulu ya.",
+      },
+      { 
+        id: "mock-4", 
+        title: "Laporan harian ke BinaHub",
+        description: "Laporan harian ke BinaHub.", 
+        status: "todo",
+        proofText: null,
+        feedback: null,
+      }
+    ] : [];
+
     return NextResponse.json({
       placement: placement ? { ...placement, umkm: umkmProfile } : null,
-      history: checkins || []
+      history: checkins || [],
+      tasks: realTasks.length > 0 ? realTasks : mockTasks
     });
 
   } catch (error) {

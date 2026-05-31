@@ -29,6 +29,7 @@ type UmkmDashboardData = {
   }>;
   workerConditionTrendByRange: Record<string, Record<WorkerChartRange, Array<{ day: string; green: number; yellow: number; red: number }>>>;
   activities: string[];
+  aiInsights?: Array<{ workerId: string; workerName: string; reason: string }>;
 };
 
 function riskLabel(level: RiskLevel) {
@@ -194,6 +195,50 @@ export default function UmkmDashboardPage() {
           <span>Total sesi dalam periode ini</span>
         </article>
       </section>
+
+      {data.aiInsights && data.aiInsights.length > 0 && (
+        <section className={`${styles.contentGrid} ${styles.singlePaneGrid}`} style={{ marginBottom: "2rem" }}>
+          {/* AI Insight Card */}
+          <article style={{ 
+            background: "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)", 
+            borderRadius: 16, 
+            padding: "24px", 
+            border: "1px solid #bae6fd",
+            display: "flex",
+            gap: 20,
+            alignItems: "flex-start",
+            boxShadow: "0 4px 12px rgba(14, 165, 233, 0.08)"
+          }}>
+            <div style={{
+              background: "linear-gradient(135deg, #0ea5e9, #0284c7)",
+              color: "white",
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              boxShadow: "0 4px 10px rgba(14, 165, 233, 0.3)"
+            }}>
+              <i className="ti ti-brain" style={{ fontSize: 24 }} />
+            </div>
+            <div>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: "#0c4a6e", margin: "0 0 8px 0" }}>BinaHub AI Insight</h2>
+              <p style={{ margin: "0 0 12px 0", color: "#0369a1", lineHeight: 1.5, fontSize: 14 }}>
+                AI mendeteksi <strong>{data.aiInsights.length} pekerja</strong> ({data.aiInsights.map(i => i.workerName).join(", ")}) {data.aiInsights[0].reason} Disarankan untuk segera menugaskan sesi pendampingan (coaching).
+              </p>
+              <div style={{ display: "flex", gap: 12 }}>
+                <button style={{
+                  background: "#0284c7", color: "white", border: "none", padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 2px 4px rgba(2, 132, 199, 0.2)"
+                }}>
+                  <i className="ti ti-filter" /> Filter Pekerja Berisiko
+                </button>
+              </div>
+            </div>
+          </article>
+        </section>
+      )}
 
       <section className={`${styles.contentGrid} ${styles.singlePaneGrid}`}>
         <article className={styles.panel}>

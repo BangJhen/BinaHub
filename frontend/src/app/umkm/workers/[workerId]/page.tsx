@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
+import { createClient } from "@/utils/supabase/client";
 
 type RiskLevel = "green" | "yellow" | "red";
 type WorkerChartRange = "1w" | "1m" | "6m" | "1y";
@@ -59,6 +60,15 @@ export default function WorkerDetailPage() {
   const [realWorkerFallback, setRealWorkerFallback] = useState<any>(null);
   const [fetchError, setFetchError] = useState("");
   const [chartRange, setChartRange] = useState<WorkerChartRange>("1m");
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [realAlerts, setRealAlerts] = useState<any[]>([]);
+  const [realCheckins, setRealCheckins] = useState<any[]>([]);
+  const [feedbackDrafts, setFeedbackDrafts] = useState<Record<string, string>>({});
+  const [questionText, setQuestionText] = useState("");
+  const [questionSent, setQuestionSent] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDesc, setNewTaskDesc] = useState("");
+  const [isAddingTask, setIsAddingTask] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -135,6 +145,115 @@ export default function WorkerDetailPage() {
   const { workers, alerts, checkinNotes, workerConditionTrendByRange } = data || { workers: [], alerts: [], checkinNotes: [], workerConditionTrendByRange: {} };
 
   const worker = workers.find((item) => item.id === workerId);
+
+  const renderTasksAndMessages = () => (
+    <section className={styles.gridFull}>
+      <article className={styles.card}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+          <h2 style={{ margin: 0 }}>Tugas & Bukti Kerja Pekerja</h2>
+        </div>
+
+        <div className={styles.addTaskFormContainer}>
+          <h3>Tambah To-Do / Instruksi Baru</h3>
+          <form onSubmit={handleAddTask} className={styles.addTaskForm}>
+            <input 
+              type="text" 
+              className={styles.addTaskInput} 
+              placeholder="Judul Tugas (misal: Rapikan gudang A)" 
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+            />
+            <textarea 
+              className={styles.addTaskTextarea} 
+              placeholder="Detail / Instruksi tambahan (opsional)"
+              value={newTaskDesc}
+              onChange={(e) => setNewTaskDesc(e.target.value)}
+            />
+            <button 
+              type="submit" 
+              className={styles.addTaskSubmit} 
+              disabled={!newTaskTitle.trim() || isAddingTask}
+            >
+              {isAddingTask ? "Menyimpan..." : "+ Tambahkan Tugas"}
+            </button>
+          </form>
+        </div>
+
+        <div className={styles.taskList}>
+          {tasks.map(task => (
+            <div key={task.id} className={styles.taskItem}>
+              <div className={styles.taskHeader}>
+                <div className={styles.taskTitle}>{task.title}</div>
+                <div className={`${styles.taskBadge} ${task.status === "approved" ? styles.badgeApproved : task.status === "rejected" ? styles.badgeRejected : styles.badgeWaiting}`}>
+                  {task.status === "approved" ? "Disetujui" : task.status === "rejected" ? "Ditolak" : "Menunggu"}
+                </div>
+              </div>
+              <p className={styles.taskDesc}>{task.description}</p>
+              
+              {(task.proofText || task.proofMediaUrl) && (
+                <div className={styles.proofBox}>
+                  <p style={{margin: "0 0 5px", fontSize: 12, fontWeight: 700, color: "#64748b"}}>BUKTI DIKIRIM:</p>
+                  {task.proofText && <p className={styles.proofText}>"{task.proofText}"</p>}
+                  {task.proofMediaUrl && (
+                    task.proofMediaType === "video" ? (
+                      <video src={task.proofMediaUrl} controls className={styles.proofMedia} />
+                    ) : (
+                      <img src={task.proofMediaUrl} alt="Bukti kerja" className={styles.proofMedia} />
+                    )
+                  )}
+                </div>
+              )}
+
+              {task.status === "waiting_approval" && (
+                <div className={styles.feedbackForm}>
+                  <textarea 
+                    className={styles.feedbackInput} 
+                    placeholder="Catatan untuk pekerja (opsional)..."
+                    value={feedbackDrafts[task.id] || ""}
+                    onChange={(e) => setFeedbackDrafts(prev => ({...prev, [task.id]: e.target.value}))}
+                  />
+                  <div className={styles.feedbackActions}>
+                    <button type="button" className={styles.approveBtn} onClick={() => handleApprove(task.id)}>Setujui</button>
+                    <button type="button" className={styles.rejectBtn} onClick={() => handleReject(task.id)}>Tolak</button>
+                  </div>
+                </div>
+              )}
+
+              {task.feedback && task.status !== "waiting_approval" && (
+                <div className={styles.proofBox} style={{marginTop: "8px", background: task.status === "approved" ? "#f0fdf4" : "#fef2f2"}}>
+                  <p style={{margin: "0 0 5px", fontSize: 12, fontWeight: 700, color: task.status === "approved" ? "#166534" : "#991b1b"}}>CATATAN ANDA:</p>
+                  <p className={styles.proofText} style={{color: task.status === "approved" ? "#14532d" : "#7f1d1d"}}>{task.feedback}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </article>
+
+      <article className={styles.card}>
+        <h2>Tanya Pekerja / Kirim Pesan</h2>
+        <p style={{fontSize: 13, color: "#64748b", marginBottom: 12}}>
+          Kirimkan pertanyaan atau instruksi langsung kepada pekerja. Mereka akan menerimanya di aplikasi mereka.
+        </p>
+        {questionSent && (
+          <div className={styles.successMsg} style={{marginBottom: 12}}>
+            Pesan berhasil dikirim ke pekerja.
+          </div>
+        )}
+        <form onSubmit={handleSendQuestion} className={styles.messageForm}>
+          <textarea 
+            className={styles.messageInput} 
+            placeholder="Tulis pesan atau pertanyaan Anda di sini..."
+            value={questionText}
+            onChange={(e) => setQuestionText(e.target.value)}
+          />
+          <button type="submit" className={styles.messageSubmit} disabled={!questionText.trim()}>
+            Kirim Pesan
+          </button>
+        </form>
+      </article>
+    </section>
+  );
 
   // Jika tidak ketemu di dummy dashboard, gunakan data real fallback
   if (!worker && !realWorkerFallback) {

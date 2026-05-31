@@ -333,3 +333,266 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+.gridFull {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.taskItem {
+  border: 1px solid #e4edf5;
+  border-radius: 10px;
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.taskHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.taskTitle {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 14px;
+}
+
+.taskBadge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badgeWaiting { background: #fef3c7; color: #b45309; border: 1px solid #fde68a;}
+.badgeApproved { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0;}
+.badgeRejected { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;}
+
+.taskDesc {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 12px;
+  margin-top: 0;
+}
+
+.proofBox {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.proofText {
+  font-size: 13px;
+  color: #334155;
+  font-style: italic;
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+
+.proofMedia {
+  max-width: 100%;
+  max-height: 250px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  object-fit: contain;
+}
+
+.feedbackForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.feedbackInput {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.feedbackActions {
+  display: flex;
+  gap: 8px;
+}
+
+.approveBtn {
+  background: #16a34a;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.approveBtn:hover { background: #15803d; }
+
+.rejectBtn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.rejectBtn:hover { background: #b91c1c; }
+
+.messageForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.messageInput {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.messageSubmit {
+  align-self: flex-start;
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.messageSubmit:hover:not(:disabled) {
+  background: #0284c7;
+}
+
+.messageSubmit:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.successMsg {
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid #bbf7d0;
+}
+
+.addTaskFormContainer {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.addTaskFormContainer h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.addTaskForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.addTaskInput {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.addTaskInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.addTaskTextarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: #ffffff;
+  min-height: 80px;
+  resize: vertical;
+  transition: all 0.2s ease;
+}
+
+.addTaskTextarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.addTaskSubmit {
+  align-self: flex-start;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.addTaskSubmit:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+}
+
+.addTaskSubmit:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}

@@ -44,6 +44,9 @@ type CheckinRow = {
   worker_id: string;
   content: string;
   sentiment_score: number | null;
+  ai_score: number | null;
+  ai_label: string | null;
+  trend_direction: string | null;
   submitted_at: string;
 };
 
@@ -161,7 +164,7 @@ async function getAdminBaseDataset() {
       ? supabase.from("worker_profiles").select("user_id, skills, experience_summary").in("user_id", workerIds)
       : Promise.resolve({ data: [] as WorkerProfileRow[] }),
     workerIds.length
-      ? supabase.from("checkins").select("id, worker_id, content, sentiment_score, submitted_at").in("worker_id", workerIds).order("submitted_at", { ascending: false })
+      ? supabase.from("checkins").select("id, worker_id, content, sentiment_score, ai_score, ai_label, trend_direction, submitted_at").in("worker_id", workerIds).order("submitted_at", { ascending: false })
       : Promise.resolve({ data: [] as CheckinRow[] }),
     workerIds.length
       ? supabase
@@ -218,7 +221,8 @@ async function getAdminBaseDataset() {
           ? workerCheckins.reduce((acc, item) => acc + (item.sentiment_score ?? 0), 0) / workerCheckins.length
           : 0;
 
-      const latestCondition: RiskLevel = latestRisk?.risk_level ?? riskFromSentiment(latestCheckin?.sentiment_score);
+      const aiLabelMap: Record<string, RiskLevel> = { Hijau: "green", Kuning: "yellow", Merah: "red" };
+      const latestCondition: RiskLevel = latestRisk?.risk_level ?? (latestCheckin?.ai_label ? aiLabelMap[latestCheckin.ai_label] : riskFromSentiment(latestCheckin?.sentiment_score)) ?? "green";
       const workerProfile = workerProfileById.get(placement.worker_id);
 
       return {
@@ -278,6 +282,15 @@ async function getAdminBaseDataset() {
   });
 
   return { umkmData, checkinRows, riskRows, alertRows, dbUsers: userRows, placements: placementRows };
+}
+
+function getRiskFromCheckin(checkin?: CheckinRow, risk?: RiskRow): RiskLevel {
+  if (risk) return risk.risk_level;
+  if (!checkin) return "green";
+  if (checkin.ai_label === "Merah") return "red";
+  if (checkin.ai_label === "Kuning") return "yellow";
+  if (checkin.ai_label === "Hijau") return "green";
+  return riskFromSentiment(checkin.sentiment_score) ?? "green";
 }
 
 function makeDailyTrend(
@@ -411,7 +424,7 @@ export async function getUmkmDashboardData() {
 
   for (const worker of workers) {
     workerConditionTrendByRange[worker.id] = {
-      "1w": makeDailyTrend(worker.id, 7, risksByWorker),
+      "1w": makeDailyTrend(worker.id, 7, risksByWorker, checkinsByWorker),
       "1m": makeBucketTrend(
         worker.id,
         ["Minggu 1", "Minggu 2", "Minggu 3", "Minggu 4"],
@@ -450,6 +463,18 @@ export async function getUmkmDashboardData() {
     ...workers.slice(0, 2).map((w) => `${w.name} check-in terakhir ${w.latestCheckin}`),
   ].slice(0, 5);
 
+  const deterioratingWorkers = workers.filter(w => {
+    const workerCheckins = checkinRows.filter(c => c.worker_id === w.id && new Date(c.submitted_at).getTime() >= Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const latest = workerCheckins[0];
+    return latest && (latest.trend_direction === "deteriorating" || latest.ai_label === "Merah" || latest.ai_label === "Kuning");
+  });
+
+  const aiInsights = deterioratingWorkers.map(w => ({
+    workerId: w.id,
+    workerName: w.name,
+    reason: "menunjukkan tren penurunan kondisi emosional (risiko kuning/merah) dalam 7 hari terakhir."
+  }));
+
   const checkinNotes = checkinRows
     .filter((c) => workerIds.includes(c.worker_id))
     .slice(0, 80)
@@ -474,6 +499,7 @@ export async function getUmkmDashboardData() {
     checkinNotes,
     workerConditionTrendByRange,
     activities,
+    aiInsights,
   };
 }
 
@@ -556,7 +582,7 @@ export async function getWorkerDashboardData() {
       : Promise.resolve({ data: null }),
     supabase
       .from("checkins")
-      .select("id, worker_id, content, sentiment_score, submitted_at")
+      .select("id, worker_id, content, sentiment_score, ai_score, ai_label, trend_direction, submitted_at")
       .eq("worker_id", workerUser.id)
       .order("submitted_at", { ascending: false })
       .limit(120),
@@ -575,6 +601,9 @@ export async function getWorkerDashboardData() {
   ]);
 
   const checkins = (checkinsRes.data ?? []) as CheckinRow[];
+  if (checkinsRes.error) {
+    console.error("Checkins Fetch Error:", checkinsRes.error);
+  }
   const risks = (risksRes.data ?? []) as RiskRow[];
   const alerts = (alertsRes.data ?? []) as Array<{ id: string; title: string; message: string; created_at: string; umkm_id: string }>;
 

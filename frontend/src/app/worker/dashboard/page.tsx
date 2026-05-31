@@ -284,6 +284,29 @@ export default function WorkerDashboardPage() {
 
   const progressPct = Math.round((workerProfile.checkinThisMonth / workerProfile.checkinTarget) * 100);
 
+  // Compute Gamification Badges
+  const badges = [];
+  if (workerProfile.streakDays >= 7) {
+    badges.push({ title: "7 Hari Konsisten", icon: "🔥", color: "#f97316", desc: "Check-in 7 hari berturut-turut" });
+  }
+  if (workerProfile.performanceScore >= 80) {
+    badges.push({ title: "Performa Bintang", icon: "⭐", color: "#eab308", desc: "Skor performa sangat memuaskan" });
+  }
+  if (workerProfile.attendanceRate >= 95) {
+    badges.push({ title: "Kehadiran Super", icon: "🛡️", color: "#3b82f6", desc: "Tingkat kehadiran di atas 95%" });
+  }
+  if (badges.length === 0) {
+    badges.push({ title: "Pekerja Baru", icon: "🌱", color: "#22c55e", desc: "Mulai perjalanan karir Anda!" });
+  }
+
+  // Energy Gauge Logic
+  const todayDateString = new Date().toISOString().split("T")[0];
+  const hasCheckedInToday = dailyCheckins[0]?.date === todayDateString && dailyCheckins[0]?.condition !== "missed";
+  
+  // Calculate simulated energy level (for visual purposes based on recent scores)
+  const baseEnergy = workerProfile.performanceScore > 0 ? workerProfile.performanceScore : 80;
+  const energyLevel = hasCheckedInToday ? Math.min(100, baseEnergy + 5) : baseEnergy;
+
   return (
     <main className={styles.dashboardRoot}>
 
@@ -332,6 +355,72 @@ export default function WorkerDashboardPage() {
         </article>
       </section>
 
+      {/* Energy Gauge & Badges Section */}
+      <section className={styles.twoColGrid} style={{ marginTop: "2rem" }}>
+        {/* Energy Gauge */}
+        <article className={styles.panel} style={{ background: "linear-gradient(135deg, #ffffff, #f0f7ff)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+            <h2 style={{ margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "8px" }}>
+              <i className="ti ti-bolt" style={{ color: "#eab308", fontSize: "1.4rem" }}></i> 
+              Energy Gauge
+            </h2>
+          </div>
+          
+          <div style={{ textAlign: "center", padding: "1rem 0" }}>
+            {hasCheckedInToday ? (
+              <>
+                <div style={{ position: "relative", width: 140, height: 140, margin: "0 auto 1rem" }}>
+                  <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%", transform: "rotate(-90deg)" }}>
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#e2e8f0" strokeWidth="10" />
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="#22c55e" strokeWidth="10" 
+                      strokeDasharray="251" strokeDashoffset={251 - (251 * energyLevel) / 100} 
+                      style={{ transition: "stroke-dashoffset 1s ease-in-out" }} />
+                  </svg>
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: "1.8rem", fontWeight: 800, color: "#0f172a" }}>{energyLevel}%</span>
+                  </div>
+                </div>
+                <h3 style={{ margin: "0 0 0.5rem", color: "#16a34a", fontSize: "1.1rem" }}>Siap Bekerja!</h3>
+                <p style={{ margin: 0, color: "#64748b", fontSize: "0.9rem" }}>Anda sudah melakukan check-in hari ini. Pertahankan energi positif Anda!</p>
+              </>
+            ) : (
+              <div style={{ background: "#fff", padding: "1.5rem", borderRadius: "12px", border: "1px dashed #cbd5e1" }}>
+                <i className="ti ti-coffee" style={{ fontSize: "2.5rem", color: "#94a3b8", display: "block", marginBottom: "1rem" }}></i>
+                <h3 style={{ margin: "0 0 0.5rem", color: "#334155" }}>Belum Check-in</h3>
+                <p style={{ margin: "0 0 1rem", color: "#64748b", fontSize: "0.9rem" }}>Lakukan jurnal harian untuk memantau tingkat kesiapan kerja Anda hari ini.</p>
+                <a href="/worker/check-in" style={{ display: "inline-block", background: "#0ea5e9", color: "#fff", padding: "10px 20px", borderRadius: "8px", textDecoration: "none", fontWeight: 600 }}>
+                  Mulai Check-in
+                </a>
+              </div>
+            )}
+          </div>
+        </article>
+
+        {/* Gamification Badges */}
+        <article className={styles.panel} style={{ background: "linear-gradient(135deg, #ffffff, #fffbeb)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+            <h2 style={{ margin: 0, fontSize: "1.2rem", display: "flex", alignItems: "center", gap: "8px" }}>
+              <i className="ti ti-medal" style={{ color: "#f59e0b", fontSize: "1.4rem" }}></i> 
+              Prestasi Anda
+            </h2>
+          </div>
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {badges.map((b, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "1rem", background: "#fff", padding: "12px", borderRadius: "12px", border: "1px solid #fef3c7", boxShadow: "0 2px 4px rgba(251, 191, 36, 0.1)" }}>
+                <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${b.color}15`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", flexShrink: 0 }}>
+                  {b.icon}
+                </div>
+                <div>
+                  <h4 style={{ margin: "0 0 4px", fontSize: "1rem", color: "#1e293b", fontWeight: 700 }}>{b.title}</h4>
+                  <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b" }}>{b.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
       {/* Daily check history + monthly calendar */}
       <section className={styles.twoColGrid}>
         <article className={styles.panel}>
@@ -353,6 +442,43 @@ export default function WorkerDashboardPage() {
             <label>s/d</label>
             <span className={styles.dateEndLabel}>{formatDateLabel(endDate)}</span>
           </div>
+          
+          {/* 7-Day Sentiment Tracker Chart */}
+          <div style={{ marginBottom: "2rem", padding: "1.5rem", background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+            <h3 style={{ margin: "0 0 1rem", fontSize: "0.95rem", color: "#475569" }}>Tren Sentimen 7 Hari Terakhir</h3>
+            <div style={{ display: "flex", alignItems: "flex-end", height: "120px", gap: "8px", position: "relative" }}>
+              {/* Y-axis lines */}
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, borderTop: "1px dashed #cbd5e1" }}></div>
+              <div style={{ position: "absolute", top: "50%", left: 0, right: 0, borderTop: "1px dashed #cbd5e1" }}></div>
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, borderTop: "1px solid #cbd5e1" }}></div>
+              
+              {filteredCheckins.slice(0, 7).reverse().map((entry, idx) => {
+                const height = entry.condition === "green" ? "100%" 
+                             : entry.condition === "yellow" ? "60%" 
+                             : entry.condition === "red" ? "30%" 
+                             : "5%";
+                const color = entry.condition === "green" ? "#22c55e" 
+                            : entry.condition === "yellow" ? "#eab308" 
+                            : entry.condition === "red" ? "#ef4444" 
+                            : "#e2e8f0";
+                
+                return (
+                  <div key={idx} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", zIndex: 1 }}>
+                    <div style={{ 
+                      width: "100%", maxWidth: "40px", height, 
+                      background: color, borderRadius: "6px 6px 0 0",
+                      transition: "height 0.5s ease-out",
+                      opacity: entry.condition === "missed" ? 0.5 : 1
+                    }}></div>
+                    <span style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "8px", whiteSpace: "nowrap" }}>
+                      {entry.dayLabel.split(",")[0]}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <ul className={styles.checkinTimeline}>
             {filteredCheckins.length === 0 && (
               <li className={styles.emptyCheckin}>Tidak ada data check-in pada rentang tanggal ini.</li>
@@ -456,6 +582,8 @@ export default function WorkerDashboardPage() {
         </div>
       </section>
 
+
+
       {/* Weekly / monthly performance chart */}
       <section className={styles.panel} style={{ marginTop: 14 }}>
         <div className={styles.panelHeader}>
@@ -476,19 +604,40 @@ export default function WorkerDashboardPage() {
             ))}
           </div>
         </div>
-        <div className={styles.perfChart}>
-          {perfData.map((item) => (
-            <div key={item.week} className={styles.perfBar}>
-              <span className={styles.perfBarScoreLabel}>{item.score}</span>
-              <div className={styles.perfBarTrack}>
-                <div
-                  className={styles.perfBarFill}
-                  style={{ height: `${(item.score / maxScore) * 100}%` }}
-                />
+        <div className={styles.perfChart} style={{ marginTop: 40, height: 200, display: "flex", alignItems: "flex-end", gap: "4%", paddingBottom: 0, borderBottom: "1px solid #e2e8f0" }}>
+          {perfData.map((item, idx) => {
+            const heightPct = (item.score / maxScore) * 100;
+            const color = item.score >= 75 ? "#16a34a" : item.score >= 50 ? "#f59e0b" : "#dc2626";
+            return (
+              <div key={item.week || idx} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 8, position: "relative", height: "100%" }}>
+                <div style={{
+                  position: "absolute",
+                  bottom: `${heightPct}%`,
+                  marginBottom: 8,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: color
+                }}>
+                  {item.score}
+                </div>
+                <div style={{ 
+                  width: "100%", 
+                  maxWidth: 64, 
+                  height: `${heightPct}%`, 
+                  background: `linear-gradient(to top, ${color}22, ${color}cc)`, 
+                  borderRadius: "8px 8px 0 0",
+                  transition: "height 0.5s ease",
+                  borderTop: `3px solid ${color}`
+                }} />
+                <span style={{ fontSize: 13, color: "#64748b", position: "absolute", top: "100%", marginTop: 16, fontWeight: 500, textAlign: "center", whiteSpace: "nowrap" }}>{item.week}</span>
               </div>
-              <span className={styles.perfBarLabel}>{item.week}</span>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+        <div style={{ display: "flex", gap: 24, marginTop: 48, fontSize: 12, color: "#475569", justifyContent: "center", fontWeight: 500 }}>
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}><i style={{ width: 10, height: 10, borderRadius: "50%", background: "#16a34a" }} /> 75-100 (Sangat Baik)</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}><i style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b" }} /> 50-74 (Cukup)</span>
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}><i style={{ width: 10, height: 10, borderRadius: "50%", background: "#dc2626" }} /> 0-49 (Kurang)</span>
         </div>
         <div className={styles.perfNote}>
           <span>Skor dihitung dari konsistensi check-in, kondisi harian, dan feedback UMKM.</span>
