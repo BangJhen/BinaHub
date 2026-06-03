@@ -81,6 +81,7 @@ export default function WorkspacePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [proofDrafts, setProofDrafts] = useState<Record<string, string>>({});
   const [proofFiles, setProofFiles] = useState<Record<string, File | null>>({});
   const [sosOpen, setSosOpen] = useState(false);
@@ -299,6 +300,7 @@ export default function WorkspacePage() {
 
     setProofDrafts((prev) => ({ ...prev, [taskId]: "" }));
     setProofFiles((prev) => ({ ...prev, [taskId]: null }));
+    setActiveTaskId(null);
   };
 
   const handleSendSos = async () => {
@@ -903,7 +905,7 @@ export default function WorkspacePage() {
                               locale: id,
                             })}
                           </div>
-                          <div className={styles.noteContent}>"{h.content}"</div>
+                          <div className={styles.noteContent}>&quot;{h.content}&quot;</div>
                         </li>
                       ))}
                     </ul>
