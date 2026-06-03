@@ -648,14 +648,17 @@ export default function WorkspacePage() {
             </section>
 
             {!chatPanelOpen && (
-              <button
-                type="button"
-                className={styles.floatingChatButton}
-                onClick={() => setChatPanelOpen(true)}
-                aria-label="Buka BinaBot"
-              >
-                🤖 BinaBot
-              </button>
+              <div className={styles.floatingChatButtonWrapper}>
+                {!conversationComplete && <div className={styles.notificationBadge} />}
+                <button
+                  type="button"
+                  className={styles.floatingChatButton}
+                  onClick={() => setChatPanelOpen(true)}
+                  aria-label="Buka BinaBot"
+                >
+                  🤖 BinaBot
+                </button>
+              </div>
             )}
 
             <aside
