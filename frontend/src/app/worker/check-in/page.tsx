@@ -338,82 +338,43 @@ export default function WorkspacePage() {
 
   
   const renderTaskItem = (task: Task) => {
-    const badgeClass =
-      task.status === "approved"
-        ? styles.badgeApproved
-        : task.status === "waiting_approval"
-        ? styles.badgeWaiting
-        : task.status === "rejected"
-        ? styles.badgeRejected
-        : styles.badgeTodo;
-
-    const badgeLabel =
-      task.status === "approved"
-        ? "Disetujui"
-        : task.status === "waiting_approval"
-        ? "Menunggu"
-        : task.status === "rejected"
-        ? "Ditolak"
-        : "To Do";
-
     const priorityLabel = getPriorityLabel(task.priority);
 
     return (
       <div key={task.id} className={styles.taskItem}>
-        <div className={styles.taskHeader}>
-          <div>
-            <div className={styles.taskTitle}>{task.title}</div>
-            <div className={styles.taskSubline}>
-              {task.description}
-            </div>
-          </div>
-          <div className={styles.taskBadgeRow}>
-            <span className={`${styles.badge} ${badgeClass}`}>
-              {badgeLabel}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.25rem" }}>
+          <div className={styles.taskTitle}>{task.title}</div>
+          {priorityLabel && (
+            <span
+              className={`${styles.badge} ${
+                task.priority === "high"
+                  ? styles.badgePriorityHigh
+                  : task.priority === "medium"
+                  ? styles.badgePriorityMedium
+                  : styles.badgePriorityLow
+              }`}
+              style={{ fontSize: "0.65rem", padding: "0.2rem 0.4rem" }}
+            >
+              {priorityLabel}
             </span>
-            {priorityLabel && (
-              <span
-                className={`${styles.badge} ${
-                  task.priority === "high"
-                    ? styles.badgePriorityHigh
-                    : task.priority === "medium"
-                    ? styles.badgePriorityMedium
-                    : styles.badgePriorityLow
-                }`}
-              >
-                {priorityLabel}
-              </span>
-            )}
-          </div>
+          )}
         </div>
+        
+        <div className={styles.taskSubline}>{task.description}</div>
 
-        <div className={styles.taskDetailsGrid}>
-          <div className={styles.taskDetailItem}>
-            <div className={styles.taskDetailLabel}>Deadline</div>
-            <div className={styles.taskDetailValue}>
-              {formatDueDate(task.dueDate)}
-            </div>
-          </div>
-          <div className={styles.taskDetailItem}>
-            <div className={styles.taskDetailLabel}>Area</div>
-            <div className={styles.taskDetailValue}>
-              {task.location || "-"}
-            </div>
-          </div>
-          <div className={styles.taskDetailItem}>
-            <div className={styles.taskDetailLabel}>Target</div>
-            <div className={styles.taskDetailValue}>
-              {task.target || "-"}
-            </div>
-          </div>
+        <div className={styles.compactDetails}>
+          {task.dueDate && (
+             <span className={styles.compactBadge}>📅 {formatDueDate(task.dueDate)}</span>
+          )}
+          {task.location && (
+             <span className={styles.compactBadge}>📍 {task.location}</span>
+          )}
         </div>
 
         {task.checklist && task.checklist.length > 0 && (
-          <div className={styles.taskChecklist}>
-            <div className={styles.taskChecklistTitle}>
-              Rincian langkah
-            </div>
-            <ul className={styles.taskChecklistList}>
+          <div style={{ marginTop: "0.5rem" }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", marginBottom: "0.25rem", textTransform: "uppercase" }}>Rincian langkah:</div>
+            <ul style={{ margin: 0, paddingLeft: "1.2rem", fontSize: "0.8rem", color: "#475569" }}>
               {task.checklist.map((item, index) => (
                 <li key={`${task.id}-step-${index}`}>{item}</li>
               ))}
@@ -421,81 +382,85 @@ export default function WorkspacePage() {
           </div>
         )}
 
-        {task.proofText && (
-          <div className={styles.proofSubmittedText}>
-            Bukti kerja: {task.proofText}
-          </div>
-        )}
-
-        {task.proofMediaUrl && (
-          <div className={styles.proofMediaContainer}>
-            {task.proofMediaType === "video" ? (
-              <video src={task.proofMediaUrl} controls className={styles.submittedMedia} />
-            ) : (
-              <img src={task.proofMediaUrl} alt="Bukti kerja" className={styles.submittedMedia} />
+        {/* Submitted Proof Display */}
+        {(task.status === "waiting_approval" || task.status === "approved") && activeTaskId !== task.id && (
+          <div style={{ background: "#f8fafc", padding: "0.75rem", borderRadius: "6px", border: "1px dashed #cbd5e1", marginTop: "0.5rem" }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", marginBottom: "0.25rem" }}>BUKTI KERJA:</div>
+            {task.proofText && <div style={{ fontSize: "0.8rem", color: "#334155", fontStyle: "italic", marginBottom: "0.5rem" }}>&quot;{task.proofText}&quot;</div>}
+            {task.proofMediaUrl && (
+              task.proofMediaType === "video" ? (
+                <video src={task.proofMediaUrl} controls style={{ width: "100%", borderRadius: "4px" }} />
+              ) : (
+                <img src={task.proofMediaUrl} alt="Bukti kerja" style={{ width: "100%", borderRadius: "4px" }} />
+              )
             )}
           </div>
         )}
 
+        {/* Feedback from UMKM */}
         {task.status === "rejected" && task.feedback && (
-          <div
-            className={`${styles.feedbackBox} ${
-              styles.feedbackRejected
-            }`}
-          >
-            UMKM: {task.feedback}
+          <div className={`${styles.feedbackBox} ${styles.feedbackRejected}`} style={{ marginTop: "0.5rem" }}>
+            <strong style={{ display: "block", marginBottom: "2px" }}>Revisi dari UMKM:</strong>
+            {task.feedback}
           </div>
         )}
 
         {task.status === "approved" && task.feedback && (
-          <div
-            className={`${styles.feedbackBox} ${
-              styles.feedbackApproved
-            }`}
-          >
-            UMKM: {task.feedback}
+          <div className={`${styles.feedbackBox} ${styles.feedbackApproved}`} style={{ marginTop: "0.5rem" }}>
+            <strong style={{ display: "block", marginBottom: "2px" }}>Catatan UMKM:</strong>
+            {task.feedback}
           </div>
         )}
 
-        {task.status !== "approved" && (
-          <div className={styles.proofForm}>
+        {/* Actions */}
+        {(task.status === "todo" || task.status === "rejected") && activeTaskId !== task.id && (
+          <button 
+            className={`${styles.actionBtnFull} ${task.status === "rejected" ? styles.btnReject : styles.btnTodo}`}
+            onClick={() => {
+              setActiveTaskId(task.id);
+            }}
+          >
+            {task.status === "rejected" ? "⚠️ Perbaiki & Kirim Ulang" : "🚀 Laporkan Selesai"}
+          </button>
+        )}
+
+        {/* Submit Proof Form */}
+        {activeTaskId === task.id && (
+          <div className={styles.proofForm} style={{ marginTop: "0.5rem", padding: "0.75rem", background: "#f8fafc", borderRadius: "8px", border: "1px solid #cbd5e1" }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#475569", marginBottom: "0.5rem" }}>LAPORKAN BUKTI:</div>
             <textarea
               className={styles.proofInput}
-              placeholder="Tulis ringkasan bukti kerja (opsional)..."
+              placeholder="Tulis ringkasan (opsional)..."
               value={proofDrafts[task.id] || ""}
-              onChange={(e) =>
-                handleProofChange(task.id, e.target.value)
-              }
+              onChange={(e) => handleProofChange(task.id, e.target.value)}
+              style={{ minHeight: "60px", marginBottom: "0.5rem" }}
             />
             <input 
               type="file" 
               accept="image/*,video/*" 
               className={styles.fileInput} 
               onChange={(e) => handleFileChange(task.id, e)} 
+              style={{ marginBottom: "0.5rem" }}
             />
             {proofFiles[task.id] && (
               <div className={styles.previewContainer}>
-                {proofFiles[task.id]!.type.startsWith("video/") ? (
-                  <video src={URL.createObjectURL(proofFiles[task.id]!)} className={styles.mediaPreview} controls />
+                {proofFiles[task.id].type.startsWith("video/") ? (
+                  <video src={URL.createObjectURL(proofFiles[task.id])} className={styles.mediaPreview} controls />
                 ) : (
-                  <img src={URL.createObjectURL(proofFiles[task.id]!)} className={styles.mediaPreview} alt="Preview" />
+                  <img src={URL.createObjectURL(proofFiles[task.id])} className={styles.mediaPreview} alt="Preview" />
                 )}
               </div>
             )}
-            <div className={styles.proofActionRow}>
-              <button
-                type="button"
-                className={styles.submitProofBtn}
-                onClick={() => handleProofSubmit(task.id)}
-              >
-                Kirim bukti
-              </button>
+            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+              <button className={styles.submitProofBtn} style={{ flex: 1, padding: "0.5rem" }} onClick={() => handleProofSubmit(task.id)}>Kirim</button>
+              <button onClick={() => setActiveTaskId(null)} style={{ background: "transparent", color: "#64748b", border: "none", fontWeight: 600, cursor: "pointer", padding: "0.5rem" }}>Batal</button>
             </div>
           </div>
         )}
       </div>
     );
   };
+
 
   if (isLoading) {
     return (
@@ -559,136 +524,68 @@ export default function WorkspacePage() {
             </button>
           </div>
 
-          {activeTab === "tasks" && (
-            <div className={styles.workspaceLayout}>
-              <div className={styles.sidebar}>
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Info Penempatan</h2>
-                  <div className={styles.placementInfo}>
-                    <div className={styles.companyName}>
-                      {placement.umkm?.business_name || "UMKM TBD"}
-                    </div>
-                    <div className={styles.jobTitle}>
-                      {placement.jobs?.title} (
-                      {placement.jobs?.employment_type || "Tetap"})
-                    </div>
-                    <div className={styles.placementMeta}>
-                      Mulai kerja:{" "}
-                      {placement.start_date
-                        ? format(new Date(placement.start_date), "dd MMMM yyyy", {
-                            locale: id,
-                          })
-                        : "-"}
-                    </div>
-                  </div>
-
-                  {placement.notes && (
-                    <div className={styles.instructionBox}>
-                      <strong>Catatan UMKM:</strong>
-                      <br />
-                      {placement.notes}
-                    </div>
-                  )}
-                </div>
-
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Akses Darurat</h2>
-                  <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
-                    Butuh bantuan cepat? Kirim sinyal SOS ke pendamping.
+                    {activeTab === "tasks" && (
+            <div className={styles.kanbanFullContainer}>
+              <div className={styles.kanbanHeader}>
+                <div>
+                  <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 4px 0" }}>Papan Tugas</h2>
+                  <p style={{ color: "#64748b", fontSize: "0.9rem", margin: 0 }}>
+                    Penempatan: <strong style={{ color: "#0ea5e9" }}>{placement?.umkm?.business_name || "UMKM TBD"}</strong>
                   </p>
-                  {sosSent && (
-                    <div className={styles.successMsg}>
-                      SOS terkirim. Tim pendamping akan segera menghubungi kamu.
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    className={styles.sosButton}
-                    onClick={() => setSosOpen(true)}
-                    disabled={sosSending}
-                  >
-                    Kirim SOS
-                  </button>
                 </div>
+                <button
+                  type="button"
+                  className={styles.sosButton}
+                  onClick={() => setSosOpen(true)}
+                  disabled={sosSending}
+                  style={{ marginTop: 0, padding: "0.6rem 1.25rem" }}
+                >
+                  🚨 Kirim SOS
+                </button>
               </div>
 
-              <div className={styles.mainArea}>
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Ringkasan Tugas Hari Ini</h2>
-                  <div className={styles.taskSummaryGrid}>
-                    <div className={styles.taskSummaryItem}>
-                      <div className={styles.taskSummaryLabel}>To Do</div>
-                      <div className={`${styles.taskSummaryValue} ${styles.taskSummaryTodo}`}>
-                        {tasks.filter((task) => task.status === "todo").length}
-                      </div>
-                    </div>
-                    <div className={styles.taskSummaryItem}>
-                      <div className={styles.taskSummaryLabel}>Menunggu</div>
-                      <div
-                        className={`${styles.taskSummaryValue} ${styles.taskSummaryWaiting}`}
-                      >
-                        {tasks.filter((task) => task.status === "waiting_approval").length}
-                      </div>
-                    </div>
-                    <div className={styles.taskSummaryItem}>
-                      <div className={styles.taskSummaryLabel}>Disetujui</div>
-                      <div
-                        className={`${styles.taskSummaryValue} ${styles.taskSummaryApproved}`}
-                      >
-                        {tasks.filter((task) => task.status === "approved").length}
-                      </div>
-                    </div>
-                    <div className={styles.taskSummaryItem}>
-                      <div className={styles.taskSummaryLabel}>Ditolak</div>
-                      <div
-                        className={`${styles.taskSummaryValue} ${styles.taskSummaryRejected}`}
-                      >
-                        {tasks.filter((task) => task.status === "rejected").length}
-                      </div>
-                    </div>
+              <div className={styles.tasksBoard}>
+                {/* TO DO COLUMN */}
+                <div className={styles.boardColumn}>
+                  <div className={styles.columnHeader}>
+                    <span className={styles.columnTitle}>🚀 To Do & Revisi</span>
+                    <span className={styles.columnBadge}>{tasks.filter(t => t.status === "todo" || t.status === "rejected").length}</span>
+                  </div>
+                  <div className={styles.columnBody}>
+                    {tasks.filter(t => t.status === "todo" || t.status === "rejected").map(renderTaskItem)}
+                    {tasks.filter(t => t.status === "todo" || t.status === "rejected").length === 0 && (
+                      <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", marginTop: "2rem" }}>Tidak ada tugas baru.</p>
+                    )}
                   </div>
                 </div>
 
-                
-                <div className={styles.card} style={{ gridColumn: "1 / -1", overflowX: "hidden" }}>
-                  <h2 className={styles.cardTitle}>Papan Tugas (Kanban)</h2>
-                  <div className={styles.tasksBoard}>
-                    {/* TO DO COLUMN */}
-                    <div className={styles.boardColumn}>
-                      <div className={styles.columnHeader}>
-                        <span className={styles.columnTitle}>🚀 To Do & Revisi</span>
-                        <span className={styles.columnBadge}>{tasks.filter(t => t.status === "todo" || t.status === "rejected").length}</span>
-                      </div>
-                      {tasks.filter(t => t.status === "todo" || t.status === "rejected").map(renderTaskItem)}
-                      {tasks.filter(t => t.status === "todo" || t.status === "rejected").length === 0 && (
-                        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, marginTop: 20 }}>Tidak ada tugas baru.</p>
-                      )}
-                    </div>
-                    {/* IN REVIEW COLUMN */}
-                    <div className={styles.boardColumn}>
-                      <div className={styles.columnHeader}>
-                        <span className={styles.columnTitle}>⏳ Menunggu Review</span>
-                        <span className={styles.columnBadge}>{tasks.filter(t => t.status === "waiting_approval").length}</span>
-                      </div>
-                      {tasks.filter(t => t.status === "waiting_approval").map(renderTaskItem)}
-                      {tasks.filter(t => t.status === "waiting_approval").length === 0 && (
-                        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, marginTop: 20 }}>Tidak ada tugas direview.</p>
-                      )}
-                    </div>
-                    {/* APPROVED COLUMN */}
-                    <div className={styles.boardColumn}>
-                      <div className={styles.columnHeader}>
-                        <span className={styles.columnTitle}>✅ Selesai</span>
-                        <span className={styles.columnBadge}>{tasks.filter(t => t.status === "approved").length}</span>
-                      </div>
-                      {tasks.filter(t => t.status === "approved").map(renderTaskItem)}
-                      {tasks.filter(t => t.status === "approved").length === 0 && (
-                        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, marginTop: 20 }}>Belum ada tugas selesai.</p>
-                      )}
-                    </div>
+                {/* IN REVIEW COLUMN */}
+                <div className={styles.boardColumn}>
+                  <div className={styles.columnHeader}>
+                    <span className={styles.columnTitle}>⏳ Menunggu Review</span>
+                    <span className={styles.columnBadge}>{tasks.filter(t => t.status === "waiting_approval").length}</span>
+                  </div>
+                  <div className={styles.columnBody}>
+                    {tasks.filter(t => t.status === "waiting_approval").map(renderTaskItem)}
+                    {tasks.filter(t => t.status === "waiting_approval").length === 0 && (
+                      <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", marginTop: "2rem" }}>Belum ada tugas direview.</p>
+                    )}
                   </div>
                 </div>
 
+                {/* APPROVED COLUMN */}
+                <div className={styles.boardColumn}>
+                  <div className={styles.columnHeader}>
+                    <span className={styles.columnTitle}>✅ Selesai</span>
+                    <span className={styles.columnBadge}>{tasks.filter(t => t.status === "approved").length}</span>
+                  </div>
+                  <div className={styles.columnBody}>
+                    {tasks.filter(t => t.status === "approved").map(renderTaskItem)}
+                    {tasks.filter(t => t.status === "approved").length === 0 && (
+                      <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", marginTop: "2rem" }}>Belum ada tugas selesai.</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
