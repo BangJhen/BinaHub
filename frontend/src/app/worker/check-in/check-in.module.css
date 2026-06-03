@@ -1,7 +1,7 @@
 .container {
-  max-width: 1200px;
+  max-width: 1520px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem;
+  padding: 1rem 1.5rem 1.5rem;
 }
 
 .header {
@@ -792,6 +792,9 @@
 /* --- KANBAN BOARD STYLES --- */
 .kanbanFullContainer {
   width: 100%;
+  min-height: calc(100vh - 96px);
+  display: flex;
+  flex-direction: column;
   animation: slideDown 0.3s ease-out forwards;
 }
 
@@ -812,20 +815,23 @@
   gap: 1.25rem;
   overflow-x: auto;
   align-items: flex-start;
-  min-height: 60vh;
+  flex: 1;
+  min-height: calc(100vh - 215px);
   padding-bottom: 1rem;
 }
 
 .boardColumn {
   flex: 1;
-  min-width: 320px;
-  max-width: 400px;
+  min-width: 280px;
+  max-width: none;
   background: #f1f5f9;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   border: 1px solid #e2e8f0;
-  max-height: 75vh;
+  min-height: calc(100vh - 235px);
+  max-height: calc(100vh - 150px);
+  box-sizing: border-box;
 }
 
 .columnHeader {
@@ -872,6 +878,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
+  width: 100%;
+  box-sizing: border-box;
   padding: 1rem;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
@@ -945,4 +953,400 @@
 .btnReject {
   background: #e11d48;
   color: white;
+}
+
+/* --- ONE PAGE WORKSPACE + AI CHATBOT --- */
+.workspaceShell {
+  position: relative;
+  min-height: calc(100vh - 96px);
+  transition: padding-right 0.28s ease;
+}
+
+.workspaceShellChatOpen {
+  padding-right: 410px;
+}
+
+.workspaceShellChatClosed {
+  padding-right: 0;
+}
+
+.aiChatPanel {
+  position: fixed;
+  top: 71px;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  width: min(410px, 92vw);
+  height: calc(100vh - 71px);
+  background: #f8fcfb;
+  border-left: 1px solid #dbe8ee;
+  border-radius: 24px 0 0 24px;
+  box-shadow: -24px 0 70px rgba(15, 45, 62, 0.16);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(0);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.aiChatPanelOpen {
+  transform: translateX(0);
+}
+
+.aiChatPanelClosed {
+  transform: translateX(110%);
+  box-shadow: none;
+}
+
+.chatToggleButton {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  z-index: 3;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d8e6ea;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #0f172a;
+  cursor: pointer;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(15, 45, 62, 0.08);
+}
+
+.chatToggleButton:hover {
+  border-color: #0ea5e9;
+  color: #0284c7;
+}
+
+.floatingChatButton {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 70;
+  border: none;
+  border-radius: 999px;
+  padding: 0.9rem 1.15rem;
+  background: #0c4a6e;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 800;
+  box-shadow: 0 18px 50px rgba(12, 74, 110, 0.28);
+}
+
+.floatingChatButton:hover {
+  background: #075985;
+  transform: translateY(-1px);
+}
+
+.chatInner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.15rem 3.5rem 1.1rem 1rem;
+  border-bottom: 1px solid #e2edf1;
+  background: linear-gradient(135deg, #f8fcfb, #ecf8f5);
+}
+
+.chatHeader h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.chatHeader p {
+  margin: 0.2rem 0 0;
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.chatAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.chatMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  background: linear-gradient(180deg, #f8fbfd 0%, #ffffff 100%);
+}
+
+.chatLimitPill {
+  align-self: center;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.28rem 0.7rem;
+}
+
+.aiMessage {
+  align-self: flex-start;
+  max-width: 86%;
+  padding: 0.72rem 0.82rem;
+  border-radius: 16px 16px 16px 6px;
+  background: #eefaf6;
+  color: #17413e;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  border: 1px solid #cdece3;
+  box-shadow: 0 6px 18px rgba(15, 45, 62, 0.05);
+}
+
+.userMessage {
+  align-self: flex-end;
+  max-width: 86%;
+  padding: 0.72rem 0.82rem;
+  border-radius: 16px 16px 6px 16px;
+  background: #0c4a6e;
+  color: #ffffff;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  box-shadow: 0 10px 22px rgba(12, 74, 110, 0.18);
+}
+
+.dailyPromptCard,
+.aiAnalysisCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0.9rem;
+  box-shadow: 0 8px 24px rgba(15, 45, 62, 0.06);
+}
+
+.dailyPromptCard p {
+  margin: 0.45rem 0 0;
+  color: #334155;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.miniMetricsGrid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.miniSliderGroup {
+  padding: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+}
+
+.aiAnalysisCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.aiAnalysisCard p {
+  margin: 0;
+  color: #374151;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.aiAnalysisHeader {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+}
+
+.aiAnalysisHeader strong {
+  display: block;
+  color: #0f172a;
+  font-size: 0.88rem;
+}
+
+.aiAnalysisHeader small {
+  display: block;
+  color: #64748b;
+  font-size: 0.76rem;
+  margin-top: 0.15rem;
+}
+
+.aiGreen {
+  border-color: #bbf7d0;
+  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+}
+
+.aiYellow {
+  border-color: #fde68a;
+  background: linear-gradient(135deg, #fffbeb, #ffffff);
+}
+
+.aiRed {
+  border-color: #fecaca;
+  background: linear-gradient(135deg, #fff5f5, #ffffff);
+}
+
+.emotionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.emotionRow span {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #475569;
+  font-size: 0.75rem;
+  padding: 0.22rem 0.6rem;
+  font-weight: 600;
+}
+
+.interventionNote {
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  padding: 0.7rem;
+  color: #334155;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.skeletonLine {
+  height: 12px;
+  width: 88%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f8fafc 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.skeletonLineShort {
+  width: 62%;
+}
+
+.chatComposer {
+  padding: 0.9rem;
+  border-top: 1px solid #e2edf1;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.chatTextarea {
+  width: 100%;
+  min-height: 74px;
+  resize: vertical;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 0.85rem;
+  background: #f8fafc;
+  color: #0f172a;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.chatTextarea:disabled {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.chatTextarea:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+  background: #ffffff;
+}
+
+.chatSendButton {
+  width: 100%;
+  border: none;
+  border-radius: 13px;
+  background: #0c4a6e;
+  color: #ffffff;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.chatComposerActions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.chatResetButton {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 13px;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.chatResetButton:hover:not(:disabled) {
+  border-color: #0ea5e9;
+  color: #0369a1;
+  background: #f0f9ff;
+}
+
+.chatResetButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.chatSendButton:hover:not(:disabled) {
+  background: #075985;
+}
+
+.chatSendButton:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@media (max-width: 1180px) {
+  .workspaceShellChatOpen,
+  .workspaceShellChatClosed {
+    padding-right: 0;
+  }
+
+  .aiChatPanel {
+    width: min(410px, 94vw);
+  }
+}
+
+@media (max-width: 820px) {
+  .container {
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  .tasksBoard {
+    gap: 0.9rem;
+  }
+
+  .boardColumn {
+    min-width: 260px;
+  }
 }

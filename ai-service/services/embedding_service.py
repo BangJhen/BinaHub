@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 BinaHub AI Service - Embedding Service
 Generates and stores 384-dim text embeddings using all-MiniLM-L6-v2

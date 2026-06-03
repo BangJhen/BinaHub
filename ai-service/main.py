@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 BinaHub AI Service - FastAPI Main Entry Point
 Psychological risk assessment for ex-prisoner rehabilitation workers.
@@ -22,7 +23,7 @@ from typing import Optional
 load_dotenv()
 
 # ─── Import Services ──────────────────────────────────────────────────────────
-from services.llm_service import analyze_quick, analyze_with_rag
+from services.llm_service import analyze_quick, analyze_with_rag, generate_questions, generate_bina_reply
 from services.embedding_service import (
     get_model,
     store_embedding,
@@ -85,6 +86,17 @@ class QuickResult(BaseModel):
     is_preliminary: bool = True
 
 
+class QuestionRequest(BaseModel):
+    worker_id: Optional[str] = Field(None, description="UUID of the worker")
+    worker_context: Optional[dict] = Field(None, description="Worker metadata for personalization")
+
+
+class BinaReplyRequest(BaseModel):
+    user_answer: str = Field(..., min_length=1, description="User's answer to the previous question")
+    question: str = Field(..., description="The question that was asked")
+    next_question: str = Field(..., description="The next question to ask")
+
+
 # ─── Auth Helper ─────────────────────────────────────────────────────────────
 def verify_secret(x_ai_secret: Optional[str] = None):
     expected = os.getenv("AI_SERVICE_SECRET", "binahub-ai-secret-key")
@@ -113,32 +125,32 @@ async def run_rag_enrichment(
     7. Save audit trail
     """
     t_start = time.time()
-    
+
     try:
         print(f"[SYNC] RAG enrichment started for checkin {checkin_id[:8]}...")
-        
+
         # 1. Retrieve context (with cache)
         t_retrieval = time.time()
         context = await retrieve_context(worker_id, journal_text)
         retrieval_ms = int((time.time() - t_retrieval) * 1000)
-        
+
         # 2. Full LLM analysis with RAG context
         t_llm = time.time()
         rag_result = await analyze_with_rag(journal_text, context, worker_context)
         llm_ms = int((time.time() - t_llm) * 1000)
-        
+
         total_ms = int((time.time() - t_start) * 1000)
-        
+
         # 3. Update checkins table with enriched result
         trend_dir = context.get("trend")
         await update_checkin_with_ai_result(checkin_id, rag_result, trend_dir)
-        
+
         # 4. Store embedding
         await store_embedding(checkin_id, worker_id, journal_text)
-        
+
         # 5. Invalidate worker cache (new data available)
         invalidate_cache(worker_id)
-        
+
         # 6. Send alert if needed
         await send_alert_if_needed(
             worker_id=worker_id,
@@ -147,16 +159,16 @@ async def run_rag_enrichment(
             checkin_id=checkin_id,
             ai_result=rag_result
         )
-        
+
         # 7. Save RAG audit trail
         timing = {"retrieval_ms": retrieval_ms, "llm_ms": llm_ms, "total_ms": total_ms}
         await save_rag_analysis(worker_id, checkin_id, rag_result, context, timing)
-        
+
         print(f"[OK] RAG enrichment done for {checkin_id[:8]}... | Total: {total_ms}ms | Score: {rag_result.get('score')} {rag_result.get('label')}")
-        
+
     except Exception as e:
         print(f"[ERROR] RAG enrichment failed for {checkin_id[:8]}...: {e}")
-        
+
         # Fallback: at least update with quick_result if RAG fails
         try:
             await update_checkin_with_ai_result(checkin_id, quick_result)
@@ -184,22 +196,22 @@ async def analyze_journal(
 ):
     """
     Main analysis endpoint.
-    
+
     Flow:
-    1. Quick LLM call (< 2s) → return immediately  
+    1. Quick LLM call (< 2s) → return immediately
     2. RAG enrichment runs in background (3-5s) → updates DB
-    
+
     Frontend should:
     - Show quick_result immediately
     - Subscribe to Supabase Realtime for the updated score
     """
     verify_secret(x_ai_secret)
-    
+
     if not request.journal_text.strip():
         raise HTTPException(status_code=400, detail="Journal text cannot be empty")
-    
+
     t_start = time.time()
-    
+
     # ── Fast Path (blocking) ──────────────────────────────────────────────────
     try:
         quick_result = await analyze_quick(
@@ -218,10 +230,10 @@ async def analyze_journal(
             "intervention_note": "Manual review required",
             "is_fallback": True
         }
-    
+
     fast_ms = int((time.time() - t_start) * 1000)
     print(f"[FAST] Quick analysis done in {fast_ms}ms | Score: {quick_result.get('score')} {quick_result.get('label')}")
-    
+
     # ── Background Enrichment (non-blocking) ──────────────────────────────────
     background_tasks.add_task(
         run_rag_enrichment,
@@ -233,7 +245,7 @@ async def analyze_journal(
         placement_id=request.placement_id,
         worker_context=request.worker_context
     )
-    
+
     return {
         "status": "analyzing",
         "checkin_id": request.checkin_id,
@@ -256,9 +268,61 @@ async def analyze_quick_only(
     Used for testing or when RAG is not needed.
     """
     verify_secret(x_ai_secret)
-    
+
     result = await analyze_quick(request.journal_text, request.worker_context)
     return {"status": "completed", "result": result}
+
+
+@app.post("/api/v1/generate-questions")
+async def generate_daily_questions(
+    request: QuestionRequest,
+    x_ai_secret: Optional[str] = Header(None)
+):
+    """
+    Generate 3 personalized reflection questions for a worker.
+    Used by BinaBot to start daily conversation.
+    """
+    verify_secret(x_ai_secret)
+
+    try:
+        questions = await generate_questions(request.worker_context)
+        return {"status": "ok", "questions": questions}
+    except Exception as e:
+        print(f"[ERROR] Question generation failed: {e}")
+        # Fallback questions
+        return {
+            "status": "ok",
+            "questions": [
+                "Gimana kabarmu setelah bekerja hari ini?",
+                "Apa hal yang paling berkesan hari ini?",
+                "Ada yang ingin kamu ceritakan lebih lanjut?"
+            ]
+        }
+
+
+@app.post("/api/v1/bina-reply")
+async def bina_reply(
+    request: BinaReplyRequest,
+    x_ai_secret: Optional[str] = Header(None)
+):
+    """
+    Generate a contextual BinaBot reply to the user's answer.
+    Returns a natural response that references what the user said
+    and leads into the next question.
+    """
+    verify_secret(x_ai_secret)
+
+    try:
+        reply = await generate_bina_reply(
+            user_answer=request.user_answer,
+            question=request.question,
+            next_question=request.next_question,
+        )
+        return {"status": "ok", "reply": reply}
+    except Exception as e:
+        print(f"[ERROR] Bina reply generation failed: {e}")
+        # Graceful fallback: just ask the next question directly
+        return {"status": "ok", "reply": request.next_question}
 
 
 if __name__ == "__main__":

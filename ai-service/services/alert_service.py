@@ -1,3 +1,4 @@
+from __future__ import annotations
 """
 BinaHub AI Service - Alert Service
 Handles inserting alerts to Supabase and routing based on risk level.

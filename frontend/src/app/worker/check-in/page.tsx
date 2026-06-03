@@ -26,6 +26,20 @@ type Task = {
   feedback?: string;
 };
 
+type ChatMessage = {
+  id: string;
+  role: "bot" | "user";
+  text: string;
+};
+
+const MAX_DAILY_REPLIES = 3;
+
+const fallbackQuestions = [
+  "Halo, aku BinaBot. Gimana kabarmu setelah bekerja hari ini?",
+  "Apa hal yang paling berkesan dari pekerjaanmu hari ini?",
+  "Ada yang ingin kamu ceritakan lebih lanjut tentang harimu?",
+];
+
 const mockTasks: Task[] = [
   {
     id: "task-1",
@@ -36,11 +50,7 @@ const mockTasks: Task[] = [
     dueDate: "2026-05-30",
     location: "Gudang utama",
     target: "25 item selesai diinput",
-    checklist: [
-      "Cek fisik barang datang",
-      "Input nomor batch",
-      "Update stok di dashboard",
-    ],
+    checklist: ["Cek fisik barang datang", "Input nomor batch", "Update stok di dashboard"],
   },
   {
     id: "task-2",
@@ -68,10 +78,13 @@ const mockTasks: Task[] = [
 ];
 
 export default function WorkspacePage() {
-  const [activeTab, setActiveTab] = useState<"tasks" | "checkin" | "history">(
-    "tasks"
-  );
+  const [chatPanelOpen, setChatPanelOpen] = useState(true);
   const [content, setContent] = useState("");
+  const [dynamicQuestions, setDynamicQuestions] = useState<string[]>([]);
+  const [questionsLoading, setQuestionsLoading] = useState(true);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [userResponseCount, setUserResponseCount] = useState(0);
+  const [conversationComplete, setConversationComplete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [success, setSuccess] = useState(false);
@@ -86,12 +99,10 @@ export default function WorkspacePage() {
   const [proofFiles, setProofFiles] = useState<Record<string, File | null>>({});
   const [sosOpen, setSosOpen] = useState(false);
   const [sosSending, setSosSending] = useState(false);
-  const [sosSent, setSosSent] = useState(false);
-  const [mood, setMood] = useState(3);
-  const [stress, setStress] = useState(3);
-  const [energy, setEnergy] = useState(3);
+  const [mood] = useState(3);
+  const [stress] = useState(3);
+  const [energy] = useState(3);
 
-  // AI Result State
   const [aiResult, setAiResult] = useState<{
     score: number;
     label: string;
@@ -102,7 +113,6 @@ export default function WorkspacePage() {
     trend_direction?: string;
   } | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
-  const [lastCheckinId, setLastCheckinId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchWorkspace = async () => {
@@ -125,14 +135,58 @@ export default function WorkspacePage() {
     fetchWorkspace().finally(() => setIsLoading(false));
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // ── Fetch pertanyaan personal langsung dari AI Service ────────────────
+  const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8001";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchQuestions = async () => {
+      try {
+        const res = await fetch(`${AI_SERVICE_URL}/api/v1/generate-questions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ worker_id: "client" }),
+        });
+        if (cancelled) return;
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        if (cancelled) return;
+
+        const questions = Array.isArray(data?.questions) ? data.questions : fallbackQuestions;
+        while (questions.length < 3) questions.push(fallbackQuestions[questions.length]);
+        setDynamicQuestions(questions);
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Gagal ambil pertanyaan dari AI Service:", err);
+        setDynamicQuestions(fallbackQuestions);
+      } finally {
+        if (!cancelled) setQuestionsLoading(false);
+      }
+    };
+
+    fetchQuestions();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);  // ← fetch sekali saat mount
+
+  // ── Set pesan pertama BinaBot setelah questions siap ───────────────────
+  useEffect(() => {
+    if (!questionsLoading && dynamicQuestions.length >= 3 && chatMessages.length === 0) {
+      setChatMessages([
+        { id: `bot-start-${Date.now()}`, role: "bot", text: dynamicQuestions[0] },
+      ]);
+    }
+  }, [questionsLoading, dynamicQuestions, chatMessages.length]);
+
+  const submitDailyJournal = async (journalContent: string) => {
     setErrorMsg("");
     setSuccess(false);
     setAiReply("");
     setAiResult(null);
 
-    if (!content.trim()) {
+    if (!journalContent.trim()) {
       setErrorMsg("Jurnal tidak boleh kosong.");
       return;
     }
@@ -143,12 +197,7 @@ export default function WorkspacePage() {
       const res = await fetch("/api/worker/check-in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content,
-          mood,
-          stress,
-          energy,
-        }),
+        body: JSON.stringify({ content: journalContent, mood, stress, energy }),
       });
 
       const data = await res.json();
@@ -159,19 +208,16 @@ export default function WorkspacePage() {
 
       setSuccess(true);
       setContent("");
-      setAiReply("Terima kasih. Jurnal kamu sudah masuk dan sedang dianalisis AI...");
+      setAiReply("Jurnalmu sudah masuk. Aku sedang menunggu hasil analisis AI.");
+      setChatPanelOpen(true);
 
       setWorkspaceData((prev: any) => ({
         ...prev,
         history: [data.checkin, ...(prev?.history || [])],
       }));
 
-      // Start polling for AI result if AI is analyzing
       if (data.ai_analyzing && data.checkin?.id) {
-        setLastCheckinId(data.checkin.id);
         setAiLoading(true);
-
-        // Poll Supabase every 3s for up to 30s
         const supabase = createClient();
         let attempts = 0;
         const maxAttempts = 10;
@@ -199,7 +245,9 @@ export default function WorkspacePage() {
               setAiLoading(false);
               clearInterval(pollInterval);
             }
-          } catch (e) { /* silent */ }
+          } catch (pollError) {
+            console.error("Gagal mengambil hasil analisis AI", pollError);
+          }
 
           if (attempts >= maxAttempts) {
             setAiLoading(false);
@@ -213,6 +261,107 @@ export default function WorkspacePage() {
       setErrorMsg(err.message || "Terjadi kesalahan. Coba lagi.");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const buildJournalFromMessages = (messages: ChatMessage[]) =>
+    messages
+      .map((message) => `${message.role === "bot" ? "BinaBot" : "Worker"}: ${message.text}`)
+      .join("\n");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const answer = content.trim();
+    if (!answer || isSubmitting || conversationComplete) return;
+
+    const nextCount = userResponseCount + 1;
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      text: answer,
+    };
+
+    setContent("");
+
+    // ── Jawaban ke-3: sesi selesai → langsung kirim jurnal ──────────────
+    if (nextCount >= MAX_DAILY_REPLIES) {
+      const botMessage: ChatMessage = {
+        id: `bot-${Date.now()}`,
+        role: "bot",
+        text: "Terima kasih. Aku sudah cukup tahu kondisi harianmu. Aku kirim rangkuman percakapan ini sebagai jurnal untuk dianalisis.",
+      };
+      const nextMessages = [...chatMessages, userMessage, botMessage];
+      setChatMessages(nextMessages);
+      setUserResponseCount(nextCount);
+      setConversationComplete(true);
+      await submitDailyJournal(buildJournalFromMessages(nextMessages));
+      return;
+    }
+
+    // ── Jawaban 1-2: tampilkan user msg dulu, lalu generate balasan AI ──
+    setChatMessages((prev) => [...prev, userMessage]);
+    setUserResponseCount(nextCount);
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch(`${AI_SERVICE_URL}/api/v1/bina-reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_answer: answer,
+          question: dynamicQuestions[nextCount - 1] || "",
+          next_question: dynamicQuestions[nextCount] || fallbackQuestions[nextCount],
+        }),
+      });
+      const data = await res.json();
+      const botReply =
+        data.reply ||
+        dynamicQuestions[nextCount] ||
+        fallbackQuestions[nextCount];
+
+      setChatMessages((prev) => [
+        ...prev,
+        { id: `bot-${Date.now()}`, role: "bot", text: botReply },
+      ]);
+    } catch {
+      // Fallback: langsung tanya pertanyaan berikutnya
+      const nextQ = dynamicQuestions[nextCount] || fallbackQuestions[nextCount];
+      setChatMessages((prev) => [
+        ...prev,
+        { id: `bot-${Date.now()}`, role: "bot", text: nextQ },
+      ]);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetBinaBotSession = async () => {
+    setQuestionsLoading(true);
+    setChatMessages([]);
+    setUserResponseCount(0);
+    setConversationComplete(false);
+    setContent("");
+    setErrorMsg("");
+    setSuccess(false);
+    setAiReply("");
+    setAiResult(null);
+    setAiLoading(false);
+    try {
+      const res = await fetch(`${AI_SERVICE_URL}/api/v1/generate-questions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ worker_id: "client" }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const questions = Array.isArray(data?.questions) ? data.questions : fallbackQuestions;
+      while (questions.length < 3) questions.push(fallbackQuestions[questions.length]);
+      setDynamicQuestions(questions);
+    } catch {
+      setDynamicQuestions(fallbackQuestions);
+    } finally {
+      setQuestionsLoading(false);
     }
   };
 
@@ -230,7 +379,7 @@ export default function WorkspacePage() {
   const handleProofSubmit = async (taskId: string) => {
     const draft = proofDrafts[taskId];
     const file = proofFiles[taskId];
-    
+
     if (!draft?.trim() && !file) {
       return;
     }
@@ -239,11 +388,10 @@ export default function WorkspacePage() {
     let mediaUrl = undefined;
     let mediaType = undefined;
 
-    // 1. Upload ke Storage jika ada file
     if (file) {
       mediaType = file.type.startsWith("video/") ? "video" : "image";
       const fileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.\-_]/g, "")}`;
-      
+
       try {
         const { data, error } = await supabase.storage
           .from("worker-media")
@@ -254,7 +402,6 @@ export default function WorkspacePage() {
 
         if (error) {
           console.error("Storage upload error:", error.message);
-          // Fallback UI mock jika gagal upload (misal bucket belum ada)
           mediaUrl = URL.createObjectURL(file);
         } else if (data) {
           const { data: publicData } = supabase.storage.from("worker-media").getPublicUrl(data.path);
@@ -266,8 +413,6 @@ export default function WorkspacePage() {
       }
     }
 
-    // 2. Simpan ke Backend (API untuk update task)
-    // Walaupun API belum ada/tabel belum ada, kita coba fetch
     try {
       await fetch(`/api/worker/tasks/${taskId}/submit`, {
         method: "POST",
@@ -275,14 +420,13 @@ export default function WorkspacePage() {
         body: JSON.stringify({
           proof_text: draft?.trim() || "",
           proof_media_url: mediaUrl,
-          proof_media_type: mediaType
-        })
+          proof_media_type: mediaType,
+        }),
       });
     } catch (e) {
       console.error("Failed to update task via API, using local state mock");
     }
 
-    // 3. Update Local State
     setTasks((prev) =>
       prev.map((task) =>
         task.id === taskId
@@ -306,10 +450,7 @@ export default function WorkspacePage() {
   const handleSendSos = async () => {
     setSosSending(true);
     try {
-      const res = await fetch("/api/worker/sos", { method: "POST" });
-      if (res.ok) {
-        setSosSent(true);
-      }
+      await fetch("/api/worker/sos", { method: "POST" });
     } catch (error) {
       console.error("Failed to send SOS:", error);
     } finally {
@@ -319,15 +460,9 @@ export default function WorkspacePage() {
   };
 
   const formatDueDate = (value?: string) => {
-    if (!value) {
-      return "-";
-    }
-
+    if (!value) return "-";
     const parsed = Date.parse(value);
-    if (Number.isNaN(parsed)) {
-      return value;
-    }
-
+    if (Number.isNaN(parsed)) return value;
     return format(new Date(parsed), "dd MMM yyyy", { locale: id });
   };
 
@@ -338,7 +473,6 @@ export default function WorkspacePage() {
     return null;
   };
 
-  
   const renderTaskItem = (task: Task) => {
     const priorityLabel = getPriorityLabel(task.priority);
 
@@ -361,16 +495,12 @@ export default function WorkspacePage() {
             </span>
           )}
         </div>
-        
+
         <div className={styles.taskSubline}>{task.description}</div>
 
         <div className={styles.compactDetails}>
-          {task.dueDate && (
-             <span className={styles.compactBadge}>📅 {formatDueDate(task.dueDate)}</span>
-          )}
-          {task.location && (
-             <span className={styles.compactBadge}>📍 {task.location}</span>
-          )}
+          {task.dueDate && <span className={styles.compactBadge}>📅 {formatDueDate(task.dueDate)}</span>}
+          {task.location && <span className={styles.compactBadge}>📍 {task.location}</span>}
         </div>
 
         {task.checklist && task.checklist.length > 0 && (
@@ -384,22 +514,19 @@ export default function WorkspacePage() {
           </div>
         )}
 
-        {/* Submitted Proof Display */}
         {(task.status === "waiting_approval" || task.status === "approved") && activeTaskId !== task.id && (
           <div style={{ background: "#f8fafc", padding: "0.75rem", borderRadius: "6px", border: "1px dashed #cbd5e1", marginTop: "0.5rem" }}>
             <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", marginBottom: "0.25rem" }}>BUKTI KERJA:</div>
             {task.proofText && <div style={{ fontSize: "0.8rem", color: "#334155", fontStyle: "italic", marginBottom: "0.5rem" }}>&quot;{task.proofText}&quot;</div>}
-            {task.proofMediaUrl && (
-              task.proofMediaType === "video" ? (
+            {task.proofMediaUrl &&
+              (task.proofMediaType === "video" ? (
                 <video src={task.proofMediaUrl} controls style={{ width: "100%", borderRadius: "4px" }} />
               ) : (
                 <img src={task.proofMediaUrl} alt="Bukti kerja" style={{ width: "100%", borderRadius: "4px" }} />
-              )
-            )}
+              ))}
           </div>
         )}
 
-        {/* Feedback from UMKM */}
         {task.status === "rejected" && task.feedback && (
           <div className={`${styles.feedbackBox} ${styles.feedbackRejected}`} style={{ marginTop: "0.5rem" }}>
             <strong style={{ display: "block", marginBottom: "2px" }}>Revisi dari UMKM:</strong>
@@ -414,19 +541,12 @@ export default function WorkspacePage() {
           </div>
         )}
 
-        {/* Actions */}
         {(task.status === "todo" || task.status === "rejected") && activeTaskId !== task.id && (
-          <button 
-            className={`${styles.actionBtnFull} ${task.status === "rejected" ? styles.btnReject : styles.btnTodo}`}
-            onClick={() => {
-              setActiveTaskId(task.id);
-            }}
-          >
+          <button className={`${styles.actionBtnFull} ${task.status === "rejected" ? styles.btnReject : styles.btnTodo}`} onClick={() => setActiveTaskId(task.id)}>
             {task.status === "rejected" ? "⚠️ Perbaiki & Kirim Ulang" : "🚀 Laporkan Selesai"}
           </button>
         )}
 
-        {/* Submit Proof Form */}
         {activeTaskId === task.id && (
           <div className={styles.proofForm} style={{ marginTop: "0.5rem", padding: "0.75rem", background: "#f8fafc", borderRadius: "8px", border: "1px solid #cbd5e1" }}>
             <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#475569", marginBottom: "0.5rem" }}>LAPORKAN BUKTI:</div>
@@ -437,19 +557,13 @@ export default function WorkspacePage() {
               onChange={(e) => handleProofChange(task.id, e.target.value)}
               style={{ minHeight: "60px", marginBottom: "0.5rem" }}
             />
-            <input 
-              type="file" 
-              accept="image/*,video/*" 
-              className={styles.fileInput} 
-              onChange={(e) => handleFileChange(task.id, e)} 
-              style={{ marginBottom: "0.5rem" }}
-            />
+            <input type="file" accept="image/*,video/*" className={styles.fileInput} onChange={(e) => handleFileChange(task.id, e)} style={{ marginBottom: "0.5rem" }} />
             {proofFiles[task.id] && (
               <div className={styles.previewContainer}>
-                {proofFiles[task.id].type.startsWith("video/") ? (
-                  <video src={URL.createObjectURL(proofFiles[task.id])} className={styles.mediaPreview} controls />
+                {proofFiles[task.id]!.type.startsWith("video/") ? (
+                  <video src={URL.createObjectURL(proofFiles[task.id]!)} className={styles.mediaPreview} controls />
                 ) : (
-                  <img src={URL.createObjectURL(proofFiles[task.id])} className={styles.mediaPreview} alt="Preview" />
+                  <img src={URL.createObjectURL(proofFiles[task.id]!)} className={styles.mediaPreview} alt="Preview" />
                 )}
               </div>
             )}
@@ -463,7 +577,6 @@ export default function WorkspacePage() {
     );
   };
 
-
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -472,62 +585,20 @@ export default function WorkspacePage() {
     );
   }
 
-  const { placement, history = [] } = workspaceData || {};
+  const { placement } = workspaceData || {};
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Meja Kerja</h1>
-        <p className={styles.subtitle}>
-          Pusat informasi penempatan dan jurnal harianmu.
-        </p>
-      </div>
-
       {!placement ? (
         <div className={`${styles.card} ${styles.emptyState}`}>
           <h2>Belum Ada Pekerjaan Aktif</h2>
-          <p>
-            Kamu saat ini belum tergabung dengan UMKM mana pun. Jangan menyerah,
-            yuk cari lowongan yang cocok untukmu.
-          </p>
-          <Link href="/worker/lowongan" className={styles.browseJobsBtn}>
-            Eksplor Lowongan
-          </Link>
+          <p>Kamu saat ini belum tergabung dengan UMKM mana pun. Jangan menyerah, yuk cari lowongan yang cocok untukmu.</p>
+          <Link href="/worker/lowongan" className={styles.browseJobsBtn}>Eksplor Lowongan</Link>
         </div>
       ) : (
         <>
-          <div className={styles.tabsContainer}>
-            <button
-              type="button"
-              className={`${styles.tabButton} ${
-                activeTab === "tasks" ? styles.tabButtonActive : ""
-              }`}
-              onClick={() => setActiveTab("tasks")}
-            >
-              Tugas & Bukti Kerja
-            </button>
-            <button
-              type="button"
-              className={`${styles.tabButton} ${
-                activeTab === "checkin" ? styles.tabButtonActive : ""
-              }`}
-              onClick={() => setActiveTab("checkin")}
-            >
-              Check-in Harian
-            </button>
-            <button
-              type="button"
-              className={`${styles.tabButton} ${
-                activeTab === "history" ? styles.tabButtonActive : ""
-              }`}
-              onClick={() => setActiveTab("history")}
-            >
-              Riwayat
-            </button>
-          </div>
-
-                    {activeTab === "tasks" && (
-            <div className={styles.kanbanFullContainer}>
+          <div className={`${styles.workspaceShell} ${chatPanelOpen ? styles.workspaceShellChatOpen : styles.workspaceShellChatClosed}`}>
+            <section className={styles.kanbanFullContainer}>
               <div className={styles.kanbanHeader}>
                 <div>
                   <h2 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 4px 0" }}>Papan Tugas</h2>
@@ -535,410 +606,158 @@ export default function WorkspacePage() {
                     Penempatan: <strong style={{ color: "#0ea5e9" }}>{placement?.umkm?.business_name || "UMKM TBD"}</strong>
                   </p>
                 </div>
-                <button
-                  type="button"
-                  className={styles.sosButton}
-                  onClick={() => setSosOpen(true)}
-                  disabled={sosSending}
-                  style={{ marginTop: 0, padding: "0.6rem 1.25rem" }}
-                >
+                <button type="button" className={styles.sosButton} onClick={() => setSosOpen(true)} disabled={sosSending} style={{ marginTop: 0, padding: "0.6rem 1.25rem" }}>
                   🚨 Kirim SOS
                 </button>
               </div>
 
               <div className={styles.tasksBoard}>
-                {/* TO DO COLUMN */}
                 <div className={styles.boardColumn}>
                   <div className={styles.columnHeader}>
                     <span className={styles.columnTitle}>🚀 To Do & Revisi</span>
-                    <span className={styles.columnBadge}>{tasks.filter(t => t.status === "todo" || t.status === "rejected").length}</span>
+                    <span className={styles.columnBadge}>{tasks.filter((t) => t.status === "todo" || t.status === "rejected").length}</span>
                   </div>
                   <div className={styles.columnBody}>
-                    {tasks.filter(t => t.status === "todo" || t.status === "rejected").map(renderTaskItem)}
-                    {tasks.filter(t => t.status === "todo" || t.status === "rejected").length === 0 && (
-                      <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", marginTop: "2rem" }}>Tidak ada tugas baru.</p>
-                    )}
+                    {tasks.filter((t) => t.status === "todo" || t.status === "rejected").map(renderTaskItem)}
+                    {tasks.filter((t) => t.status === "todo" || t.status === "rejected").length === 0 && <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", marginTop: "2rem" }}>Tidak ada tugas baru.</p>}
                   </div>
                 </div>
 
-                {/* IN REVIEW COLUMN */}
                 <div className={styles.boardColumn}>
                   <div className={styles.columnHeader}>
                     <span className={styles.columnTitle}>⏳ Menunggu Review</span>
-                    <span className={styles.columnBadge}>{tasks.filter(t => t.status === "waiting_approval").length}</span>
+                    <span className={styles.columnBadge}>{tasks.filter((t) => t.status === "waiting_approval").length}</span>
                   </div>
                   <div className={styles.columnBody}>
-                    {tasks.filter(t => t.status === "waiting_approval").map(renderTaskItem)}
-                    {tasks.filter(t => t.status === "waiting_approval").length === 0 && (
-                      <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", marginTop: "2rem" }}>Belum ada tugas direview.</p>
-                    )}
+                    {tasks.filter((t) => t.status === "waiting_approval").map(renderTaskItem)}
+                    {tasks.filter((t) => t.status === "waiting_approval").length === 0 && <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", marginTop: "2rem" }}>Belum ada tugas direview.</p>}
                   </div>
                 </div>
 
-                {/* APPROVED COLUMN */}
                 <div className={styles.boardColumn}>
                   <div className={styles.columnHeader}>
                     <span className={styles.columnTitle}>✅ Selesai</span>
-                    <span className={styles.columnBadge}>{tasks.filter(t => t.status === "approved").length}</span>
+                    <span className={styles.columnBadge}>{tasks.filter((t) => t.status === "approved").length}</span>
                   </div>
                   <div className={styles.columnBody}>
-                    {tasks.filter(t => t.status === "approved").map(renderTaskItem)}
-                    {tasks.filter(t => t.status === "approved").length === 0 && (
-                      <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", marginTop: "2rem" }}>Belum ada tugas selesai.</p>
+                    {tasks.filter((t) => t.status === "approved").map(renderTaskItem)}
+                    {tasks.filter((t) => t.status === "approved").length === 0 && <p style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.85rem", marginTop: "2rem" }}>Belum ada tugas selesai.</p>}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {!chatPanelOpen && (
+              <button
+                type="button"
+                className={styles.floatingChatButton}
+                onClick={() => setChatPanelOpen(true)}
+                aria-label="Buka BinaBot"
+              >
+                🤖 BinaBot
+              </button>
+            )}
+
+            <aside
+              className={`${styles.aiChatPanel} ${
+                chatPanelOpen ? styles.aiChatPanelOpen : styles.aiChatPanelClosed
+              }`}
+              aria-label="BinaBot AI Pendamping"
+              aria-hidden={!chatPanelOpen}
+            >
+              <button type="button" className={styles.chatToggleButton} onClick={() => setChatPanelOpen((prev) => !prev)} aria-label={chatPanelOpen ? "Tutup BinaBot" : "Buka BinaBot"}>
+                →
+              </button>
+
+              {chatPanelOpen ? (
+                <div className={styles.chatInner}>
+                  <div className={styles.chatHeader}>
+                    <div className={styles.chatAvatar}>🤖</div>
+                    <div>
+                      <h2>BinaBot</h2>
+                      <p>AI mengajukan 3 pertanyaan harian. Jawab dengan jujur ya.</p>
+                    </div>
+                  </div>
+
+                  <div className={styles.chatMessages}>
+                    {questionsLoading ? (
+                      <div className={styles.aiMessage}>Memuat pertanyaan personal dari AI...</div>
+                    ) : (
+                      <div className={styles.chatLimitPill}>{userResponseCount}/{MAX_DAILY_REPLIES} jawaban harian</div>
+                    )}
+
+                    {chatMessages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={message.role === "bot" ? styles.aiMessage : styles.userMessage}
+                      >
+                        {message.text}
+                      </div>
+                    ))}
+
+                    {success && <div className={styles.aiMessage}>Terima kasih! Jurnal harianmu sudah tersimpan.</div>}
+                    {aiReply && !aiResult && !aiLoading && <div className={styles.aiMessage}>{aiReply}</div>}
+
+                    {aiLoading && !aiResult && (
+                      <div className={styles.aiAnalysisCard}>
+                        <div className={styles.aiAnalysisHeader}>
+                          <span>🤖</span>
+                          <div><strong>AI sedang menganalisis jurnal...</strong><small>Biasanya selesai dalam 5-10 detik.</small></div>
+                        </div>
+                        <div className={styles.skeletonLine} />
+                        <div className={`${styles.skeletonLine} ${styles.skeletonLineShort}`} />
+                      </div>
+                    )}
+
+                    {aiResult && (
+                      <div className={`${styles.aiAnalysisCard} ${aiResult.label === "Hijau" ? styles.aiGreen : aiResult.label === "Merah" ? styles.aiRed : styles.aiYellow}`}>
+                        <div className={styles.aiAnalysisHeader}>
+                          <span>{aiResult.label === "Hijau" ? "🟢" : aiResult.label === "Merah" ? "🔴" : "🟡"}</span>
+                          <div><strong>Analisis AI — {aiResult.label}</strong><small>Skor Risiko: {aiResult.score}/10</small></div>
+                        </div>
+                        <p>{aiResult.reasoning}</p>
+                        {aiResult.dominant_emotions?.length > 0 && (
+                          <div className={styles.emotionRow}>{aiResult.dominant_emotions.map((emotion) => <span key={emotion}>{emotion}</span>)}</div>
+                        )}
+                        {aiResult.intervention_note && <div className={styles.interventionNote}>{aiResult.label === "Merah" ? "⚠️" : "💡"} {aiResult.intervention_note}</div>}
+                      </div>
                     )}
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {activeTab === "checkin" && (
-            <div className={styles.workspaceLayout}>
-              <div className={styles.sidebar}>
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Prompt Harian</h2>
-                  <div className={styles.promptBox}>
-                    <div className={styles.promptLabel}>Fokus hari ini</div>
-                    <div className={styles.promptText}>
-                      Apa satu hal yang paling kamu banggakan dari kerja hari ini?
-                    </div>
-                  </div>
-                  <div className={styles.promptBox}>
-                    <div className={styles.promptLabel}>Tantangan</div>
-                    <div className={styles.promptText}>
-                      Apa yang paling membuatmu lelah atau cemas hari ini?
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.mainArea}>
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Monitoring Harian</h2>
-                  <div className={styles.sliderGroup}>
-                    <div className={styles.sliderLabelRow}>
-                      <span>Perasaan</span>
-                      <span>{mood}/5</span>
-                    </div>
-                    <input
-                      className={styles.sliderInput}
-                      type="range"
-                      min={1}
-                      max={5}
-                      value={mood}
-                      onChange={(e) => setMood(Number(e.target.value))}
+                  <form onSubmit={handleSubmit} className={styles.chatComposer}>
+                    <textarea
+                      id="journal-content"
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder={questionsLoading ? "Memuat..." : conversationComplete ? "Sesi harian selesai." : "Balas pertanyaan BinaBot..."}
+                      className={styles.chatTextarea}
+                      disabled={isSubmitting || conversationComplete || questionsLoading}
                     />
-                    <div className={styles.sliderDesc}>
-                      <span>Berat</span>
-                      <span>Ringan</span>
-                    </div>
-                  </div>
-
-                  <div className={styles.sliderGroup}>
-                    <div className={styles.sliderLabelRow}>
-                      <span>Stres</span>
-                      <span>{stress}/5</span>
-                    </div>
-                    <input
-                      className={styles.sliderInput}
-                      type="range"
-                      min={1}
-                      max={5}
-                      value={stress}
-                      onChange={(e) => setStress(Number(e.target.value))}
-                    />
-                    <div className={styles.sliderDesc}>
-                      <span>Tenang</span>
-                      <span>Tertekan</span>
-                    </div>
-                  </div>
-
-                  <div className={styles.sliderGroup}>
-                    <div className={styles.sliderLabelRow}>
-                      <span>Energi</span>
-                      <span>{energy}/5</span>
-                    </div>
-                    <input
-                      className={styles.sliderInput}
-                      type="range"
-                      min={1}
-                      max={5}
-                      value={energy}
-                      onChange={(e) => setEnergy(Number(e.target.value))}
-                    />
-                    <div className={styles.sliderDesc}>
-                      <span>Drop</span>
-                      <span>Bertenaga</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Jurnal Harian</h2>
-                  <p
-                    style={{
-                      marginBottom: "1.5rem",
-                      fontSize: "0.95rem",
-                      color: "#64748b",
-                    }}
-                  >
-                    Ceritakan apa yang kamu kerjakan dan rasakan hari ini. Laporan
-                    ini rahasia dan membantu pendamping memantau kondisimu.
-                  </p>
-
-                  {success && (
-                    <div className={styles.successMsg}>
-                      Terima kasih! Jurnal harianmu telah berhasil disimpan.
-                    </div>
-                  )}
-
-                  {/* ── AI Response Card ──────────────────────────────── */}
-                  {(aiReply || aiLoading || aiResult) && (
-                    <div style={{
-                      margin: "1.5rem 0",
-                      borderRadius: "16px",
-                      overflow: "hidden",
-                      border: aiResult
-                        ? aiResult.label === "Hijau" ? "1px solid #bbf7d0"
-                          : aiResult.label === "Merah" ? "1px solid #fecaca"
-                          : "1px solid #fde68a"
-                        : "1px solid #e2e8f0",
-                      background: aiResult
-                        ? aiResult.label === "Hijau" ? "linear-gradient(135deg,#f0fdf4,#dcfce7)"
-                          : aiResult.label === "Merah" ? "linear-gradient(135deg,#fff5f5,#fee2e2)"
-                          : "linear-gradient(135deg,#fffbeb,#fef3c7)"
-                        : "#f8fafc",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
-                    }}>
-                      {/* Header */}
-                      <div style={{
-                        display: "flex", alignItems: "center", gap: "10px",
-                        padding: "14px 18px",
-                        background: aiResult
-                          ? aiResult.label === "Hijau" ? "rgba(22,163,74,0.1)"
-                            : aiResult.label === "Merah" ? "rgba(220,38,38,0.1)"
-                            : "rgba(245,158,11,0.1)"
-                          : "rgba(99,102,241,0.08)",
-                        borderBottom: "1px solid rgba(0,0,0,0.05)"
-                      }}>
-                        <span style={{ fontSize: "1.2rem" }}>
-                          {aiResult
-                            ? aiResult.label === "Hijau" ? "🟢"
-                              : aiResult.label === "Merah" ? "🔴"
-                              : "🟡"
-                            : "🤖"}
-                        </span>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1e293b" }}>
-                            {aiResult ? `Analisis AI — ${aiResult.label}` : "AI sedang menganalisis jurnal..."}
-                          </div>
-                          {aiResult && (
-                            <div style={{ fontSize: "0.75rem", color: "#64748b" }}>
-                              Skor Risiko: {aiResult.score}/10
-                              {aiResult.trend_direction && aiResult.trend_direction !== "insufficient_data" && (
-                                <span style={{ marginLeft: 8 }}>
-                                  {aiResult.trend_direction === "improving" ? "↑ Membaik" :
-                                   aiResult.trend_direction === "deteriorating" ? "↓ Memburuk" : "→ Stabil"}
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                        {aiLoading && (
-                          <div style={{
-                            marginLeft: "auto",
-                            width: 18, height: 18,
-                            border: "2.5px solid #e2e8f0",
-                            borderTopColor: "#6366f1",
-                            borderRadius: "50%",
-                            animation: "spin 0.8s linear infinite"
-                          }} />
-                        )}
-                      </div>
-
-                      {/* Body */}
-                      <div style={{ padding: "16px 18px" }}>
-                        {aiLoading && !aiResult && (
-                          <div>
-                            {/* Skeleton */}
-                            {[80, 60, 90].map((w, i) => (
-                              <div key={i} style={{
-                                height: 12, borderRadius: 6,
-                                background: "linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%)",
-                                backgroundSize: "200% 100%",
-                                animation: "shimmer 1.5s infinite",
-                                width: `${w}%`, marginBottom: 10
-                              }} />
-                            ))}
-                            <p style={{ fontSize: "0.8rem", color: "#94a3b8", marginTop: 8 }}>
-                              Biasanya selesai dalam 5-10 detik...
-                            </p>
-                          </div>
-                        )}
-
-                        {aiResult && (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                            {/* Reasoning */}
-                            <p style={{ fontSize: "0.9rem", color: "#374151", lineHeight: 1.6, margin: 0 }}>
-                              {aiResult.reasoning}
-                            </p>
-
-                            {/* Dominant Emotions */}
-                            {aiResult.dominant_emotions?.length > 0 && (
-                              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                                {aiResult.dominant_emotions.map((em) => (
-                                  <span key={em} style={{
-                                    background: "white",
-                                    border: "1px solid #e2e8f0",
-                                    borderRadius: "999px",
-                                    padding: "3px 10px",
-                                    fontSize: "0.78rem",
-                                    color: "#475569",
-                                    fontWeight: 500
-                                  }}>
-                                    {em}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Intervention Note (only for Yellow/Red) */}
-                            {aiResult.label !== "Hijau" && aiResult.intervention_note && (
-                              <div style={{
-                                background: "white",
-                                borderRadius: 10,
-                                padding: "10px 14px",
-                                border: `1px solid ${aiResult.label === "Merah" ? "#fecaca" : "#fde68a"}`,
-                                fontSize: "0.82rem",
-                                color: "#374151"
-                              }}>
-                                <strong style={{ display: "block", marginBottom: 4 }}>
-                                  {aiResult.label === "Merah" ? "⚠️ Catatan Penting:" : "💡 Saran:"}
-                                </strong>
-                                {aiResult.intervention_note}
-                              </div>
-                            )}
-
-                            {/* Green Affirm */}
-                            {aiResult.label === "Hijau" && (
-                              <div style={{
-                                background: "white", borderRadius: 10,
-                                padding: "10px 14px", border: "1px solid #bbf7d0",
-                                fontSize: "0.82rem", color: "#15803d"
-                              }}>
-                                ✨ Kondisi kamu terlihat stabil hari ini. Pertahankan semangat ini!
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <form onSubmit={handleSubmit}>
-                    <div className={styles.formGroup}>
-                      <textarea
-                        id="journal-content"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        placeholder="Contoh: Hari ini aku menata stok, kondisi gudang cukup sibuk tapi bisa diatasi."
-                        className={styles.textarea}
-                        disabled={isSubmitting}
-                      />
-                    </div>
-
                     {errorMsg && <div className={styles.errorMsg}>{errorMsg}</div>}
-
-                    <div className={styles.buttonContainer}>
-                      <button
-                        type="submit"
-                        className={styles.submitBtn}
-                        disabled={isSubmitting || !content.trim()}
-                      >
-                        {isSubmitting ? "Menyimpan..." : "Kirim Jurnal"}
+                    <div className={styles.chatComposerActions}>
+                      <button type="submit" className={styles.chatSendButton} disabled={isSubmitting || conversationComplete || questionsLoading || !content.trim()}>
+                        {questionsLoading ? "Memuat..." : isSubmitting ? "Mengirim jurnal..." : userResponseCount + 1 >= MAX_DAILY_REPLIES ? "Kirim jawaban terakhir" : "Kirim"}
                       </button>
+                      {conversationComplete && (
+                        <button type="button" className={styles.chatResetButton} onClick={resetBinaBotSession} disabled={isSubmitting}>
+                          Mulai sesi baru
+                        </button>
+                      )}
                     </div>
                   </form>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "history" && (
-            <div className={styles.workspaceLayout}>
-              <div className={styles.sidebar}>
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Info Penempatan</h2>
-                  <div className={styles.placementInfo}>
-                    <div className={styles.companyName}>
-                      {placement.umkm?.business_name || "UMKM TBD"}
-                    </div>
-                    <div className={styles.jobTitle}>
-                      {placement.jobs?.title} (
-                      {placement.jobs?.employment_type || "Tetap"})
-                    </div>
-                    <div className={styles.placementMeta}>
-                      Mulai kerja:{" "}
-                      {placement.start_date
-                        ? format(new Date(placement.start_date), "dd MMMM yyyy", {
-                            locale: id,
-                          })
-                        : "-"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.mainArea}>
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Riwayat Jurnal</h2>
-                  {history.length === 0 ? (
-                    <p style={{ color: "#94a3b8", fontSize: "0.9rem" }}>
-                      Belum ada jurnal yang dikirim.
-                    </p>
-                  ) : (
-                    <ul className={styles.notesList}>
-                      {history.map((h: any) => (
-                        <li key={h.id} className={styles.noteItem}>
-                          <div className={styles.noteDate}>
-                            {format(new Date(h.submitted_at), "EEEE, dd MMM yyyy - HH:mm", {
-                              locale: id,
-                            })}
-                          </div>
-                          <div className={styles.noteContent}>&quot;{h.content}&quot;</div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
+              ) : null}
+            </aside>
+          </div>
 
           {sosOpen && (
             <div className={styles.modalOverlay}>
               <div className={styles.modalBox}>
                 <div className={styles.modalTitle}>Konfirmasi SOS</div>
-                <div className={styles.modalText}>
-                  Tim pendamping akan menerima sinyal darurat kamu. Lanjutkan?
-                </div>
+                <div className={styles.modalText}>Tim pendamping akan menerima sinyal darurat kamu. Lanjutkan?</div>
                 <div className={styles.modalActions}>
-                  <button
-                    type="button"
-                    className={styles.cancelModalBtn}
-                    onClick={() => setSosOpen(false)}
-                    disabled={sosSending}
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.confirmModalBtn}
-                    onClick={handleSendSos}
-                    disabled={sosSending}
-                  >
-                    {sosSending ? "Mengirim..." : "Kirim SOS"}
-                  </button>
+                  <button type="button" className={styles.cancelModalBtn} onClick={() => setSosOpen(false)} disabled={sosSending}>Batal</button>
+                  <button type="button" className={styles.confirmModalBtn} onClick={handleSendSos} disabled={sosSending}>{sosSending ? "Mengirim..." : "Kirim SOS"}</button>
                 </div>
               </div>
             </div>
