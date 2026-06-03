@@ -1,6 +1,6 @@
 .pageRoot {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
 }
@@ -38,44 +38,89 @@
   font-size: 15px;
 }
 
-.tasksGrid {
-  display: grid;
-  gap: 20px;
+/* KANBAN BOARD STYLES */
+.tasksBoard {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  align-items: flex-start;
+  min-height: 60vh;
+  padding-bottom: 16px;
+}
+
+.boardColumn {
+  flex: 1;
+  min-width: 340px;
+  max-width: 400px;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.columnHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.columnTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.columnBadge {
+  background: #cbd5e1;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
 .taskCard {
   background: white;
-  border-radius: 16px;
-  padding: 24px;
+  border-radius: 12px;
+  padding: 20px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 .taskCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.05);
 }
 
 .taskHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
 }
 
 .taskTitle {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   color: #1e293b;
   margin: 0;
+  line-height: 1.4;
 }
 
 .taskStatus {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 .statusTodo {
   background: #f1f5f9;
@@ -96,21 +141,21 @@
 
 .taskDesc {
   color: #475569;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.5;
-  margin: 0 0 20px 0;
+  margin: 0;
 }
 
 .proofSection {
   background: #f8fafc;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 16px;
   border: 1px dashed #cbd5e1;
-  margin-top: 16px;
+  margin-top: 4px;
 }
 
 .proofTitle {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #64748b;
   margin: 0 0 12px 0;
@@ -122,7 +167,7 @@
   border-radius: 8px;
   border: 1px solid #cbd5e1;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13px;
   min-height: 80px;
   resize: vertical;
   margin-bottom: 12px;
@@ -132,11 +177,11 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 12px;
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -146,7 +191,7 @@
 }
 
 .uploadIcon {
-  font-size: 24px;
+  font-size: 20px;
   color: #0ea5e9;
 }
 
@@ -154,24 +199,25 @@
   background: linear-gradient(135deg, #0f6e99, #1198c8);
   color: white;
   border: none;
-  padding: 10px 24px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   transition: opacity 0.2s ease;
+  width: 100%;
 }
 .submitBtn:hover {
   opacity: 0.9;
 }
 
 .feedbackBox {
-  margin-top: 16px;
-  padding: 16px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 8px;
 }
 .feedbackApproved {
   background: #f0fdf4;
@@ -182,39 +228,50 @@
   border: 1px solid #fecaca;
 }
 .feedbackTitle {
-  font-size: 12px;
-  font-weight: 700;
-  margin: 0 0 6px 0;
+  font-size: 11px;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
 }
 .feedbackApproved .feedbackTitle { color: #166534; }
 .feedbackRejected .feedbackTitle { color: #991b1b; }
 
 .feedbackText {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.4;
 }
 .feedbackApproved .feedbackText { color: #14532d; }
 .feedbackRejected .feedbackText { color: #7f1d1d; }
 
 .uploadedPreview {
   width: 100%;
-  max-width: 300px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
   border: 1px solid #cbd5e1;
 }
 
 .submittedProofBox {
   background: white;
-  padding: 16px;
+  padding: 12px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
 }
 .submittedText {
-  font-size: 14px;
+  font-size: 13px;
   color: #334155;
   font-style: italic;
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
+}
+
+@media (max-width: 1024px) {
+  .tasksBoard {
+    flex-direction: column;
+  }
+  .boardColumn {
+    max-width: 100%;
+    min-width: 100%;
+  }
 }
 
 @media (max-width: 768px) {
