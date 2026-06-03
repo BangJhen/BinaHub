@@ -336,6 +336,167 @@ export default function WorkspacePage() {
     return null;
   };
 
+  
+  const renderTaskItem = (task: Task) => {
+    const badgeClass =
+      task.status === "approved"
+        ? styles.badgeApproved
+        : task.status === "waiting_approval"
+        ? styles.badgeWaiting
+        : task.status === "rejected"
+        ? styles.badgeRejected
+        : styles.badgeTodo;
+
+    const badgeLabel =
+      task.status === "approved"
+        ? "Disetujui"
+        : task.status === "waiting_approval"
+        ? "Menunggu"
+        : task.status === "rejected"
+        ? "Ditolak"
+        : "To Do";
+
+    const priorityLabel = getPriorityLabel(task.priority);
+
+    return (
+      <div key={task.id} className={styles.taskItem}>
+        <div className={styles.taskHeader}>
+          <div>
+            <div className={styles.taskTitle}>{task.title}</div>
+            <div className={styles.taskSubline}>
+              {task.description}
+            </div>
+          </div>
+          <div className={styles.taskBadgeRow}>
+            <span className={`${styles.badge} ${badgeClass}`}>
+              {badgeLabel}
+            </span>
+            {priorityLabel && (
+              <span
+                className={`${styles.badge} ${
+                  task.priority === "high"
+                    ? styles.badgePriorityHigh
+                    : task.priority === "medium"
+                    ? styles.badgePriorityMedium
+                    : styles.badgePriorityLow
+                }`}
+              >
+                {priorityLabel}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.taskDetailsGrid}>
+          <div className={styles.taskDetailItem}>
+            <div className={styles.taskDetailLabel}>Deadline</div>
+            <div className={styles.taskDetailValue}>
+              {formatDueDate(task.dueDate)}
+            </div>
+          </div>
+          <div className={styles.taskDetailItem}>
+            <div className={styles.taskDetailLabel}>Area</div>
+            <div className={styles.taskDetailValue}>
+              {task.location || "-"}
+            </div>
+          </div>
+          <div className={styles.taskDetailItem}>
+            <div className={styles.taskDetailLabel}>Target</div>
+            <div className={styles.taskDetailValue}>
+              {task.target || "-"}
+            </div>
+          </div>
+        </div>
+
+        {task.checklist && task.checklist.length > 0 && (
+          <div className={styles.taskChecklist}>
+            <div className={styles.taskChecklistTitle}>
+              Rincian langkah
+            </div>
+            <ul className={styles.taskChecklistList}>
+              {task.checklist.map((item, index) => (
+                <li key={`${task.id}-step-${index}`}>{item}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {task.proofText && (
+          <div className={styles.proofSubmittedText}>
+            Bukti kerja: {task.proofText}
+          </div>
+        )}
+
+        {task.proofMediaUrl && (
+          <div className={styles.proofMediaContainer}>
+            {task.proofMediaType === "video" ? (
+              <video src={task.proofMediaUrl} controls className={styles.submittedMedia} />
+            ) : (
+              <img src={task.proofMediaUrl} alt="Bukti kerja" className={styles.submittedMedia} />
+            )}
+          </div>
+        )}
+
+        {task.status === "rejected" && task.feedback && (
+          <div
+            className={`${styles.feedbackBox} ${
+              styles.feedbackRejected
+            }`}
+          >
+            UMKM: {task.feedback}
+          </div>
+        )}
+
+        {task.status === "approved" && task.feedback && (
+          <div
+            className={`${styles.feedbackBox} ${
+              styles.feedbackApproved
+            }`}
+          >
+            UMKM: {task.feedback}
+          </div>
+        )}
+
+        {task.status !== "approved" && (
+          <div className={styles.proofForm}>
+            <textarea
+              className={styles.proofInput}
+              placeholder="Tulis ringkasan bukti kerja (opsional)..."
+              value={proofDrafts[task.id] || ""}
+              onChange={(e) =>
+                handleProofChange(task.id, e.target.value)
+              }
+            />
+            <input 
+              type="file" 
+              accept="image/*,video/*" 
+              className={styles.fileInput} 
+              onChange={(e) => handleFileChange(task.id, e)} 
+            />
+            {proofFiles[task.id] && (
+              <div className={styles.previewContainer}>
+                {proofFiles[task.id]!.type.startsWith("video/") ? (
+                  <video src={URL.createObjectURL(proofFiles[task.id]!)} className={styles.mediaPreview} controls />
+                ) : (
+                  <img src={URL.createObjectURL(proofFiles[task.id]!)} className={styles.mediaPreview} alt="Preview" />
+                )}
+              </div>
+            )}
+            <div className={styles.proofActionRow}>
+              <button
+                type="button"
+                className={styles.submitProofBtn}
+                onClick={() => handleProofSubmit(task.id)}
+              >
+                Kirim bukti
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -488,170 +649,46 @@ export default function WorkspacePage() {
                   </div>
                 </div>
 
-                <div className={styles.card}>
-                  <h2 className={styles.cardTitle}>Daftar Tugas</h2>
-                  <div className={styles.taskList}>
-                    {tasks.map((task) => {
-                      const badgeClass =
-                        task.status === "approved"
-                          ? styles.badgeApproved
-                          : task.status === "waiting_approval"
-                          ? styles.badgeWaiting
-                          : task.status === "rejected"
-                          ? styles.badgeRejected
-                          : styles.badgeTodo;
-
-                      const badgeLabel =
-                        task.status === "approved"
-                          ? "Disetujui"
-                          : task.status === "waiting_approval"
-                          ? "Menunggu"
-                          : task.status === "rejected"
-                          ? "Ditolak"
-                          : "To Do";
-
-                      const priorityLabel = getPriorityLabel(task.priority);
-
-                      return (
-                        <div key={task.id} className={styles.taskItem}>
-                          <div className={styles.taskHeader}>
-                            <div>
-                              <div className={styles.taskTitle}>{task.title}</div>
-                              <div className={styles.taskSubline}>
-                                {task.description}
-                              </div>
-                            </div>
-                            <div className={styles.taskBadgeRow}>
-                              <span className={`${styles.badge} ${badgeClass}`}>
-                                {badgeLabel}
-                              </span>
-                              {priorityLabel && (
-                                <span
-                                  className={`${styles.badge} ${
-                                    task.priority === "high"
-                                      ? styles.badgePriorityHigh
-                                      : task.priority === "medium"
-                                      ? styles.badgePriorityMedium
-                                      : styles.badgePriorityLow
-                                  }`}
-                                >
-                                  {priorityLabel}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className={styles.taskDetailsGrid}>
-                            <div className={styles.taskDetailItem}>
-                              <div className={styles.taskDetailLabel}>Deadline</div>
-                              <div className={styles.taskDetailValue}>
-                                {formatDueDate(task.dueDate)}
-                              </div>
-                            </div>
-                            <div className={styles.taskDetailItem}>
-                              <div className={styles.taskDetailLabel}>Area</div>
-                              <div className={styles.taskDetailValue}>
-                                {task.location || "-"}
-                              </div>
-                            </div>
-                            <div className={styles.taskDetailItem}>
-                              <div className={styles.taskDetailLabel}>Target</div>
-                              <div className={styles.taskDetailValue}>
-                                {task.target || "-"}
-                              </div>
-                            </div>
-                          </div>
-
-                          {task.checklist && task.checklist.length > 0 && (
-                            <div className={styles.taskChecklist}>
-                              <div className={styles.taskChecklistTitle}>
-                                Rincian langkah
-                              </div>
-                              <ul className={styles.taskChecklistList}>
-                                {task.checklist.map((item, index) => (
-                                  <li key={`${task.id}-step-${index}`}>{item}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-
-                          {task.proofText && (
-                            <div className={styles.proofSubmittedText}>
-                              Bukti kerja: {task.proofText}
-                            </div>
-                          )}
-
-                          {task.proofMediaUrl && (
-                            <div className={styles.proofMediaContainer}>
-                              {task.proofMediaType === "video" ? (
-                                <video src={task.proofMediaUrl} controls className={styles.submittedMedia} />
-                              ) : (
-                                <img src={task.proofMediaUrl} alt="Bukti kerja" className={styles.submittedMedia} />
-                              )}
-                            </div>
-                          )}
-
-                          {task.status === "rejected" && task.feedback && (
-                            <div
-                              className={`${styles.feedbackBox} ${
-                                styles.feedbackRejected
-                              }`}
-                            >
-                              UMKM: {task.feedback}
-                            </div>
-                          )}
-
-                          {task.status === "approved" && task.feedback && (
-                            <div
-                              className={`${styles.feedbackBox} ${
-                                styles.feedbackApproved
-                              }`}
-                            >
-                              UMKM: {task.feedback}
-                            </div>
-                          )}
-
-                          {task.status !== "approved" && (
-                            <div className={styles.proofForm}>
-                              <textarea
-                                className={styles.proofInput}
-                                placeholder="Tulis ringkasan bukti kerja (opsional)..."
-                                value={proofDrafts[task.id] || ""}
-                                onChange={(e) =>
-                                  handleProofChange(task.id, e.target.value)
-                                }
-                              />
-                              <input 
-                                type="file" 
-                                accept="image/*,video/*" 
-                                className={styles.fileInput} 
-                                onChange={(e) => handleFileChange(task.id, e)} 
-                              />
-                              {proofFiles[task.id] && (
-                                <div className={styles.previewContainer}>
-                                  {proofFiles[task.id]!.type.startsWith("video/") ? (
-                                    <video src={URL.createObjectURL(proofFiles[task.id]!)} className={styles.mediaPreview} controls />
-                                  ) : (
-                                    <img src={URL.createObjectURL(proofFiles[task.id]!)} className={styles.mediaPreview} alt="Preview" />
-                                  )}
-                                </div>
-                              )}
-                              <div className={styles.proofActionRow}>
-                                <button
-                                  type="button"
-                                  className={styles.submitProofBtn}
-                                  onClick={() => handleProofSubmit(task.id)}
-                                >
-                                  Kirim bukti
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                
+                <div className={styles.card} style={{ gridColumn: "1 / -1", overflowX: "hidden" }}>
+                  <h2 className={styles.cardTitle}>Papan Tugas (Kanban)</h2>
+                  <div className={styles.tasksBoard}>
+                    {/* TO DO COLUMN */}
+                    <div className={styles.boardColumn}>
+                      <div className={styles.columnHeader}>
+                        <span className={styles.columnTitle}>🚀 To Do & Revisi</span>
+                        <span className={styles.columnBadge}>{tasks.filter(t => t.status === "todo" || t.status === "rejected").length}</span>
+                      </div>
+                      {tasks.filter(t => t.status === "todo" || t.status === "rejected").map(renderTaskItem)}
+                      {tasks.filter(t => t.status === "todo" || t.status === "rejected").length === 0 && (
+                        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, marginTop: 20 }}>Tidak ada tugas baru.</p>
+                      )}
+                    </div>
+                    {/* IN REVIEW COLUMN */}
+                    <div className={styles.boardColumn}>
+                      <div className={styles.columnHeader}>
+                        <span className={styles.columnTitle}>⏳ Menunggu Review</span>
+                        <span className={styles.columnBadge}>{tasks.filter(t => t.status === "waiting_approval").length}</span>
+                      </div>
+                      {tasks.filter(t => t.status === "waiting_approval").map(renderTaskItem)}
+                      {tasks.filter(t => t.status === "waiting_approval").length === 0 && (
+                        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, marginTop: 20 }}>Tidak ada tugas direview.</p>
+                      )}
+                    </div>
+                    {/* APPROVED COLUMN */}
+                    <div className={styles.boardColumn}>
+                      <div className={styles.columnHeader}>
+                        <span className={styles.columnTitle}>✅ Selesai</span>
+                        <span className={styles.columnBadge}>{tasks.filter(t => t.status === "approved").length}</span>
+                      </div>
+                      {tasks.filter(t => t.status === "approved").map(renderTaskItem)}
+                      {tasks.filter(t => t.status === "approved").length === 0 && (
+                        <p style={{ textAlign: "center", color: "#94a3b8", fontSize: 13, marginTop: 20 }}>Belum ada tugas selesai.</p>
+                      )}
+                    </div>
                   </div>
                 </div>
+
               </div>
             </div>
           )}
