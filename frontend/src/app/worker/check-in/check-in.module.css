@@ -1025,13 +1025,17 @@
   bottom: 1.25rem;
   z-index: 70;
   border: none;
-  border-radius: 999px;
-  padding: 0.9rem 1.15rem;
+  border-radius: 50%;
+  padding: 0.7rem;
   background: #0c4a6e;
   color: #ffffff;
   cursor: pointer;
   font-weight: 800;
+  line-height: 1;
   box-shadow: 0 18px 50px rgba(12, 74, 110, 0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .floatingChatButton:hover {
@@ -1057,6 +1061,31 @@
   border: 2px solid #fff;
   border-radius: 50%;
   animation: badgePulse 2s ease-in-out infinite;
+}
+
+/* BinaBot logo icons */
+.floatingBotIcon {
+  width: 32px;
+  height: 32px;
+  display: block;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  object-fit: contain;
+}
+
+.chatBotIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: block;
+}
+
+.loadingBotIcon {
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 
 @keyframes badgePulse {

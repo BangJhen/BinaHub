@@ -13,7 +13,6 @@ import {
   Rocket,
   Clock,
   CheckCircle,
-  Bot,
   AlertOctagon,
   AlertCircle,
   CheckCircle2,
@@ -671,7 +670,7 @@ export default function WorkspacePage() {
                   onClick={() => setChatPanelOpen(true)}
                   aria-label="Buka BinaBot"
                 >
-                  <Bot size={20} className={styles.iconInline} /> BinaBot
+                  <img src="/Logo%20BinaBot.png" alt="BinaBot" className={styles.floatingBotIcon} />
                 </button>
               </div>
             )}
@@ -690,7 +689,7 @@ export default function WorkspacePage() {
               {chatPanelOpen ? (
                 <div className={styles.chatInner}>
                   <div className={styles.chatHeader}>
-                    <div className={styles.chatAvatar}><Bot size={24} /></div>
+                    <div className={styles.chatAvatar}><img src="/Logo%20BinaBot.png" alt="BinaBot" className={styles.chatBotIcon} /></div>
                     <div>
                       <h2>BinaBot</h2>
                       <p>AI mengajukan 3 pertanyaan harian. Jawab dengan jujur ya.</p>
@@ -719,7 +718,7 @@ export default function WorkspacePage() {
                     {aiLoading && !aiResult && (
                       <div className={styles.aiAnalysisCard}>
                         <div className={styles.aiAnalysisHeader}>
-                          <span><Bot size={18} /></span>
+                          <span><img src="/Logo%20BinaBot.png" alt="BinaBot" className={styles.loadingBotIcon} /></span>
                           <div><strong>AI sedang menganalisis jurnal...</strong><small>Biasanya selesai dalam 5-10 detik.</small></div>
                         </div>
                         <div className={styles.skeletonLine} />
