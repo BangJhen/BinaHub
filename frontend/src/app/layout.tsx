@@ -5,7 +5,8 @@ export const metadata: Metadata = {
   title: "BinaHub",
   description: "Platform penyalur tenaga kerja ex-narapidana dengan mitigasi risiko berbasis AI",
   icons: {
-    icon: '/icon.png',
+    icon: '/favicon.png',
+    apple: '/favicon.png',
   },
 };
 
