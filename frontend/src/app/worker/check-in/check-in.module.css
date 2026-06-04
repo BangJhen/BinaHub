@@ -1228,7 +1228,33 @@
 .emotionRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.emotionRow span {
+  background: rgba(255, 255, 255, 0.4);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.interventionNote {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.iconInline {
+  display: inline-flex;
+  vertical-align: text-bottom;
+  margin-right: 4px;
 }
 
 .emotionRow span {

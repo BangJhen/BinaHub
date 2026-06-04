@@ -6,6 +6,21 @@ import styles from "./check-in.module.css";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { createClient } from "@/utils/supabase/client";
+import {
+  Calendar,
+  MapPin,
+  AlertTriangle,
+  Rocket,
+  Clock,
+  CheckCircle,
+  Bot,
+  AlertOctagon,
+  AlertCircle,
+  CheckCircle2,
+  Lightbulb,
+  BellRing,
+  Send
+} from "lucide-react";
 
 type TaskStatus = "todo" | "waiting_approval" | "approved" | "rejected";
 type TaskPriority = "low" | "medium" | "high";
@@ -499,8 +514,8 @@ export default function WorkspacePage() {
         <div className={styles.taskSubline}>{task.description}</div>
 
         <div className={styles.compactDetails}>
-          {task.dueDate && <span className={styles.compactBadge}>📅 {formatDueDate(task.dueDate)}</span>}
-          {task.location && <span className={styles.compactBadge}>📍 {task.location}</span>}
+          {task.dueDate && <span className={styles.compactBadge}><Calendar size={14} className={styles.iconInline} /> {formatDueDate(task.dueDate)}</span>}
+          {task.location && <span className={styles.compactBadge}><MapPin size={14} className={styles.iconInline} /> {task.location}</span>}
         </div>
 
         {task.checklist && task.checklist.length > 0 && (
@@ -543,7 +558,7 @@ export default function WorkspacePage() {
 
         {(task.status === "todo" || task.status === "rejected") && activeTaskId !== task.id && (
           <button className={`${styles.actionBtnFull} ${task.status === "rejected" ? styles.btnReject : styles.btnTodo}`} onClick={() => setActiveTaskId(task.id)}>
-            {task.status === "rejected" ? "⚠️ Perbaiki & Kirim Ulang" : "🚀 Laporkan Selesai"}
+            {task.status === "rejected" ? <><AlertTriangle size={16} className={styles.iconInline} /> Perbaiki & Kirim Ulang</> : <><Send size={16} className={styles.iconInline} /> Laporkan Selesai</>}
           </button>
         )}
 
@@ -607,14 +622,14 @@ export default function WorkspacePage() {
                   </p>
                 </div>
                 <button type="button" className={styles.sosButton} onClick={() => setSosOpen(true)} disabled={sosSending} style={{ marginTop: 0, padding: "0.6rem 1.25rem" }}>
-                  🚨 Kirim SOS
+                  <BellRing size={16} className={styles.iconInline} /> Kirim SOS
                 </button>
               </div>
 
               <div className={styles.tasksBoard}>
                 <div className={styles.boardColumn}>
                   <div className={styles.columnHeader}>
-                    <span className={styles.columnTitle}>🚀 To Do & Revisi</span>
+                    <span className={styles.columnTitle}><Rocket size={16} className={styles.iconInline} /> To Do & Revisi</span>
                     <span className={styles.columnBadge}>{tasks.filter((t) => t.status === "todo" || t.status === "rejected").length}</span>
                   </div>
                   <div className={styles.columnBody}>
@@ -625,7 +640,7 @@ export default function WorkspacePage() {
 
                 <div className={styles.boardColumn}>
                   <div className={styles.columnHeader}>
-                    <span className={styles.columnTitle}>⏳ Menunggu Review</span>
+                    <span className={styles.columnTitle}><Clock size={16} className={styles.iconInline} /> Menunggu Review</span>
                     <span className={styles.columnBadge}>{tasks.filter((t) => t.status === "waiting_approval").length}</span>
                   </div>
                   <div className={styles.columnBody}>
@@ -636,7 +651,7 @@ export default function WorkspacePage() {
 
                 <div className={styles.boardColumn}>
                   <div className={styles.columnHeader}>
-                    <span className={styles.columnTitle}>✅ Selesai</span>
+                    <span className={styles.columnTitle}><CheckCircle size={16} className={styles.iconInline} /> Selesai</span>
                     <span className={styles.columnBadge}>{tasks.filter((t) => t.status === "approved").length}</span>
                   </div>
                   <div className={styles.columnBody}>
@@ -656,7 +671,7 @@ export default function WorkspacePage() {
                   onClick={() => setChatPanelOpen(true)}
                   aria-label="Buka BinaBot"
                 >
-                  🤖 BinaBot
+                  <Bot size={20} className={styles.iconInline} /> BinaBot
                 </button>
               </div>
             )}
@@ -675,7 +690,7 @@ export default function WorkspacePage() {
               {chatPanelOpen ? (
                 <div className={styles.chatInner}>
                   <div className={styles.chatHeader}>
-                    <div className={styles.chatAvatar}>🤖</div>
+                    <div className={styles.chatAvatar}><Bot size={24} /></div>
                     <div>
                       <h2>BinaBot</h2>
                       <p>AI mengajukan 3 pertanyaan harian. Jawab dengan jujur ya.</p>
@@ -704,7 +719,7 @@ export default function WorkspacePage() {
                     {aiLoading && !aiResult && (
                       <div className={styles.aiAnalysisCard}>
                         <div className={styles.aiAnalysisHeader}>
-                          <span>🤖</span>
+                          <span><Bot size={18} /></span>
                           <div><strong>AI sedang menganalisis jurnal...</strong><small>Biasanya selesai dalam 5-10 detik.</small></div>
                         </div>
                         <div className={styles.skeletonLine} />
@@ -715,14 +730,21 @@ export default function WorkspacePage() {
                     {aiResult && (
                       <div className={`${styles.aiAnalysisCard} ${aiResult.label === "Hijau" ? styles.aiGreen : aiResult.label === "Merah" ? styles.aiRed : styles.aiYellow}`}>
                         <div className={styles.aiAnalysisHeader}>
-                          <span>{aiResult.label === "Hijau" ? "🟢" : aiResult.label === "Merah" ? "🔴" : "🟡"}</span>
+                          <span>
+                            {aiResult.label === "Hijau" ? <CheckCircle2 size={18} /> : 
+                             aiResult.label === "Merah" ? <AlertOctagon size={18} /> : 
+                             <AlertCircle size={18} />}
+                          </span>
                           <div><strong>Analisis AI — {aiResult.label}</strong><small>Skor Risiko: {aiResult.score}/10</small></div>
                         </div>
                         <p>{aiResult.reasoning}</p>
                         {aiResult.dominant_emotions?.length > 0 && (
                           <div className={styles.emotionRow}>{aiResult.dominant_emotions.map((emotion) => <span key={emotion}>{emotion}</span>)}</div>
                         )}
-                        {aiResult.intervention_note && <div className={styles.interventionNote}>{aiResult.label === "Merah" ? "⚠️" : "💡"} {aiResult.intervention_note}</div>}
+                        {aiResult.intervention_note && <div className={styles.interventionNote}>
+                          {aiResult.label === "Merah" ? <AlertTriangle size={14} className={styles.iconInline} /> : <Lightbulb size={14} className={styles.iconInline} />} 
+                          <span style={{ marginLeft: "4px" }}>{aiResult.intervention_note}</span>
+                        </div>}
                       </div>
                     )}
                   </div>
