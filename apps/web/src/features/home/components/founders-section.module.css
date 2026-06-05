@@ -1,0 +1,271 @@
+/* ── Band Shell ─────────────────────────────────────────────────────────── */
+.sectionBand {
+  width: 100%;
+  padding: clamp(42px, 6vw, 82px) clamp(16px, 6vw, 76px);
+  position: relative;
+  scroll-margin-top: 96px;
+}
+
+.sectionBand::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(188, 214, 230, 0.95) 25%,
+    rgba(188, 214, 230, 0.95) 75%,
+    transparent 100%
+  );
+}
+
+.foundersBand {
+  background:
+    radial-gradient(ellipse at 12% 50%, rgba(200, 230, 248, 0.32) 0%, transparent 52%),
+    radial-gradient(ellipse at 88% 20%, rgba(209, 237, 226, 0.28) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(248, 252, 255, 0.6), rgba(244, 250, 255, 0.3));
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.bandHeader {
+  margin-bottom: 40px;
+}
+
+.bandHeader h2 {
+  margin: 8px 0;
+  font-size: clamp(1.42rem, 3.3vw, 2.4rem);
+  color: #0a2c4f;
+}
+
+.bandHeader p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 68ch;
+  line-height: 1.65;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Grid ───────────────────────────────────────────────────────────────── */
+.founderGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+/* ── Card ───────────────────────────────────────────────────────────────── */
+.founderCard {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #d6e6f2;
+  border-radius: 22px;
+  padding: 32px 28px 28px;
+  box-shadow:
+    0 4px 6px rgba(10, 44, 79, 0.04),
+    0 12px 32px rgba(10, 44, 79, 0.07);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow: hidden;
+  transition: box-shadow 0.28s ease, transform 0.28s ease;
+}
+
+.founderCard:hover {
+  box-shadow:
+    0 8px 16px rgba(10, 44, 79, 0.07),
+    0 24px 52px rgba(10, 44, 79, 0.11);
+  transform: translateY(-3px);
+}
+
+/* coloured top accent bar */
+.cardAccent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #0f6e99 0%, #1eb6e8 55%, #34d3a0 100%);
+  border-radius: 22px 22px 0 0;
+}
+
+/* ── Photo ──────────────────────────────────────────────────────────────── */
+.photoWrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.photoRing {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #0f6e99, #34d3a0);
+  box-shadow: 0 6px 20px rgba(15, 110, 153, 0.25);
+  flex-shrink: 0;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  border: 2px solid #ffffff;
+}
+
+.roleBadge {
+  display: inline-block;
+  background: linear-gradient(135deg, #0f6e99, #0b4f6e);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 4px;
+  box-shadow: 0 3px 10px rgba(15, 110, 153, 0.3);
+}
+
+/* ── Identity ───────────────────────────────────────────────────────────── */
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.founderName {
+  margin: 0;
+  font-size: clamp(1.05rem, 2vw, 1.28rem);
+  font-weight: 800;
+  color: #0a2c4f;
+  line-height: 1.25;
+}
+
+.founderTagline {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f6e99;
+}
+
+.founderUniv {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7f8e;
+}
+
+.univDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #34d3a0;
+  flex-shrink: 0;
+}
+
+/* ── Bio ────────────────────────────────────────────────────────────────── */
+.founderBio {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.7;
+  border-left: 3px solid #cde8f4;
+  padding-left: 12px;
+}
+
+/* ── Highlights ─────────────────────────────────────────────────────────── */
+.highlightList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.highlightItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #3d5566;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.checkIcon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0f6e99, #34d3a0);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+/* ── Skills ─────────────────────────────────────────────────────────────── */
+.skillRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.skillChip {
+  border: 1px solid #cfe2f0;
+  background: rgba(207, 226, 240, 0.22);
+  color: #3d6478;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.founderCard:hover .skillChip {
+  background: rgba(207, 226, 240, 0.42);
+  border-color: #9ec8e0;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .founderGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .founderCard {
+    padding: 28px 20px 24px;
+  }
+
+  .photoRing {
+    width: 84px;
+    height: 84px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .founderCard {
+    transition: none;
+  }
+}

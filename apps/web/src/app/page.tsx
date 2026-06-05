@@ -10,6 +10,7 @@ const ValueSection = dynamic(() => import("@/features/home/components/ValueSecti
 const FlowSection = dynamic(() => import("@/features/home/components/FlowSection").then((mod) => mod.FlowSection));
 const RoleSection = dynamic(() => import("@/features/home/components/RoleSection").then((mod) => mod.RoleSection));
 const FaqSection = dynamic(() => import("@/features/home/components/FaqSection").then((mod) => mod.FaqSection));
+const FoundersSection = dynamic(() => import("@/features/home/components/FoundersSection").then((mod) => mod.FoundersSection));
 const CtaSection = dynamic(() => import("@/features/home/components/CtaSection").then((mod) => mod.CtaSection));
 const HomeFooter = dynamic(() => import("@/features/home/components/HomeFooter").then((mod) => mod.HomeFooter));
 
@@ -26,6 +27,7 @@ export default function HomePage() {
       <FlowSection />
       <RoleSection />
       <FaqSection />
+      <FoundersSection />
       <CtaSection />
       <HomeFooter />
     </main>
