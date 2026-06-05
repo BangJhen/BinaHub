@@ -18,6 +18,7 @@ export async function HomeNav() {
         <a href="#alur">Alur</a>
         <a href="#peran">Peran</a>
         <a href="#faq">FAQ</a>
+        <a href="#founders">Pendiri</a>
       </div>
       <div className={styles.navLinks}>
         <AuthRoleControl initialRole={role} />
