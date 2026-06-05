@@ -55,15 +55,15 @@ export const signupUmkmSchema = signupBaseSchema.extend({
   role: z.literal('umkm'),
   businessName: z
     .string()
-    .min(3, 'Nama usaha minimal 3 karakter')
+    .min(4, 'Nama usaha minimal 4 karakter')
     .max(150, 'Nama usaha terlalu panjang'),
   businessType: z
     .string()
-    .min(2, 'Jenis usaha wajib diisi')
-    .max(120, 'Jenis usaha terlalu panjang'),
+    .min(2, 'Bidang usaha wajib diisi')
+    .max(120, 'Bidang usaha terlalu panjang'),
   businessAddress: z
     .string()
-    .min(10, 'Alamat usaha minimal 10 karakter')
+    .min(5, 'Alamat usaha minimal 5 karakter')
     .max(500, 'Alamat usaha terlalu panjang'),
 })
 
@@ -78,15 +78,15 @@ export const signupWorkerSchema = signupBaseSchema.extend({
     .regex(/^\d{16}$/, 'NIK hanya boleh berisi angka'),
   workerAddress: z
     .string()
-    .min(10, 'Alamat minimal 10 karakter')
+    .min(5, 'Alamat domisili minimal 5 karakter')
     .max(500, 'Alamat terlalu panjang'),
   skills: z
     .string()
-    .min(5, 'Keahlian minimal 5 karakter')
-    .max(500, 'Deskripsi keahlian terlalu panjang'),
+    .min(3, 'Keterampilan minimal 3 karakter')
+    .max(500, 'Deskripsi keterampilan terlalu panjang'),
   experience: z
     .string()
-    .min(10, 'Ringkasan pengalaman minimal 10 karakter')
+    .min(3, 'Pengalaman kerja minimal 3 karakter')
     .max(1000, 'Ringkasan pengalaman terlalu panjang'),
 })
 
