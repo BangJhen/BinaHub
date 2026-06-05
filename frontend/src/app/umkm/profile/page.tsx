@@ -354,6 +354,7 @@ export default function UmkmProfilePage() {
         )}
 
       </div>
+      </div>
     </>
   );
 }

@@ -16,6 +16,12 @@ pnpm-debug.log*
 # Dependencies
 node_modules/
 
+# Python virtual environments
+.venv/
+.venv_recreate/
+__pycache__/
+*.pyc
+
 # Build outputs
 .next/
 out/
@@ -34,3 +40,6 @@ coverage/
 # Misc
 .tmp/
 tmp/
+
+# Tool/session state
+.omo/

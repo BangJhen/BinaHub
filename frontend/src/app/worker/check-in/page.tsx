@@ -663,7 +663,12 @@ export default function WorkspacePage() {
 
             {!chatPanelOpen && (
               <div className={styles.floatingChatButtonWrapper}>
-                {!conversationComplete && <div className={styles.notificationBadge} />}
+                {!conversationComplete && (
+                  <div className={styles.notificationBubble}>
+                    <AlertCircle size={14} className={styles.iconInline} style={{ marginRight: '4px' }} />
+                    Check-in hari ini!
+                  </div>
+                )}
                 <button
                   type="button"
                   className={styles.floatingChatButton}

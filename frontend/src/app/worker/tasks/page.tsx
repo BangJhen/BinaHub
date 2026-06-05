@@ -184,7 +184,7 @@ export default function WorkerTasksPage() {
       {(task.status === "waiting_approval" || task.status === "approved") && activeTaskId !== task.id && (
         <div className={styles.submittedProofBox}>
           <p className={styles.proofTitle} style={{ marginBottom: 8 }}>BUKTI KERJA:</p>
-          {task.proofText && <p className={styles.submittedText}>"{task.proofText}"</p>}
+          {task.proofText && <p className={styles.submittedText}>&ldquo;{task.proofText}&rdquo;</p>}
           {task.proofMediaUrl && <img src={task.proofMediaUrl} alt="Bukti kerja" className={styles.uploadedPreview} style={{ marginBottom: 0 }} />}
         </div>
       )}
