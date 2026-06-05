@@ -37,7 +37,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: "Pekerja tidak ditemukan di server" }, { status: 404 });
     }
 
-    const p = workerData.worker_profiles ? (Array.isArray(workerData.worker_profiles) ? workerData.worker_profiles[0] : workerData.worker_profiles) : {};
+    type WorkerProfile = { city?: string; province?: string; skills?: string; experience_summary?: string; education_level?: string; gender?: string; age?: number | string }
+    const rawProfile = workerData.worker_profiles
+    const p: WorkerProfile = rawProfile
+      ? (Array.isArray(rawProfile) ? rawProfile[0] : rawProfile) as WorkerProfile
+      : {}
     
     const mapped = {
       id: workerData.id,

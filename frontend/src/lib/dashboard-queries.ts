@@ -424,7 +424,7 @@ export async function getUmkmDashboardData() {
 
   for (const worker of workers) {
     workerConditionTrendByRange[worker.id] = {
-      "1w": makeDailyTrend(worker.id, 7, risksByWorker, checkinsByWorker),
+      "1w": makeDailyTrend(worker.id, 7, risksByWorker),
       "1m": makeBucketTrend(
         worker.id,
         ["Minggu 1", "Minggu 2", "Minggu 3", "Minggu 4"],

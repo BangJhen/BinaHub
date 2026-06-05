@@ -69,6 +69,57 @@ export default function WorkerDetailPage() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDesc, setNewTaskDesc] = useState("");
   const [isAddingTask, setIsAddingTask] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+
+  // Handler stubs — implementasi penuh ada di worker workspace
+  const handleAddTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newTaskTitle.trim() || isAddingTask) return
+    setIsAddingTask(true)
+    try {
+      await fetch(`/api/umkm/tasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTaskTitle, description: newTaskDesc, workerId }),
+      })
+      setNewTaskTitle("")
+      setNewTaskDesc("")
+    } finally {
+      setIsAddingTask(false)
+    }
+  }
+
+  const handleApprove = async (taskId: string) => {
+    await fetch(`/api/umkm/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "approved", feedback: feedbackDrafts[taskId] ?? "" }),
+    })
+    setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, status: "approved" } : t))
+    setActiveTaskId(null)
+  }
+
+  const handleReject = async (taskId: string) => {
+    await fetch(`/api/umkm/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "rejected", feedback: feedbackDrafts[taskId] ?? "" }),
+    })
+    setTasks((prev) => prev.map((t) => t.id === taskId ? { ...t, status: "rejected" } : t))
+    setActiveTaskId(null)
+  }
+
+  const handleSendQuestion = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!questionText.trim()) return
+    await fetch(`/api/umkm/workers/${workerId}/message`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: questionText }),
+    })
+    setQuestionText("")
+    setQuestionSent(true)
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -193,7 +244,7 @@ export default function WorkerDetailPage() {
               {(task.proofText || task.proofMediaUrl) && (
                 <div className={styles.proofBox}>
                   <p style={{margin: "0 0 5px", fontSize: 12, fontWeight: 700, color: "#64748b"}}>BUKTI DIKIRIM:</p>
-                  {task.proofText && <p className={styles.proofText}>"{task.proofText}"</p>}
+                  {task.proofText && <p className={styles.proofText}>&ldquo;{task.proofText}&rdquo;</p>}
                   {task.proofMediaUrl && (
                     task.proofMediaType === "video" ? (
                       <video src={task.proofMediaUrl} controls className={styles.proofMedia} />
@@ -431,12 +482,12 @@ export default function WorkerDetailPage() {
         <article className={styles.card}>
           <div className={styles.rowHead}>
             <h2>Daily Check Kondisi</h2>
-            <span className={worker.hasCheckedInToday ? styles.todayBadge : styles.todayBadgeDanger}>
-              {worker.hasCheckedInToday ? "Sudah check-in hari ini" : "Belum check-in hari ini"}
+            <span className={worker!.hasCheckedInToday ? styles.todayBadge : styles.todayBadgeDanger}>
+              {worker!.hasCheckedInToday ? "Sudah check-in hari ini" : "Belum check-in hari ini"}
             </span>
           </div>
 
-          {!worker.hasCheckedInToday && (
+          {!worker!.hasCheckedInToday && (
             <div className={styles.missedCheckAlert}>
               Pekerja belum melakukan daily check hari ini. Disarankan follow-up langsung untuk memastikan kondisi terkini.
             </div>
