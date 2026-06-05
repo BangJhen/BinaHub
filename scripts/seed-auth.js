@@ -232,7 +232,7 @@ async function seedAuth() {
   if (errorCount === 0) {
     console.log('✨ Auth seed completed successfully!');
     console.log('\n📝 Next steps:');
-    console.log('   1. Run: db/seed-lowongan.sql in Supabase SQL Editor');
+    console.log('   1. Run: supabase/seed/seed-lowongan.sql in Supabase SQL Editor');
     console.log('   2. Login with any account above');
     process.exit(0);
   } else {

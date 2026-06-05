@@ -4,7 +4,7 @@
   "description": "BinaHub - Job Matching Platform for UMKM & Workers",
   "scripts": {
     "seed:auth": "node scripts/seed-auth.js",
-    "seed:db": "echo 'Run db/seed-lowongan.sql in Supabase SQL Editor'",
+    "seed:db": "echo 'Run supabase/seed/seed-lowongan.sql in Supabase SQL Editor'",
     "seed:all": "npm run seed:auth && npm run seed:db",
     "create:admin": "node scripts/create-admin.js",
     "seed:lowongan": "node scripts/seed-lowongan.js",
