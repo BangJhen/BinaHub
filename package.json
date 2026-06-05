@@ -4,7 +4,9 @@
   "description": "BinaHub - Job Matching Platform for UMKM & Workers",
   "private": true,
   "scripts": {
-    "dev": "npm --prefix apps/web run dev",
+    "dev": "bash dev.sh all",
+    "dev:web": "npm --prefix apps/web run dev",
+    "dev:backend": "bash dev.sh backend",
     "build": "npm --prefix apps/web run build",
     "lint": "npm --prefix apps/web run lint",
     "seed:auth": "node packages/db-tools/seed-auth.js",

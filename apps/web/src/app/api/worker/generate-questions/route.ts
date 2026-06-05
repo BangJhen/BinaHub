@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/shared/supabase/server";
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8000";
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://localhost:8001";
 const AI_SERVICE_SECRET = process.env.AI_SERVICE_SECRET || "binahub-ai-secret-key";
 
 export async function POST() {
@@ -34,7 +34,7 @@ export async function POST() {
       console.error("Gagal mengambil konteks pekerja:", err);
     }
 
-    // ── Panggil ai-service untuk generate pertanyaan ──────────────────────
+    // ── Panggil backend untuk generate pertanyaan ────────────────────────
     const aiRes = await fetch(`${AI_SERVICE_URL}/api/v1/generate-questions`, {
       method: "POST",
       headers: {
