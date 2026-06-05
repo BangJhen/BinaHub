@@ -143,15 +143,42 @@ Script root: `npm run dev | build | lint` (passthrough ke `apps/web`).
 
 `/admin/dashboard`, `/admin/umkm/[umkmId]`, `/umkm/dashboard`, `/umkm/workers/[workerId]`, `/umkm/matching`, `/worker/dashboard`
 
-## 10) Troubleshooting Cepat
+## 10) Testing
+
+### E2E Test Suite
+
+Playwright-based end-to-end tests di `tests/e2e/`:
+
+```bash
+cd tests/e2e
+python3 binahub_e2e.py            # Smoke test (headless)
+python3 binahub_deep_e2e.py       # Deep feature suite (headless)
+HEADED=1 python3 binahub_deep_e2e.py  # Watch browser + slow-mo
+```
+
+**Deep E2E Suite** (`binahub_deep_e2e.py`):
+- 23 soft-assertion checks lintas UMKM & Worker role
+- Variatif: happy path, empty state, error handling, edge case
+- Granular try/catch per check → satu gagal tidak menghentikan yang lain
+- Tangkap real server error (alert dialogs, inline error text)
+- Status: PASS (ok), FAIL (bug), SKIP (kondisi tak terpenuhi)
+
+**Hasil terbaru**: 21 PASS · 0 FAIL · 2 SKIP (legitimate skips: empty dashboard, slow AI service)
+
+**Bug ditemukan & diperbaiki via E2E**:
+- Worker profile edit dengan tanggal kosong → `invalid input syntax for type date: ""` (Postgres)
+- Fix: `nullIfEmpty()` helper mengubah `""` → `NULL` sebelum upsert
+
+## 11) Troubleshooting Cepat
 
 - **Dashboard kosong**: cek RLS policy Supabase & pastikan seed sudah dijalankan.
 - **Email konfirmasi tidak masuk**: cek rate limit email Supabase; untuk testing aktifkan `AUTH_AUTOCONFIRM=true` + service role key.
 - **Signup gagal env**: pastikan `apps/web/.env.local` benar; restart dev server.
 - **Upload dokumen gagal**: pastikan bucket Storage `documents` ada & policy sesuai.
 - **AI check-in error**: pastikan `apps/ai-service` jalan & `AI_SERVICE_URL` benar.
+- **E2E test timeout**: pastikan dev server jalan (`npm run dev`); cek `AI_SERVICE_URL` jika test stuck di check-in.
 
-## 11) Onboarding Developer Baru
+## 12) Onboarding Developer Baru
 
 1. Clone repo.
 2. Setup `apps/web/.env.local` (dan `apps/ai-service/.env` jika perlu AI).
@@ -159,4 +186,5 @@ Script root: `npm run dev | build | lint` (passthrough ke `apps/web`).
 4. Jalankan web (`npm install --prefix apps/web`, `npm run dev`).
 5. (Opsional) jalankan AI service.
 6. Uji register/login & dashboard per role.
-7. Jalankan `npm run lint` sebelum push.
+7. Jalankan E2E test: `cd tests/e2e && python3 binahub_deep_e2e.py`
+8. Jalankan `npm run lint` sebelum push.
