@@ -418,10 +418,14 @@ def main():
     print(f"  Screenshots: {SS_DIR}")
     print("="*58)
 
+    headed = os.environ.get("HEADED") == "1"
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True)
-        ctx     = browser.new_context(viewport={"width": 1280, "height": 800})
-        page    = ctx.new_page()
+        browser = pw.chromium.launch(
+            headless=not headed,
+            slow_mo=400 if headed else 0,   # HEADED=1 → tampilkan browser & perlambat
+        )
+        ctx  = browser.new_context(viewport={"width": 1280, "height": 800})
+        page = ctx.new_page()
 
         # Tes yang perlu state berurutan
         test_landing(page)

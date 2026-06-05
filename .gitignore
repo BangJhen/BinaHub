@@ -43,3 +43,4 @@ tmp/
 
 # Tool/session state
 .omo/
+.dev-pids

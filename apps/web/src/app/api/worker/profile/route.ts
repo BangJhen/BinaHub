@@ -37,31 +37,36 @@ export async function PUT(request: Request) {
 
     const body = await request.json();
 
+    // [FIX] Postgres menolak string kosong "" untuk kolom date/number.
+    // Normalisasi "" (dan null/undefined) menjadi NULL.
+    const nullIfEmpty = (v: unknown) =>
+      v === "" || v === undefined || v === null ? null : v;
+
     // Determine if profile is complete enough
     const requiredFields = ["full_name", "gender", "age", "city", "education_level", "skills"];
     const isComplete = requiredFields.every(f => body[f] && String(body[f]).trim() !== "");
 
     const profileData = {
       user_id: user.id,
-      full_name: body.full_name ?? null,
-      gender: body.gender ?? null,
-      nik: body.nik ?? null,
-      phone: body.phone ?? null,
-      address: body.address ?? null,
+      full_name: nullIfEmpty(body.full_name),
+      gender: nullIfEmpty(body.gender),
+      nik: nullIfEmpty(body.nik),
+      phone: nullIfEmpty(body.phone),
+      address: nullIfEmpty(body.address),
       age: body.age ? parseInt(body.age) : null,
-      city: body.city ?? null,
-      province: body.province ?? null,
-      birth_date: body.birth_date ?? null,
-      education_level: body.education_level ?? null,
-      skills: body.skills ?? null,
-      experience_summary: body.experience_summary ?? null,
-      rehabilitation_program: body.rehabilitation_program ?? null,
-      rehabilitation_status: body.rehabilitation_status ?? "not_started",
+      city: nullIfEmpty(body.city),
+      province: nullIfEmpty(body.province),
+      birth_date: nullIfEmpty(body.birth_date),
+      education_level: nullIfEmpty(body.education_level),
+      skills: nullIfEmpty(body.skills),
+      experience_summary: nullIfEmpty(body.experience_summary),
+      rehabilitation_program: nullIfEmpty(body.rehabilitation_program),
+      rehabilitation_status: body.rehabilitation_status || "not_started",
       // Criminal background
-      crime_type: body.crime_type ?? null,
+      crime_type: nullIfEmpty(body.crime_type),
       sentence_years: body.sentence_years ? parseFloat(body.sentence_years) : null,
-      release_date: body.release_date ?? null,
-      lapas_name: body.lapas_name ?? null,
+      release_date: nullIfEmpty(body.release_date),
+      lapas_name: nullIfEmpty(body.lapas_name),
       // Completion
       profile_completed: isComplete,
       profile_completed_at: isComplete ? new Date().toISOString() : null,
