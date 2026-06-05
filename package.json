@@ -2,12 +2,16 @@
   "name": "binahub",
   "version": "1.0.0",
   "description": "BinaHub - Job Matching Platform for UMKM & Workers",
+  "private": true,
   "scripts": {
-    "seed:auth": "node scripts/seed-auth.js",
+    "dev": "npm --prefix apps/web run dev",
+    "build": "npm --prefix apps/web run build",
+    "lint": "npm --prefix apps/web run lint",
+    "seed:auth": "node packages/db-tools/seed-auth.js",
     "seed:db": "echo 'Run supabase/seed/seed-lowongan.sql in Supabase SQL Editor'",
     "seed:all": "npm run seed:auth && npm run seed:db",
-    "create:admin": "node scripts/create-admin.js",
-    "seed:lowongan": "node scripts/seed-lowongan.js",
+    "create:admin": "node packages/db-tools/create-admin.js",
+    "seed:lowongan": "node packages/db-tools/seed-lowongan.js",
     "seed:full": "npm run seed:auth && npm run seed:lowongan"
   },
   "dependencies": {
