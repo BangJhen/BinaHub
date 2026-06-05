@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getWorkerLowonganData } from "@/lib/lowongan-queries";
+import { getWorkerLowonganData } from "@/features/lowongan/queries";
 
 export async function GET() {
   try {

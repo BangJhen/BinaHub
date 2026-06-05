@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { fetchLowonganDetail, respondApplication } from "@/lib/api/lowongan";
-import { getRelativeTime } from "@/lib/utils/lowongan";
+import { fetchLowonganDetail, respondApplication } from "@/features/lowongan/api";
+import { getRelativeTime } from "@/features/lowongan/format";
 
 const STATUS_OPTIONS = ["Semua", "Submitted", "Reviewed", "Active", "Rejected", "Inactive"] as const;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { WorkerLowongan } from "@/lib/lowongan-queries";
+import type { WorkerLowongan } from "@/features/lowongan/queries";
 
 function formatRupiah(amount: number | null) {
   if (!amount) return "";

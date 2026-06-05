@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { fetchLowonganDetail } from "@/lib/api/lowongan";
-import LowonganForm from "../../create/components/LowonganForm";
+import { fetchLowonganDetail } from "@/features/lowongan/api";
+import LowonganForm from "@/features/umkm/components/LowonganForm";
 
 export default function EditLowonganPage({ params }: { params: { id: string } }) {
   const router = useRouter();

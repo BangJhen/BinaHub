@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/shared/supabase/client";
 
 type RiskLevel = "green" | "yellow" | "red";
 type WorkerChartRange = "1w" | "1m" | "6m" | "1y";

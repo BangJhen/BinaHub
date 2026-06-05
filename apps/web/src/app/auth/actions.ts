@@ -1,7 +1,7 @@
 'use server'
 
 import { headers } from 'next/headers'
-import { createClient } from '@/utils/supabase/server'
+import { createClient } from '@/shared/supabase/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import {
   loginSchema,
@@ -9,8 +9,8 @@ import {
   signupWorkerSchema,
   validateDocumentFile,
   generateSafeFileName,
-} from '@/lib/security/validation'
-import { checkRateLimit, RATE_LIMITS } from '@/lib/security/rate-limiter'
+} from '@/shared/lib/security/validation'
+import { checkRateLimit, RATE_LIMITS } from '@/shared/lib/security/rate-limiter'
 import { ZodError } from 'zod'
 
 // ─── Helper: ambil IP dari request header ─────────────────────────────────────

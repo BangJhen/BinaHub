@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
-import WorkerNav from "@/components/WorkerNav";
+import { createClient } from "@/shared/supabase/server";
+import WorkerNav from "@/features/worker/components/WorkerNav";
 import styles from "./layout.module.css";
 
 export default async function WorkerLayout({ children }: { children: ReactNode }) {

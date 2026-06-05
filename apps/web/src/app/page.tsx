@@ -1,17 +1,17 @@
 import dynamic from "next/dynamic";
-import { HomeNav } from "@/components/home/HomeNav";
-import { HeroSection } from "@/components/home/HeroSection";
-import { HeroBackground } from "@/components/home/HeroBackground";
+import { HomeNav } from "@/features/home/components/HomeNav";
+import { HeroSection } from "@/features/home/components/HeroSection";
+import { HeroBackground } from "@/features/home/components/HeroBackground";
 import styles from "./page.module.css";
 
 // Lazy Load Below-the-fold Sections
-const MetricSection = dynamic(() => import("@/components/home/MetricSection").then((mod) => mod.MetricSection));
-const ValueSection = dynamic(() => import("@/components/home/ValueSection").then((mod) => mod.ValueSection));
-const FlowSection = dynamic(() => import("@/components/home/FlowSection").then((mod) => mod.FlowSection));
-const RoleSection = dynamic(() => import("@/components/home/RoleSection").then((mod) => mod.RoleSection));
-const FaqSection = dynamic(() => import("@/components/home/FaqSection").then((mod) => mod.FaqSection));
-const CtaSection = dynamic(() => import("@/components/home/CtaSection").then((mod) => mod.CtaSection));
-const HomeFooter = dynamic(() => import("@/components/home/HomeFooter").then((mod) => mod.HomeFooter));
+const MetricSection = dynamic(() => import("@/features/home/components/MetricSection").then((mod) => mod.MetricSection));
+const ValueSection = dynamic(() => import("@/features/home/components/ValueSection").then((mod) => mod.ValueSection));
+const FlowSection = dynamic(() => import("@/features/home/components/FlowSection").then((mod) => mod.FlowSection));
+const RoleSection = dynamic(() => import("@/features/home/components/RoleSection").then((mod) => mod.RoleSection));
+const FaqSection = dynamic(() => import("@/features/home/components/FaqSection").then((mod) => mod.FaqSection));
+const CtaSection = dynamic(() => import("@/features/home/components/CtaSection").then((mod) => mod.CtaSection));
+const HomeFooter = dynamic(() => import("@/features/home/components/HomeFooter").then((mod) => mod.HomeFooter));
 
 export default function HomePage() {
   return (

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminDashboardData } from "@/lib/dashboard-queries";
+import { getAdminDashboardData } from "@/shared/lib/dashboard-queries";
 
 export async function GET() {
   try {

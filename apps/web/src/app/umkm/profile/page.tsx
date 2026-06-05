@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import AvatarCropModal from "@/components/AvatarCropModal";
+import AvatarCropModal from "@/shared/components/AvatarCropModal";
 
 const SECTOR_ICON: Record<string, string> = {
   "Kuliner": "ti-tools-kitchen-2",

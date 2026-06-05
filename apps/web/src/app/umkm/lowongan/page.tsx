@@ -1,21 +1,21 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Lowongan, FilterSortState, LowonganStatus } from "@/types/lowongan";
+import { Lowongan, FilterSortState, LowonganStatus } from "@/features/lowongan/types";
 import {
   fetchLowonganList,
   closeLowongan,
   duplicateLowongan,
   deleteLowongan
-} from "@/lib/api/lowongan";
-import { calculateStats, filterAndSort } from "@/lib/utils/lowongan";
+} from "@/features/lowongan/api";
+import { calculateStats, filterAndSort } from "@/features/lowongan/format";
 
-import LowonganList from "../components/LowonganList";
-import LowonganPreviewPanel from "../components/LowonganPreviewPanel";
-import FilterSort from "../components/FilterSort";
-import StatisticsCard from "../components/StatisticsCard";
+import LowonganList from "@/features/umkm/components/LowonganList";
+import LowonganPreviewPanel from "@/features/umkm/components/LowonganPreviewPanel";
+import FilterSort from "@/features/umkm/components/FilterSort";
+import StatisticsCard from "@/features/umkm/components/StatisticsCard";
 
-import styles from "../components/lowongan.module.css";
+import styles from "@/features/umkm/components/lowongan.module.css";
 
 export default function UMKMLowonganDashboard() {
   const [lowonganList, setLowonganList] = useState<Lowongan[]>([]);

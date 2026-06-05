@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getWorkerSavedLowonganData } from "@/lib/lowongan-queries";
+import { getWorkerSavedLowonganData } from "@/features/lowongan/queries";
 
 export async function GET() {
   try {

@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
-import type { WorkerLowongan } from "@/lib/lowongan-queries";
-import { computeMatchScore, getMatchLabel, getMatchColors, type WorkerProfileForMatch } from "@/lib/match-utils";
+import type { WorkerLowongan } from "@/features/lowongan/queries";
+import { computeMatchScore, getMatchLabel, getMatchColors, type WorkerProfileForMatch } from "@/features/lowongan/match";
 
 const JOB_TYPES = ["Full Time", "Part Time", "Freelance", "Contract", "Internship"];
 const WORK_SYSTEMS = ["Work from Office", "Hybrid", "Remote"];

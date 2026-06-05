@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import AvatarCropModal from "@/components/AvatarCropModal";
+import AvatarCropModal from "@/shared/components/AvatarCropModal";
 
 const REHAB_STATUS_LABEL: Record<string, string> = {
   not_started: "Belum Mulai",

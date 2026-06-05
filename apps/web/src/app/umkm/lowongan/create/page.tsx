@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import LowonganForm from "./components/LowonganForm";
+import LowonganForm from "@/features/umkm/components/LowonganForm";
 
 export default function CreateLowonganPage() {
   const router = useRouter();

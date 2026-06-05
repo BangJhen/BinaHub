@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
-import AdminNav from "@/components/AdminNav";
+import { createClient } from "@/shared/supabase/server";
+import AdminNav from "@/features/admin/components/AdminNav";
 import styles from "./layout.module.css";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {

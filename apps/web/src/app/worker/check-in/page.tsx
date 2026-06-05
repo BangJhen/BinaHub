@@ -5,7 +5,7 @@ import Link from "next/link";
 import styles from "./check-in.module.css";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/shared/supabase/client";
 import {
   Calendar,
   MapPin,
