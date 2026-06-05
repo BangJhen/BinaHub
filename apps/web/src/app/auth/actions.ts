@@ -127,12 +127,30 @@ export async function signup(formData: FormData) {
     }
   }
 
-  // [FIX HIGH] Upload dokumen dengan validasi lengkap dan nama file aman
+  // Admin client — digunakan untuk upload Storage (user belum punya sesi saat registrasi,
+  // sehingga anon key tidak memiliki izin INSERT ke bucket 'documents') dan untuk
+  // membuat akun dengan auto-confirm di mode development.
+  const supabaseUrl      = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey   = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return {
+      success: false,
+      message: 'Konfigurasi server tidak lengkap. Hubungi administrator.',
+    }
+  }
+
+  const adminSupabase = createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+
+  // [FIX HIGH] Upload dokumen — pakai adminSupabase (service role) karena saat
+  // registrasi user belum memiliki sesi auth; anon key tidak diizinkan upload.
   if (raw.role === 'worker' && documentFile && typeof documentFile !== 'string' && documentFile.size > 0) {
     // [FIX HIGH] Nama file menggunakan UUID — tidak bisa ditebak
     const safeFileName = generateSafeFileName(raw.role, documentFile.name)
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await adminSupabase.storage
       .from('documents')
       .upload(safeFileName, documentFile, {
         cacheControl: '3600',
@@ -158,20 +176,7 @@ export async function signup(formData: FormData) {
   let authUser: { id: string; email_confirmed_at?: string | null } | null = null
 
   if (autoconfirmEnabled) {
-    // Mode development: auto-confirm aktif
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-    if (!supabaseUrl || !serviceRoleKey) {
-      return {
-        success: false,
-        message: 'Konfigurasi server tidak lengkap untuk mode auto-confirm.',
-      }
-    }
-
-    const adminSupabase = createSupabaseClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
+    // Mode development: auto-confirm aktif — adminSupabase sudah tersedia di atas
 
     const { data, error } = await adminSupabase.auth.admin.createUser({
       email: raw.email,
