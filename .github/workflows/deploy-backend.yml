@@ -1,0 +1,52 @@
+# ============================================================
+# BinaHub — Deploy Backend to Render
+# Triggers on push to main when apps/backend/** changes
+# ============================================================
+name: Deploy Backend to Render
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+      - 'render.yaml'
+
+jobs:
+  deploy:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render
+        if: ${{ secrets.RENDER_SERVICE_ID != '' }}
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+        run: |
+          echo "Triggering deploy for service $SERVICE_ID..."
+          curl -sf -X POST \
+            "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"clearCache": false}'
+          echo "Deploy triggered successfully!"
+
+      - name: Skip deploy (secrets not configured)
+        if: ${{ secrets.RENDER_SERVICE_ID == '' }}
+        run: |
+          echo "⚠️  RENDER_SERVICE_ID not set — skipping deploy."
+          echo "Set up secrets in GitHub Settings → Secrets → Actions."
+
+      - name: Wait for deploy to complete
+        if: ${{ secrets.RENDER_SERVICE_ID != '' }}
+        run: sleep 90
+
+      - name: Health check
+        if: ${{ secrets.RENDER_SERVICE_ID != '' }}
+        run: |
+          echo "Running health check..."
+          curl --fail --retry 3 --retry-delay 10 \
+            https://binahub-backend.onrender.com/health || exit 1
+          echo "✅ Backend is healthy!"

@@ -35,7 +35,7 @@ coverage/
 *.tsbuildinfo
 
 # Next.js
-.vercel/
+# .vercel/  — tracked for Vercel project linkage (project.json)
 
 # Misc
 .tmp/

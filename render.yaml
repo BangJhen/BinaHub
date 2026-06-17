@@ -1,0 +1,36 @@
+# ============================================================
+# BinaHub Backend — Render Blueprint
+# Deploy target: FastAPI (Python) on Render free plan
+# ============================================================
+services:
+  - type: web
+    name: binahub-backend
+    env: python
+    region: singapore
+    plan: free
+    rootDir: apps/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: AI_PROVIDER
+        value: openai
+      - key: AI_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_API_KEY
+        sync: false                 # Set manually in Render dashboard
+      - key: SUPABASE_URL
+        sync: false                 # Set manually in Render dashboard
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false                 # Set manually in Render dashboard
+      - key: REDIS_URL
+        sync: false                 # Optional — set if using Redis
+      - key: AI_SERVICE_SECRET
+        generateValue: true         # Auto-generate on deploy
+      - key: ENVIRONMENT
+        value: production
+      - key: FRONTEND_URL
+        sync: false                 # Set to Vercel URL after frontend deploy
