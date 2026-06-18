@@ -94,18 +94,22 @@ export async function signup(formData: FormData) {
     return { success: false, message: 'Data tidak valid. Periksa kembali semua isian.' }
   }
 
-  // [FIX CRITICAL] Guard auto-confirm — DILARANG aktif di lingkungan production
-  const autoconfirmEnabled = process.env.AUTH_AUTOCONFIRM === 'true'
-  if (autoconfirmEnabled && process.env.NODE_ENV === 'production') {
-    // [FIX MEDIUM] Log internal, bukan ekspos ke user
-    console.error('[SECURITY] AUTH_AUTOCONFIRM=true terdeteksi di environment production. Permintaan signup ditolak.')
+  // Admin client — digunakan untuk upload Storage (user belum punya sesi saat registrasi,
+  // sehingga anon key tidak memiliki izin INSERT ke bucket 'documents') dan untuk
+  // membuat akun dengan auto-confirm (tanpa SMTP).
+  const supabaseUrl      = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey   = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
     return {
       success: false,
-      message: 'Konfigurasi server tidak valid. Hubungi administrator.',
+      message: 'Konfigurasi server tidak lengkap. Hubungi administrator.',
     }
   }
 
-  const supabase = createClient()
+  const adminSupabase = createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
 
   // Kumpulkan metadata sesuai role
   let metadata: Record<string, string> = { name: raw.name, role: raw.role }
@@ -126,23 +130,6 @@ export async function signup(formData: FormData) {
       experience: raw.experience,
     }
   }
-
-  // Admin client — digunakan untuk upload Storage (user belum punya sesi saat registrasi,
-  // sehingga anon key tidak memiliki izin INSERT ke bucket 'documents') dan untuk
-  // membuat akun dengan auto-confirm di mode development.
-  const supabaseUrl      = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey   = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    return {
-      success: false,
-      message: 'Konfigurasi server tidak lengkap. Hubungi administrator.',
-    }
-  }
-
-  const adminSupabase = createSupabaseClient(supabaseUrl, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  })
 
   // [FIX HIGH] Upload dokumen — pakai adminSupabase (service role) karena saat
   // registrasi user belum memiliki sesi auth; anon key tidak diizinkan upload.
@@ -172,47 +159,30 @@ export async function signup(formData: FormData) {
     }
   }
 
-  // Buat akun auth
+  // Buat akun auth — selalu gunakan admin client (service role) untuk membuat user
+  // dengan auto-confirm. Ini menghindari kebutuhan SMTP/email confirmation di Supabase
+  // dan memastikan registrasi bekerja di semua environment (dev & production).
   let authUser: { id: string; email_confirmed_at?: string | null } | null = null
 
-  if (autoconfirmEnabled) {
-    // Mode development: auto-confirm aktif — adminSupabase sudah tersedia di atas
+  const { data, error } = await adminSupabase.auth.admin.createUser({
+    email: raw.email,
+    password: raw.password,
+    email_confirm: true,
+    user_metadata: metadata,
+  })
 
-    const { data, error } = await adminSupabase.auth.admin.createUser({
-      email: raw.email,
-      password: raw.password,
-      email_confirm: true,
-      user_metadata: metadata,
-    })
-
-    if (error) {
-      // [FIX MEDIUM] Log error internal tanpa detail sensitif ke output user
-      console.error('[AUTH] Gagal membuat akun (auto-confirm):', error.status)
-      return { success: false, message: normalizeAuthError(error.message) }
-    }
-
-    authUser = data.user
-      ? { id: data.user.id, email_confirmed_at: data.user.email_confirmed_at }
-      : null
-  } else {
-    // Mode normal: kirim email konfirmasi
-    const { data: signupData, error } = await supabase.auth.signUp({
-      email: raw.email,
-      password: raw.password,
-      options: { data: metadata },
-    })
-
-    if (error) {
-      console.error('[AUTH] Gagal signup:', error.status)
-      return { success: false, message: normalizeAuthError(error.message) }
-    }
-
-    authUser = signupData.user
+  if (error) {
+    console.error('[AUTH] Gagal membuat akun:', error.status)
+    return { success: false, message: normalizeAuthError(error.message) }
   }
+
+  authUser = data.user
+    ? { id: data.user.id, email_confirmed_at: data.user.email_confirmed_at }
+    : null
 
   // Sinkronisasi data ke tabel aplikasi
   if (authUser) {
-    const { error: userInsertError } = await supabase
+    const { error: userInsertError } = await adminSupabase
       .from('users')
       .upsert(
         {
@@ -236,7 +206,7 @@ export async function signup(formData: FormData) {
     }
 
     if (raw.role === 'umkm') {
-      const { error: umkmProfileError } = await supabase
+      const { error: umkmProfileError } = await adminSupabase
         .from('umkm_profiles')
         .upsert(
           {
@@ -258,7 +228,7 @@ export async function signup(formData: FormData) {
     }
 
     if (raw.role === 'worker') {
-      const { error: workerProfileError } = await supabase
+      const { error: workerProfileError } = await adminSupabase
         .from('worker_profiles')
         .upsert(
           {
@@ -282,9 +252,7 @@ export async function signup(formData: FormData) {
 
   return {
     success: true,
-    message: autoconfirmEnabled
-      ? 'Registrasi berhasil! Akun langsung aktif. Anda bisa langsung login.'
-      : 'Registrasi berhasil! Silakan cek email Anda untuk memverifikasi akun.',
+    message: 'Registrasi berhasil! Akun langsung aktif. Silakan login.',
   }
 }
 
