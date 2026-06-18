@@ -44,3 +44,11 @@ tmp/
 # Tool/session state
 .omo/
 .dev-pids
+
+# Temp deploy scripts
+.vercel-tmp/
+
+# Browser verification screenshots
+*.png
+!apps/web/public/*.png
+!docs/**/*.png
