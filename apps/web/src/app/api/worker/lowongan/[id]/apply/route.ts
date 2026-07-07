@@ -20,38 +20,68 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { data: job } = await supabase
+    const { data: job, error: jobError } = await supabase
       .from("jobs")
-      .select("id, status")
+      .select("id, status, umkm_id, title")
       .eq("id", params.id)
       .single();
 
-    if (!job || job.status !== "open") {
+    if (jobError || !job || job.status !== "open") {
       return NextResponse.json({ error: "Job not available" }, { status: 404 });
     }
 
     const { data: existingApplication } = await supabase
       .from("job_applications")
-      .select("id")
+      .select("id, job_id, worker_id, status, applied_at")
       .eq("job_id", params.id)
       .eq("worker_id", authData.user.id)
       .maybeSingle();
 
     if (existingApplication?.id) {
-      return NextResponse.json({ error: "Already applied" }, { status: 409 });
+      return NextResponse.json({
+        success: true,
+        alreadyApplied: true,
+        application: existingApplication,
+        message: "Lamaran sudah pernah dikirim"
+      });
     }
 
-    const { error: insertError } = await supabase
+    const { data: application, error: insertError } = await supabase
       .from("job_applications")
       .insert({
         job_id: params.id,
         worker_id: authData.user.id,
-        status: "submitted"
-      });
+        status: "submitted",
+        cover_letter: "Lamaran dikirim melalui halaman worker lowongan."
+      })
+      .select("id, job_id, worker_id, status, applied_at")
+      .single();
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      if (insertError.code === "23505") {
+        const { data: duplicateApplication } = await supabase
+          .from("job_applications")
+          .select("id, job_id, worker_id, status, applied_at")
+          .eq("job_id", params.id)
+          .eq("worker_id", authData.user.id)
+          .maybeSingle();
 
-    return NextResponse.json({ success: true });
+        return NextResponse.json({
+          success: true,
+          alreadyApplied: true,
+          application: duplicateApplication,
+          message: "Lamaran sudah pernah dikirim"
+        });
+      }
+      throw insertError;
+    }
+
+    return NextResponse.json({
+      success: true,
+      alreadyApplied: false,
+      application,
+      message: "Lamaran berhasil dikirim dan tercatat di dashboard UMKM"
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || "Failed to apply" }, { status: 500 });
   }

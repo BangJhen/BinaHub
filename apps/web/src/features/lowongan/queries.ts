@@ -15,6 +15,8 @@ export type WorkerLowongan = {
   business_sector: string | null;
   business_address: string | null;
   isSaved: boolean;
+  isApplied: boolean;
+  applicationStatus?: string | null;
   skills: string[] | null;
   education_level_required: string | null;
   experience_required: string | null;
@@ -215,8 +217,18 @@ export async function getWorkerLowonganPage(query: WorkerLowonganQuery = {}): Pr
 
   const savedSet = new Set((savedJobs || []).map((item) => item.job_id));
 
+  const jobIds = jobs.map((job) => job.id);
+  const { data: applications } = await supabase
+    .from("job_applications")
+    .select("job_id, status")
+    .eq("worker_id", authData.user.id)
+    .in("job_id", jobIds.length > 0 ? jobIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  const applicationMap = new Map((applications || []).map((item) => [item.job_id, item.status]));
+
   const items = jobs.map(job => {
     const umkm = umkmMap.get(job.umkm_id);
+    const applicationStatus = applicationMap.get(job.id) ?? null;
     return {
       id: job.id,
       title: job.title,
@@ -229,6 +241,8 @@ export async function getWorkerLowonganPage(query: WorkerLowonganQuery = {}): Pr
       business_sector: umkm?.business_sector ?? null,
       business_address: umkm?.business_address ?? null,
       isSaved: savedSet.has(job.id),
+      isApplied: Boolean(applicationStatus),
+      applicationStatus,
       skills: job.skills ?? null,
       education_level_required: job.education_level ?? null,
       experience_required: job.experience_required ?? null,
@@ -309,6 +323,8 @@ export async function getWorkerSavedLowonganData(): Promise<WorkerLowongan[]> {
       business_sector: umkm?.business_sector ?? null,
       business_address: umkm?.business_address ?? null,
       isSaved: true,
+      isApplied: false,
+      applicationStatus: null,
       skills: job.skills ?? null,
       education_level_required: job.education_level ?? null,
       experience_required: job.experience_required ?? null,

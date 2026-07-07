@@ -354,6 +354,13 @@ export default function LowonganPage() {
         throw new Error(payload.error || "Gagal melamar");
       }
       setAppliedIds((prev) => [...prev, jobId]);
+      setLowonganList((prev) =>
+        prev.map((item) =>
+          item.id === jobId
+            ? { ...item, isApplied: true, applicationStatus: "submitted" }
+            : item
+        )
+      );
     } catch (err: any) {
       setError(err.message || "Gagal melamar");
     } finally {
@@ -645,7 +652,7 @@ export default function LowonganPage() {
                     onApply={handleApply}
                     isSaving={savingIds.includes(job.id)}
                     isApplying={applyingIds.includes(job.id)}
-                    isApplied={appliedIds.includes(job.id)}
+                  isApplied={job.isApplied || appliedIds.includes(job.id)}
                   />
                 ))}
               </div>
