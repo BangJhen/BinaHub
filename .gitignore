@@ -41,6 +41,7 @@ coverage/
 # Misc
 .tmp/
 tmp/
+~$*.xlsx
 
 # Tool/session state
 .omo/
