@@ -79,15 +79,8 @@ SELECT
   u.city || ', ' || u.province,
   salary.salary_min,
   salary.salary_min + (700000 + ((u.umkm_no + j.job_no) % 5) * 200000)::numeric,
-  CASE
-    WHEN j.job_no % 25 = 0 THEN 'closed'::job_status
-    WHEN j.job_no % 10 = 0 THEN 'draft'::job_status
-    ELSE 'open'::job_status
-  END,
-  CASE
-    WHEN j.job_no % 10 = 0 THEN NULL
-    ELSE now() - ((u.umkm_no + j.job_no) || ' hours')::interval
-  END,
+  'open'::job_status,
+  now() - ((u.umkm_no + j.job_no) || ' hours')::interval,
   regexp_split_to_array(t.skills, ',\s*')::text[],
   ARRAY[
     'Onboarding singkat',

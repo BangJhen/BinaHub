@@ -23,6 +23,53 @@ export type WorkerLowongan = {
   matchLabel?: MatchLabel;
 };
 
+type WorkerLowonganJobRow = {
+  id: string;
+  umkm_id: string;
+  title: string;
+  location: string | null;
+  employment_type: string | null;
+  salary_min: number | null;
+  salary_max: number | null;
+  published_at: string | null;
+  skills: string[] | null;
+  education_level: string | null;
+  experience_required: string | null;
+};
+
+const SUPABASE_PAGE_SIZE = 1000;
+
+async function fetchAllOpenJobs(): Promise<WorkerLowonganJobRow[]> {
+  const supabase = createClient();
+  const rows: WorkerLowonganJobRow[] = [];
+  let from = 0;
+
+  while (true) {
+    const to = from + SUPABASE_PAGE_SIZE - 1;
+    const { data, error } = await supabase
+      .from("jobs")
+      .select("id, umkm_id, title, location, employment_type, salary_min, salary_max, published_at, skills, education_level, experience_required")
+      .eq("status", "open")
+      .order("published_at", { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      throw error;
+    }
+
+    const batch = (data ?? []) as WorkerLowonganJobRow[];
+    rows.push(...batch);
+
+    if (batch.length < SUPABASE_PAGE_SIZE) {
+      break;
+    }
+
+    from += SUPABASE_PAGE_SIZE;
+  }
+
+  return rows;
+}
+
 export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
   const supabase = createClient();
 
@@ -41,14 +88,12 @@ export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
     throw new Error("Forbidden");
   }
   
-  // Ambil lowongan dengan status 'open'
-  const { data: jobs, error: jobsError } = await supabase
-    .from("jobs")
-    .select("id, umkm_id, title, location, employment_type, salary_min, salary_max, published_at, skills, education_level, experience_required")
-    .eq("status", "open")
-    .order("published_at", { ascending: false });
-
-  if (jobsError || !jobs) {
+  // Ambil semua lowongan open. Supabase REST default membatasi 1.000 rows
+  // per request, jadi data besar perlu diambil bertahap dengan range().
+  let jobs: WorkerLowonganJobRow[] = [];
+  try {
+    jobs = await fetchAllOpenJobs();
+  } catch (jobsError) {
     console.error("Error fetching jobs:", jobsError);
     return [];
   }
@@ -70,12 +115,10 @@ export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
     }
   }
 
-  const jobIds = jobs.map((job) => job.id);
   const { data: savedJobs } = await supabase
     .from("saved_jobs")
     .select("job_id")
-    .eq("worker_id", authData.user.id)
-    .in("job_id", jobIds);
+    .eq("worker_id", authData.user.id);
 
   const savedSet = new Set((savedJobs || []).map((item) => item.job_id));
 
