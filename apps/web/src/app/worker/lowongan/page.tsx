@@ -33,6 +33,21 @@ function getRelativeTime(dateString: string | null) {
   return `${Math.floor(diffDays / 30)} bulan lalu`;
 }
 
+function getVisiblePageNumbers(currentPage: number, totalPages: number, windowSize = 5) {
+  if (totalPages <= 0) return [];
+  const safeWindow = Math.min(windowSize, totalPages);
+  const half = Math.floor(safeWindow / 2);
+  let start = Math.max(1, currentPage - half);
+  let end = start + safeWindow - 1;
+
+  if (end > totalPages) {
+    end = totalPages;
+    start = Math.max(1, end - safeWindow + 1);
+  }
+
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+}
+
 function MatchBadge({ score, label }: { score: number; label: ReturnType<typeof getMatchLabel> }) {
   if (!label) return null;
   const { bg, color, border } = getMatchColors(label);
@@ -323,6 +338,7 @@ export default function LowonganPage() {
   };
 
   const hasProfile = !!workerProfile;
+  const visiblePages = getVisiblePageNumbers(page, totalPages, 5);
 
   return (
     <main className={styles.mainContainer}>
@@ -605,7 +621,7 @@ export default function LowonganPage() {
                 ))}
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 24, flexWrap: "wrap" }}>
                 <button
                   className={styles.secondaryBtn}
                   disabled={page <= 1 || isLoading}
@@ -614,9 +630,54 @@ export default function LowonganPage() {
                 >
                   Sebelumnya
                 </button>
-                <span style={{ color: "#4d6473", fontWeight: 700 }}>
-                  Halaman {page} dari {totalPages}
-                </span>
+                {visiblePages[0] > 1 && (
+                  <>
+                    <button
+                      className={styles.secondaryBtn}
+                      onClick={() => setPage(1)}
+                      disabled={isLoading}
+                      style={{ minWidth: 44, paddingInline: 14 }}
+                    >
+                      1
+                    </button>
+                    {visiblePages[0] > 2 && <span style={{ color: "#6f8190", fontWeight: 800 }}>…</span>}
+                  </>
+                )}
+                {visiblePages.map((pageNumber) => {
+                  const isActive = pageNumber === page;
+                  return (
+                    <button
+                      key={pageNumber}
+                      className={styles.secondaryBtn}
+                      onClick={() => setPage(pageNumber)}
+                      disabled={isLoading || isActive}
+                      aria-current={isActive ? "page" : undefined}
+                      style={{
+                        minWidth: 44,
+                        paddingInline: 14,
+                        background: isActive ? "#0f6e99" : "#ffffff",
+                        color: isActive ? "#ffffff" : "#0d2342",
+                        borderColor: isActive ? "#0f6e99" : "#d6e6f2",
+                        cursor: isActive ? "default" : "pointer",
+                      }}
+                    >
+                      {pageNumber}
+                    </button>
+                  );
+                })}
+                {visiblePages[visiblePages.length - 1] < totalPages && (
+                  <>
+                    {visiblePages[visiblePages.length - 1] < totalPages - 1 && <span style={{ color: "#6f8190", fontWeight: 800 }}>…</span>}
+                    <button
+                      className={styles.secondaryBtn}
+                      onClick={() => setPage(totalPages)}
+                      disabled={isLoading}
+                      style={{ minWidth: 44, paddingInline: 14 }}
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
                 <button
                   className={styles.secondaryBtn}
                   disabled={page >= totalPages || isLoading}
