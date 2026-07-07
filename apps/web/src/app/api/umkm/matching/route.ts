@@ -23,6 +23,7 @@ type JobLite = {
   skills: string[];
   educationLevel: string | null;
   applicants: number;
+  applicantIds: string[];
 };
 
 export async function GET() {
@@ -54,14 +55,14 @@ export async function GET() {
         education_level,
         status,
         published_at,
-        job_applications(id)
+        job_applications(id, worker_id)
       `)
       .eq("umkm_id", user.id)
       .order("published_at", { ascending: false });
 
     if (jobsError) throw jobsError;
 
-    const openJobs: JobLite[] = (jobs || [])
+    const openJobs = (jobs || [])
       .filter((j: any) => j.status === "open")
       .map((j: any) => ({
         id: j.id,
@@ -69,7 +70,8 @@ export async function GET() {
         location: j.location,
         skills: Array.isArray(j.skills) ? j.skills : [],
         educationLevel: j.education_level,
-        applicants: (j.job_applications || []).length
+        applicants: (j.job_applications || []).length,
+        applicantIds: (j.job_applications || []).map((a: any) => a.worker_id)
       }));
 
     // Fetch all active workers

@@ -25,6 +25,7 @@ type JobLite = {
   skills: string[];
   educationLevel: string | null;
   applicants: number;
+  applicantIds: string[];
 };
 
 type ScoreBreakdown = {
@@ -144,6 +145,7 @@ export default function UmkmMatchingPage() {
   const ranked = useMemo(() => {
     if (!selectedJob) return [];
     return candidates
+      .filter((c) => selectedJob.applicantIds.includes(c.id))
       .map((c) => ({ candidate: c, breakdown: computeBreakdown(selectedJob, c) }))
       .sort((a, b) => b.breakdown.total - a.breakdown.total);
   }, [selectedJob, candidates]);
@@ -170,8 +172,8 @@ export default function UmkmMatchingPage() {
             <strong>{jobs.length}</strong>
           </div>
           <div className={styles.kpiPill}>
-            <p>Total Kandidat</p>
-            <strong>{candidates.length}</strong>
+            <p>Total Pelamar</p>
+            <strong>{selectedJob ? ranked.length : 0}</strong>
           </div>
           <div className={styles.kpiPill}>
             <p>Rata-rata Match</p>
@@ -272,8 +274,8 @@ export default function UmkmMatchingPage() {
               <div className={styles.candidateList}>
                 {ranked.length === 0 ? (
                   <div className={styles.emptyResults}>
-                    <h3>Belum ada kandidat</h3>
-                    <p>Kandidat akan muncul setelah pekerja terdaftar dan aktif di sistem.</p>
+                    <h3>Belum ada pelamar</h3>
+                    <p>Pelamar yang melamar pada lowongan ini akan muncul di sini untuk dicocokkan (matching).</p>
                   </div>
                 ) : (
                   ranked.map((entry, idx) => {
