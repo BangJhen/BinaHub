@@ -77,11 +77,17 @@ export default function WorkerDetailPage() {
     if (!newTaskTitle.trim() || isAddingTask) return
     setIsAddingTask(true)
     try {
-      await fetch(`/api/umkm/tasks`, {
+      const res = await fetch(`/api/umkm/tasks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTaskTitle, description: newTaskDesc, workerId }),
+        body: JSON.stringify({ title: newTaskTitle, description: newTaskDesc, worker_id: workerId }),
       })
+      if (res.ok) {
+        const payload = await res.json()
+        if (payload.task) {
+          setTasks((prev) => [...prev, payload.task])
+        }
+      }
       setNewTaskTitle("")
       setNewTaskDesc("")
     } finally {
@@ -127,10 +133,18 @@ export default function WorkerDetailPage() {
     async function loadData() {
       setFetchError("");
       
-      const [dashRes, realWorkerRes] = await Promise.all([
+      const [dashRes, realWorkerRes, tasksRes] = await Promise.all([
         fetch("/api/dashboard/umkm", { cache: "no-store" }),
-        fetch(`/api/umkm/workers/${workerId}`, { cache: "no-store" })
+        fetch(`/api/umkm/workers/${workerId}`, { cache: "no-store" }),
+        fetch(`/api/umkm/tasks?worker_id=${workerId}`, { cache: "no-store" }),
       ]);
+
+      if (tasksRes.ok) {
+        const tasksPayload = await tasksRes.json();
+        if (isMounted && Array.isArray(tasksPayload.tasks)) {
+          setTasks(tasksPayload.tasks);
+        }
+      }
 
       if (realWorkerRes.ok) {
         const payload = await realWorkerRes.json();
@@ -547,6 +561,8 @@ export default function WorkerDetailPage() {
           </ul>
         </article>
       </section>
+
+      {renderTasksAndMessages()}
     </main>
   );
 }

@@ -443,41 +443,105 @@ export default function WorkerDashboardPage() {
             <span className={styles.dateEndLabel}>{formatDateLabel(endDate)}</span>
           </div>
           
-          {/* 7-Day Sentiment Tracker Chart */}
-          <div style={{ marginBottom: "2rem", padding: "1.5rem", background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
-            <h3 style={{ margin: "0 0 1rem", fontSize: "0.95rem", color: "#475569" }}>Tren Sentimen 7 Hari Terakhir</h3>
-            <div style={{ display: "flex", alignItems: "flex-end", height: "120px", gap: "8px", position: "relative" }}>
-              {/* Y-axis lines */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, borderTop: "1px dashed #cbd5e1" }}></div>
-              <div style={{ position: "absolute", top: "50%", left: 0, right: 0, borderTop: "1px dashed #cbd5e1" }}></div>
-              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, borderTop: "1px solid #cbd5e1" }}></div>
-              
-              {filteredCheckins.slice(0, 7).reverse().map((entry, idx) => {
-                const height = entry.condition === "green" ? "100%" 
-                             : entry.condition === "yellow" ? "60%" 
-                             : entry.condition === "red" ? "30%" 
-                             : "5%";
-                const color = entry.condition === "green" ? "#22c55e" 
-                            : entry.condition === "yellow" ? "#eab308" 
-                            : entry.condition === "red" ? "#ef4444" 
-                            : "#e2e8f0";
-                
-                return (
-                  <div key={idx} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", zIndex: 1 }}>
-                    <div style={{ 
-                      width: "100%", maxWidth: "40px", height, 
-                      background: color, borderRadius: "6px 6px 0 0",
-                      transition: "height 0.5s ease-out",
-                      opacity: entry.condition === "missed" ? 0.5 : 1
-                    }}></div>
-                    <span style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "8px", whiteSpace: "nowrap" }}>
-                      {entry.dayLabel.split(",")[0]}
-                    </span>
+          {/* 7-Day Sentiment Line Chart */}
+          {(() => {
+            const chartEntries = filteredCheckins.slice(0, 7).reverse();
+            // Map condition to numeric Y value (0–100 scale for SVG)
+            const condY = (c: CheckinCondition): number | null => {
+              if (c === "green")  return 85;
+              if (c === "yellow") return 52;
+              if (c === "red")    return 18;
+              return null; // missed → skip
+            };
+            const W = 420, H = 110, PAD_X = 18, PAD_Y = 12;
+            const n = chartEntries.length;
+            // Build segments (gap at missed)
+            const segments: { x: number; y: number }[][] = [];
+            let seg: { x: number; y: number }[] = [];
+            chartEntries.forEach((entry, i) => {
+              const xPos = n <= 1 ? W / 2 : PAD_X + (i / (n - 1)) * (W - PAD_X * 2);
+              const yVal = condY(entry.condition);
+              if (yVal === null) {
+                if (seg.length > 0) { segments.push(seg); seg = []; }
+              } else {
+                const yPos = PAD_Y + ((100 - yVal) / 100) * (H - PAD_Y * 2);
+                seg.push({ x: xPos, y: yPos });
+              }
+            });
+            if (seg.length > 0) segments.push(seg);
+            const hasData = chartEntries.some(e => e.condition !== "missed");
+            // Dominant color for the line
+            const greens = chartEntries.filter(e => e.condition === "green").length;
+            const yellows = chartEntries.filter(e => e.condition === "yellow").length;
+            const reds = chartEntries.filter(e => e.condition === "red").length;
+            const lineColor = greens >= yellows && greens >= reds ? "#16a34a"
+                            : reds > yellows ? "#ef4444" : "#f59e0b";
+            return (
+              <div style={{ marginBottom: "2rem", padding: "1.25rem 1.5rem 0.75rem", background: "#f8fafc", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                  <h3 style={{ margin: 0, fontSize: "0.9rem", fontWeight: 700, color: "#475569" }}>Tren Sentimen 7 Hari Terakhir</h3>
+                  <div style={{ display: "flex", gap: 10, fontSize: 11, color: "#94a3b8" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}><i style={{ width: 8, height: 8, borderRadius: "50%", background: "#16a34a", display: "inline-block" }} /> Stabil</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}><i style={{ width: 8, height: 8, borderRadius: "50%", background: "#f59e0b", display: "inline-block" }} /> Perhatian</span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}><i style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", display: "inline-block" }} /> Kurang</span>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                </div>
+                {!hasData ? (
+                  <div style={{ height: 90, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, color: "#94a3b8" }}>
+                    <i className="ti ti-chart-line" style={{ fontSize: 28 }} />
+                    <span style={{ fontSize: 12 }}>Belum ada data check-in pada periode ini</span>
+                  </div>
+                ) : (
+                  <svg viewBox={`0 0 ${W} ${H + 20}`} style={{ width: "100%", overflow: "visible" }} aria-hidden>
+                    {/* Grid lines */}
+                    {[85, 52, 18].map((yv, i) => {
+                      const yPos = PAD_Y + ((100 - yv) / 100) * (H - PAD_Y * 2);
+                      return (
+                        <line key={i} x1={PAD_X} y1={yPos} x2={W - PAD_X} y2={yPos}
+                          stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4 4" />
+                      );
+                    })}
+                    {/* Y-axis labels */}
+                    {[{ yv: 85, label: "Stabil" }, { yv: 52, label: "Perhatian" }, { yv: 18, label: "Kurang" }].map(({ yv, label }) => {
+                      const yPos = PAD_Y + ((100 - yv) / 100) * (H - PAD_Y * 2);
+                      return (
+                        <text key={label} x={PAD_X - 2} y={yPos + 4} textAnchor="end" fontSize="9" fill="#94a3b8">{label}</text>
+                      );
+                    })}
+                    {/* Line segments (gaps at missed) */}
+                    {segments.map((s, si) => s.length > 1 && (
+                      <polyline key={si}
+                        points={s.map(p => `${p.x},${p.y}`).join(" ")}
+                        fill="none" stroke={lineColor} strokeWidth="2.5"
+                        strokeLinecap="round" strokeLinejoin="round" />
+                    ))}
+                    {/* Dots for each non-missed entry */}
+                    {chartEntries.map((entry, i) => {
+                      const xPos = n <= 1 ? W / 2 : PAD_X + (i / (n - 1)) * (W - PAD_X * 2);
+                      const yVal = condY(entry.condition);
+                      if (yVal === null) return null;
+                      const yPos = PAD_Y + ((100 - yVal) / 100) * (H - PAD_Y * 2);
+                      const dotColor = entry.condition === "green" ? "#16a34a"
+                                     : entry.condition === "yellow" ? "#f59e0b" : "#ef4444";
+                      return (
+                        <g key={i}>
+                          <circle cx={xPos} cy={yPos} r="5" fill={dotColor} stroke="#fff" strokeWidth="2" />
+                        </g>
+                      );
+                    })}
+                    {/* X-axis day labels */}
+                    {chartEntries.map((entry, i) => {
+                      const xPos = n <= 1 ? W / 2 : PAD_X + (i / (n - 1)) * (W - PAD_X * 2);
+                      const dayShort = entry.dayLabel.split(",")[0];
+                      return (
+                        <text key={i} x={xPos} y={H + 16} textAnchor="middle" fontSize="10" fill="#94a3b8">{dayShort}</text>
+                      );
+                    })}
+                  </svg>
+                )}
+              </div>
+            );
+          })()}
 
           <ul className={styles.checkinTimeline}>
             {filteredCheckins.length === 0 && (

@@ -52,3 +52,6 @@ tmp/
 *.png
 !apps/web/public/*.png
 !docs/**/*.png
+
+# Agent tool state
+.superpowers/
