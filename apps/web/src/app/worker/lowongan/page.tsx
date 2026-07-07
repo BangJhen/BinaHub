@@ -193,13 +193,29 @@ export default function LowonganPage() {
 
   const [searchTitle, setSearchTitle] = useState("");
   const [searchLocation, setSearchLocation] = useState("");
+  const [committedSearch, setCommittedSearch] = useState({ title: "", location: "" });
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [selectedSystems, setSelectedSystems] = useState<string[]>([]);
+  const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<"newest" | "salary" | "match">("newest");
 
   useEffect(() => {
     setPage(1);
-  }, [searchTitle, searchLocation, selectedTypes, sortBy]);
+  }, [selectedTypes, selectedSystems, selectedExperiences, sortBy]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setCommittedSearch({ title: searchTitle.trim(), location: searchLocation.trim() });
+      setPage(1);
+    }, 600);
+
+    return () => window.clearTimeout(timeout);
+  }, [searchTitle, searchLocation]);
+
+  const handleSearchSubmit = () => {
+    setCommittedSearch({ title: searchTitle.trim(), location: searchLocation.trim() });
+    setPage(1);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -211,9 +227,11 @@ export default function LowonganPage() {
           pageSize: String(pageSize),
           sortBy: sortBy === "salary" ? "salary" : "newest",
         });
-        if (searchTitle.trim()) params.set("search", searchTitle.trim());
-        if (searchLocation.trim()) params.set("location", searchLocation.trim());
+        if (committedSearch.title) params.set("search", committedSearch.title);
+        if (committedSearch.location) params.set("location", committedSearch.location);
         if (selectedTypes.length > 0) params.set("types", selectedTypes.join(","));
+        if (selectedSystems.length > 0) params.set("systems", selectedSystems.join(","));
+        if (selectedExperiences.length > 0) params.set("experiences", selectedExperiences.join(","));
 
         const [jobsRes, profileRes] = await Promise.all([
           fetch(`/api/worker/lowongan?${params.toString()}`, { cache: "no-store" }),
@@ -270,7 +288,7 @@ export default function LowonganPage() {
     }
     loadData();
     return () => { isMounted = false; };
-  }, [page, searchTitle, searchLocation, selectedTypes, sortBy]);
+  }, [page, committedSearch, selectedTypes, selectedSystems, selectedExperiences, sortBy]);
 
   // Top recommendations: score >= 50, sorted desc, max 3
   const recommendations = useMemo(() => {
@@ -294,7 +312,13 @@ export default function LowonganPage() {
     arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
   const handleResetFilters = () => {
-    setSearchTitle(""); setSearchLocation(""); setSelectedTypes([]); setSelectedSystems([]); setPage(1);
+    setSearchTitle("");
+    setSearchLocation("");
+    setCommittedSearch({ title: "", location: "" });
+    setSelectedTypes([]);
+    setSelectedSystems([]);
+    setSelectedExperiences([]);
+    setPage(1);
   };
 
   const handleSaveToggle = async (jobId: string, isSaved: boolean) => {
@@ -363,7 +387,7 @@ export default function LowonganPage() {
                 value={searchLocation} onChange={(e) => setSearchLocation(e.target.value)}
                 className={styles.searchInput} />
             </div>
-            <button className={styles.searchBtn}>CARI</button>
+            <button className={styles.searchBtn} onClick={handleSearchSubmit}>CARI</button>
           </div>
 
           <button className={styles.mobileFilterBtn} onClick={() => setIsMobileFilterOpen(true)}>
@@ -417,7 +441,12 @@ export default function LowonganPage() {
             <div className={styles.filterList}>
               {EXPERIENCES.map((exp) => (
                 <label key={exp} className={styles.checkboxLabel}>
-                  <input type="checkbox" className={styles.checkbox} />
+                  <input
+                    type="checkbox"
+                    checked={selectedExperiences.includes(exp)}
+                    onChange={() => setSelectedExperiences((prev) => toggleArray(prev, exp))}
+                    className={styles.checkbox}
+                  />
                   <span className={styles.checkboxText}>{exp}</span>
                 </label>
               ))}

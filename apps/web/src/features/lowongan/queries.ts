@@ -37,6 +37,8 @@ export type WorkerLowonganQuery = {
   search?: string;
   location?: string;
   types?: string[];
+  systems?: string[];
+  experiences?: string[];
   sortBy?: "newest" | "salary";
 };
 
@@ -60,6 +62,15 @@ const DEFAULT_PAGE_SIZE = 10;
 
 function normalizeEmploymentType(value: string) {
   return value.trim().toLowerCase().replace(/\s+/g, "_");
+}
+
+function mapExperienceFilter(value: string) {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "fresh graduate") return ["fresh", "0-1", "tidak wajib"];
+  if (normalized === "1-3 tahun") return ["1-2", "1-3", "0-1"];
+  if (normalized === "3-5 tahun") return ["3-5"];
+  if (normalized === "senior") return ["senior"];
+  return [normalized];
 }
 
 async function fetchAllOpenJobs(): Promise<WorkerLowonganJobRow[]> {
@@ -150,6 +161,19 @@ export async function getWorkerLowonganPage(query: WorkerLowonganQuery = {}): Pr
   const types = (query.types ?? []).map(normalizeEmploymentType).filter(Boolean);
   if (types.length > 0) {
     jobsQuery = jobsQuery.in("employment_type", types);
+  }
+
+  const systems = query.systems ?? [];
+  if (systems.length > 0 && !systems.includes("Work from Office")) {
+    // Seeded jobs are on-site/WFO. Hybrid/Remote are intentionally empty filters.
+    jobsQuery = jobsQuery.eq("employment_type", "__no_matching_work_system__");
+  }
+
+  const experiences = (query.experiences ?? []).flatMap(mapExperienceFilter);
+  if (experiences.length > 0) {
+    jobsQuery = jobsQuery.or(
+      experiences.map((item) => `experience_required.ilike.%${item}%`).join(",")
+    );
   }
 
   if (query.sortBy === "salary") {

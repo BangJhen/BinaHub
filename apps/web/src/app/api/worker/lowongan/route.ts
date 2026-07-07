@@ -10,6 +10,8 @@ export async function GET(request: Request) {
       search: searchParams.get("search") ?? undefined,
       location: searchParams.get("location") ?? undefined,
       types: searchParams.get("types")?.split(",").filter(Boolean) ?? [],
+      systems: searchParams.get("systems")?.split(",").filter(Boolean) ?? [],
+      experiences: searchParams.get("experiences")?.split(",").filter(Boolean) ?? [],
       sortBy: searchParams.get("sortBy") === "salary" ? "salary" : "newest",
     });
     return NextResponse.json(data);
