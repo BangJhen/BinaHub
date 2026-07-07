@@ -1,0 +1,46 @@
+{
+  "source_file": "/Users/bangjhener/Desktop/Telkom/Semester 4/Wawasan Global TIK/Project/data/interview/raw/dirty_bina_job_pipeline.xlsx",
+  "dry_run": true,
+  "counts": {
+    "jobs_clean": 18,
+    "applications_clean": 42,
+    "saved_jobs_clean": 25,
+    "rejected_rows": 5
+  },
+  "rejects": [
+    {
+      "sheet": "raw_jobs",
+      "row": 20,
+      "reason": "missing_or_duplicate_external_job_code",
+      "code": "JOB-003"
+    },
+    {
+      "sheet": "raw_jobs",
+      "row": 21,
+      "reason": "umkm_email_not_found",
+      "code": "JOB-BAD-UMKM",
+      "email": "not.registered.umkm@example.com"
+    },
+    {
+      "sheet": "raw_applications",
+      "row": 44,
+      "reason": "job_code_not_found",
+      "code": "JOB-999",
+      "email": "prabowo@gmail.com"
+    },
+    {
+      "sheet": "raw_applications",
+      "row": 45,
+      "reason": "worker_email_not_found",
+      "code": "JOB-001",
+      "email": "ghost.worker@example.com"
+    },
+    {
+      "sheet": "raw_saved_jobs",
+      "row": 27,
+      "reason": "job_code_not_found",
+      "code": "JOB-404",
+      "email": "jhenerar21@gmail.com"
+    }
+  ]
+}

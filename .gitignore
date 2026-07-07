@@ -18,6 +18,7 @@ node_modules/
 
 # Python virtual environments
 .venv/
+.venv_interview/
 .venv_recreate/
 __pycache__/
 *.pyc
