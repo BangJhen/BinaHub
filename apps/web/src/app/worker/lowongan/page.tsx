@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import styles from "./page.module.css";
-import type { WorkerLowongan } from "@/features/lowongan/queries";
+import type { WorkerLowongan, WorkerLowonganPage } from "@/features/lowongan/queries";
 import { computeMatchScore, getMatchLabel, getMatchColors, type WorkerProfileForMatch } from "@/features/lowongan/match";
 
 const JOB_TYPES = ["Full Time", "Part Time", "Freelance", "Contract", "Internship"];
@@ -171,6 +171,10 @@ export default function LowonganPage() {
   const [applyingIds, setApplyingIds] = useState<string[]>([]);
   const [appliedIds, setAppliedIds] = useState<string[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalJobs, setTotalJobs] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10;
 
   const [searchTitle, setSearchTitle] = useState("");
   const [searchLocation, setSearchLocation] = useState("");
@@ -179,11 +183,25 @@ export default function LowonganPage() {
   const [sortBy, setSortBy] = useState<"newest" | "salary" | "match">("newest");
 
   useEffect(() => {
+    setPage(1);
+  }, [searchTitle, searchLocation, selectedTypes, sortBy]);
+
+  useEffect(() => {
     let isMounted = true;
     async function loadData() {
       try {
+        setIsLoading(true);
+        const params = new URLSearchParams({
+          page: String(page),
+          pageSize: String(pageSize),
+          sortBy: sortBy === "salary" ? "salary" : "newest",
+        });
+        if (searchTitle.trim()) params.set("search", searchTitle.trim());
+        if (searchLocation.trim()) params.set("location", searchLocation.trim());
+        if (selectedTypes.length > 0) params.set("types", selectedTypes.join(","));
+
         const [jobsRes, profileRes] = await Promise.all([
-          fetch("/api/worker/lowongan", { cache: "no-store" }),
+          fetch(`/api/worker/lowongan?${params.toString()}`, { cache: "no-store" }),
           fetch("/api/worker/profile", { cache: "no-store" }),
         ]);
 
@@ -192,7 +210,8 @@ export default function LowonganPage() {
           throw new Error(payload.message || "Gagal mengambil data lowongan");
         }
 
-        const jobs: WorkerLowongan[] = await jobsRes.json();
+        const jobsPayload: WorkerLowonganPage = await jobsRes.json();
+        const jobs = jobsPayload.items;
         let profile: WorkerProfileForMatch | null = null;
 
         if (profileRes.ok) {
@@ -224,6 +243,9 @@ export default function LowonganPage() {
 
         setWorkerProfile(profile);
         setLowonganList(scored);
+        setTotalJobs(jobsPayload.total);
+        setTotalPages(Math.max(1, jobsPayload.totalPages));
+        setError("");
       } catch (err: any) {
         if (!isMounted) return;
         setError(err.message || "Gagal memuat data");
@@ -233,7 +255,7 @@ export default function LowonganPage() {
     }
     loadData();
     return () => { isMounted = false; };
-  }, []);
+  }, [page, searchTitle, searchLocation, selectedTypes, sortBy]);
 
   // Top recommendations: score >= 50, sorted desc, max 3
   const recommendations = useMemo(() => {
@@ -247,42 +269,17 @@ export default function LowonganPage() {
   const filteredList = useMemo(() => {
     let result = [...lowonganList];
 
-    if (searchTitle.trim()) {
-      const q = searchTitle.toLowerCase();
-      result = result.filter(
-        (j) => j.title.toLowerCase().includes(q) || j.umkm_name.toLowerCase().includes(q) ||
-          (j.skills || []).some((s) => s.toLowerCase().includes(q))
-      );
-    }
-    if (searchLocation.trim()) {
-      const q = searchLocation.toLowerCase();
-      result = result.filter((j) => (j.location || "").toLowerCase().includes(q));
-    }
-    if (selectedTypes.length > 0) {
-      result = result.filter((j) =>
-        selectedTypes.some((t) => (j.employment_type || "").toLowerCase().includes(t.toLowerCase()))
-      );
-    }
-
-    if (sortBy === "salary") {
-      result.sort((a, b) => (b.salary_max || b.salary_min || 0) - (a.salary_max || a.salary_min || 0));
-    } else if (sortBy === "match") {
+    if (sortBy === "match") {
       result.sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
-    } else {
-      result.sort((a, b) => {
-        const aDate = a.published_at ? new Date(a.published_at).getTime() : 0;
-        const bDate = b.published_at ? new Date(b.published_at).getTime() : 0;
-        return bDate - aDate;
-      });
     }
     return result;
-  }, [lowonganList, searchTitle, searchLocation, selectedTypes, sortBy]);
+  }, [lowonganList, sortBy]);
 
   const toggleArray = (arr: string[], value: string) =>
     arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
   const handleResetFilters = () => {
-    setSearchTitle(""); setSearchLocation(""); setSelectedTypes([]); setSelectedSystems([]);
+    setSearchTitle(""); setSearchLocation(""); setSelectedTypes([]); setSelectedSystems([]); setPage(1);
   };
 
   const handleSaveToggle = async (jobId: string, isSaved: boolean) => {
@@ -538,7 +535,7 @@ export default function LowonganPage() {
 
           {/* LISTING HEADER */}
           <div className={styles.listingHeader}>
-            <h2>{filteredList.length} Lowongan Ditemukan</h2>
+            <h2>{totalJobs} Lowongan Ditemukan</h2>
             <div className={styles.listingActions}>
               <div className={styles.sortWrapper}>
                 <label htmlFor="sort">Urutkan:</label>
@@ -593,19 +590,43 @@ export default function LowonganPage() {
           )}
 
           {!isLoading && !error && filteredList.length > 0 && (
-            <div className={styles.list}>
-              {filteredList.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  onSave={handleSaveToggle}
-                  onApply={handleApply}
-                  isSaving={savingIds.includes(job.id)}
-                  isApplying={applyingIds.includes(job.id)}
-                  isApplied={appliedIds.includes(job.id)}
-                />
-              ))}
-            </div>
+            <>
+              <div className={styles.list}>
+                {filteredList.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onSave={handleSaveToggle}
+                    onApply={handleApply}
+                    isSaving={savingIds.includes(job.id)}
+                    isApplying={applyingIds.includes(job.id)}
+                    isApplied={appliedIds.includes(job.id)}
+                  />
+                ))}
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
+                <button
+                  className={styles.secondaryBtn}
+                  disabled={page <= 1 || isLoading}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  style={{ opacity: page <= 1 ? 0.5 : 1, cursor: page <= 1 ? "not-allowed" : "pointer" }}
+                >
+                  Sebelumnya
+                </button>
+                <span style={{ color: "#4d6473", fontWeight: 700 }}>
+                  Halaman {page} dari {totalPages}
+                </span>
+                <button
+                  className={styles.secondaryBtn}
+                  disabled={page >= totalPages || isLoading}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  style={{ opacity: page >= totalPages ? 0.5 : 1, cursor: page >= totalPages ? "not-allowed" : "pointer" }}
+                >
+                  Berikutnya
+                </button>
+              </div>
+            </>
           )}
         </section>
       </div>

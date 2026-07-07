@@ -23,6 +23,23 @@ export type WorkerLowongan = {
   matchLabel?: MatchLabel;
 };
 
+export type WorkerLowonganPage = {
+  items: WorkerLowongan[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+export type WorkerLowonganQuery = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  location?: string;
+  types?: string[];
+  sortBy?: "newest" | "salary";
+};
+
 type WorkerLowonganJobRow = {
   id: string;
   umkm_id: string;
@@ -38,6 +55,12 @@ type WorkerLowonganJobRow = {
 };
 
 const SUPABASE_PAGE_SIZE = 1000;
+
+const DEFAULT_PAGE_SIZE = 10;
+
+function normalizeEmploymentType(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, "_");
+}
 
 async function fetchAllOpenJobs(): Promise<WorkerLowonganJobRow[]> {
   const supabase = createClient();
@@ -71,6 +94,11 @@ async function fetchAllOpenJobs(): Promise<WorkerLowonganJobRow[]> {
 }
 
 export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
+  const page = await getWorkerLowonganPage({ page: 1, pageSize: SUPABASE_PAGE_SIZE });
+  return page.items;
+}
+
+export async function getWorkerLowonganPage(query: WorkerLowonganQuery = {}): Promise<WorkerLowonganPage> {
   const supabase = createClient();
 
   const { data: authData, error: authError } = await supabase.auth.getUser();
@@ -88,17 +116,58 @@ export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
     throw new Error("Forbidden");
   }
   
-  // Ambil semua lowongan open. Supabase REST default membatasi 1.000 rows
-  // per request, jadi data besar perlu diambil bertahap dengan range().
-  let jobs: WorkerLowonganJobRow[] = [];
-  try {
-    jobs = await fetchAllOpenJobs();
-  } catch (jobsError) {
-    console.error("Error fetching jobs:", jobsError);
-    return [];
+  const page = Math.max(1, query.page ?? 1);
+  const pageSize = Math.min(50, Math.max(1, query.pageSize ?? DEFAULT_PAGE_SIZE));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let jobsQuery = supabase
+    .from("jobs")
+    .select("id, umkm_id, title, location, employment_type, salary_min, salary_max, published_at, skills, education_level, experience_required", { count: "exact" })
+    .eq("status", "open");
+
+  const search = query.search?.trim();
+  if (search) {
+    const { data: matchingUmkms } = await supabase
+      .from("umkm_profiles")
+      .select("user_id")
+      .ilike("business_name", `%${search}%`)
+      .limit(100);
+
+    const matchingUmkmIds = (matchingUmkms ?? []).map((item) => item.user_id);
+    const filters = [`title.ilike.%${search}%`];
+    if (matchingUmkmIds.length > 0) {
+      filters.push(`umkm_id.in.(${matchingUmkmIds.join(",")})`);
+    }
+    jobsQuery = jobsQuery.or(filters.join(","));
   }
 
-  if (jobs.length === 0) return [];
+  const location = query.location?.trim();
+  if (location) {
+    jobsQuery = jobsQuery.ilike("location", `%${location}%`);
+  }
+
+  const types = (query.types ?? []).map(normalizeEmploymentType).filter(Boolean);
+  if (types.length > 0) {
+    jobsQuery = jobsQuery.in("employment_type", types);
+  }
+
+  if (query.sortBy === "salary") {
+    jobsQuery = jobsQuery.order("salary_max", { ascending: false, nullsFirst: false });
+  } else {
+    jobsQuery = jobsQuery.order("published_at", { ascending: false, nullsFirst: false });
+  }
+
+  const { data: jobsData, error: jobsError, count } = await jobsQuery.range(from, to);
+
+  if (jobsError || !jobsData) {
+    console.error("Error fetching jobs:", jobsError);
+    return { items: [], total: 0, page, pageSize, totalPages: 0 };
+  }
+
+  const jobs = jobsData as WorkerLowonganJobRow[];
+
+  if (jobs.length === 0) return { items: [], total: count ?? 0, page, pageSize, totalPages: Math.ceil((count ?? 0) / pageSize) };
 
   // Ambil data umkm terkait
   const umkmIds = Array.from(new Set(jobs.map(j => j.umkm_id)));
@@ -122,7 +191,7 @@ export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
 
   const savedSet = new Set((savedJobs || []).map((item) => item.job_id));
 
-  return jobs.map(job => {
+  const items = jobs.map(job => {
     const umkm = umkmMap.get(job.umkm_id);
     return {
       id: job.id,
@@ -141,6 +210,9 @@ export async function getWorkerLowonganData(): Promise<WorkerLowongan[]> {
       experience_required: job.experience_required ?? null,
     };
   });
+
+  const total = count ?? items.length;
+  return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
 }
 
 export async function getWorkerSavedLowonganData(): Promise<WorkerLowongan[]> {
