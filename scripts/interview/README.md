@@ -16,6 +16,31 @@ python3 scripts/interview/import_dirty_excel_to_supabase.py --dry-run
 python3 scripts/interview/import_dirty_excel_to_supabase.py --commit
 ```
 
+## FastAPI lokal dari file Excel kotor
+
+Skenario ini **berbeda** dari Excel ke SQL. API ini hanya membaca file Excel kotor secara lokal, melakukan parsing/cleansing di memory, lalu mengembalikan hasilnya sebagai JSON.
+
+Install dependency dan jalankan server lokal:
+
+```bash
+python3 -m venv .venv_interview
+.venv_interview/bin/python -m pip install -r scripts/interview/requirements.txt
+.venv_interview/bin/uvicorn scripts.interview.excel_api:app --host 127.0.0.1 --port 8008 --reload
+```
+
+Endpoint demo:
+
+```bash
+curl http://127.0.0.1:8008/health
+curl http://127.0.0.1:8008/excel/summary
+curl "http://127.0.0.1:8008/excel/raw/raw_jobs?limit=5"
+curl "http://127.0.0.1:8008/excel/clean/jobs?limit=5"
+curl "http://127.0.0.1:8008/excel/rejects"
+curl http://127.0.0.1:8008/excel/payload
+```
+
+Local-only guard aktif: request dari host selain `127.0.0.1`, `::1`, atau `localhost` akan ditolak `403`.
+
 Untuk `--commit`, siapkan environment variable:
 
 ```bash
